@@ -1,0 +1,19 @@
+plugins {
+    id "application"
+}
+apply plugin : "java" 
+ext {
+   javaMainClass = "main.java.stocks.StockReader"
+}
+
+application {
+    mainClassName = javaMainClass
+}
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+}
