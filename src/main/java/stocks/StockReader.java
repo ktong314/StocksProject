@@ -9,10 +9,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
  
 public class StockReader {
-    private static final String REQUEST_URL = "https://api.twelvedata.com/time_series?symbol=TSLA&interval=1min&outputsize=12&apikey=e62aab1c906045bdb4eb84f23b6e3bbe";
+	
+    private static final String API_KEY = "e62aab1c906045bdb4eb84f23b6e3bbe";
  
     public static void main(String[] args) throws Exception {
-        URL requestURL = new URL(REQUEST_URL);
+    	System.out.println("input ticker:");
+    	Scanner in = new Scanner(System.in);
+    	String ticker = in.next().toUpperCase();
+    	String interval = "1day";
+    	String outputsize = "12";
+    	String URL_request = "https://api.twelvedata.com/time_series?symbol=" + ticker + "&interval=" + interval 
+    			+ "&outputsize=" + outputsize + "&apikey=" + API_KEY;
+        URL requestURL = new URL(URL_request);
         HttpURLConnection connection = (HttpURLConnection)requestURL.openConnection();
         StringBuffer responseData = new StringBuffer();
         JSONParser parser = new JSONParser();
@@ -29,10 +37,15 @@ public class StockReader {
         while (scanner.hasNextLine()) {
             responseData.append(scanner.nextLine());
         }
+        
+        System.out.println(responseData);
  
         JSONObject json = (JSONObject) parser.parse(responseData.toString());
         JSONObject meta = (JSONObject) json.get("meta");
         JSONArray values = (JSONArray) json.get("values");
+        
+        System.out.println("meta:" + meta);
+        System.out.println("values: " + values.toString());
        
         connection.disconnect();
     }
