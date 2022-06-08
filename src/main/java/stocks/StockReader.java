@@ -1,31 +1,35 @@
 package main.java.stocks;
 
-import org.json.simple.*;
-import org.json.simple.parser.JSONParser;
+
+import java.io.File;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.net.HttpURLConnection;
-import java.net.URL;
- 
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+
 public class StockReader {
+	public static ArrayList<StockObject> stocks = new ArrayList<StockObject>();
+	public static File tickerFile = new File("Tickers.txt");
 	
-    private static final String API_KEY = "e62aab1c906045bdb4eb84f23b6e3bbe";
-    private static ArrayList<StockObject> stocks = new ArrayList<StockObject>();
- 
-    public static void main(String[] args) throws Exception {
-    	
-    	while(true){
-    		System.out.println("input ticker:");
-        	Scanner in = new Scanner(System.in);
-        	String ticker = in.next().toUpperCase();
-        	if(ticker.equals("000")) {
-        		break;
-        	}
-    		String interval = "1min";
-        	String outputsize = "3";
-        	String TimeSeriesURL = "https://api.twelvedata.com/time_series?symbol=" + ticker + "&interval=" + interval 
-        			+ "&outputsize=" + outputsize + "&apikey=" + API_KEY;
+	public static void start() throws Exception {
+		obtainTimeSeries();
+	}
+	
+	public static void obtainTimeSeries() throws Exception {
+		
+		Scanner in = new Scanner(tickerFile);
+		
+		while(in.hasNextLine()){
+    		
+        	String ticker = in.nextLine().toUpperCase();
+        	String TimeSeriesURL = "https://api.twelvedata.com/time_series?symbol=" + ticker + "&interval=" + Config.INTERVAL 
+        			+ "&outputsize=" + Config.OUTPUT_SIZE + "&apikey=" + Config.API_KEY;
             URL tsRequest = new URL(TimeSeriesURL);
             HttpURLConnection connection = (HttpURLConnection)tsRequest.openConnection();
             StringBuffer responseData = new StringBuffer();
@@ -59,17 +63,7 @@ public class StockReader {
             	tsData.add(tsValue);
             }
             
-            String DividendURL = "https://api.twelvedata.com/dividends?symbol=" + ticker + "&apikey=" + API_KEY;
-            URL divRequest = new URL(DividendURL);
-            connection = (HttpURLConnection)divRequest.openConnection();
-            responseData = new StringBuffer();
-            
-            scanner = new Scanner(divRequest.openStream());
-            while (scanner.hasNextLine()) {
-                responseData.append(scanner.nextLine());
-            }
-            
-            System.out.println(responseData);
+           
             
             StockObject Stock = new StockObject((String)meta.get("symbol"), tsData);
             stocks.add(Stock);
@@ -77,9 +71,8 @@ public class StockReader {
            
             connection.disconnect();
     	}
-    	for(int i = 0; i < stocks.size(); i++) {
+		for(int i = 0; i < stocks.size(); i++) {
     		System.out.println(stocks.get(i));
     	}
-    	
-    }
+	}
 }
