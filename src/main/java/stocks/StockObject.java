@@ -16,7 +16,7 @@ public class StockObject {
 		return ticker;
 	}
 	
-	public ArrayList<TimeSeries> getValues() {
+	public ArrayList<TimeSeries> getTSValues() {
 		return tsData;
 	}
 	

@@ -15,6 +15,26 @@ public class TimeSeries {
 		this.low = low;
 	}
 	
+	public String getTime() {
+		return time;
+	}
+	
+	public double getOpen() {
+		return open;
+	}
+	
+	public double getClose() {
+		return close;
+	}
+	
+	public double getHigh() {
+		return high;
+	}
+	
+	public double getLow() {
+		return low;
+	}
+	
 	public String toString() {
 		return "date and time: " + this.time + ", " +
 				"open: " + this.open + ", " +
