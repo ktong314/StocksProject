@@ -16,11 +16,21 @@ import org.json.simple.parser.JSONParser;
 
 import com.opencsv.CSVWriter;
 
-
+/**
+ * This represents a component that can reead the input sticker codes
+ * and query their information from the external API.
+ * 
+ * @author Kevin Tong
+ *
+ */
 public class StockReader {
 	public static ArrayList<StockObject> stocks = new ArrayList<StockObject>();
 	public static File tickerFile = new File("Tickers.txt");
 	
+	/**
+	 * This is the entry point to process the input stickerts and extract the information.
+	 * @throws Exception   When the external API is down, or no input file was provided.
+	 */
 	public static void start() throws Exception {
 		obtainTimeSeries();
 		writeCSV();

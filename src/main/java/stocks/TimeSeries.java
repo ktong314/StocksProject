@@ -7,6 +7,15 @@ public class TimeSeries {
 	private double high;
 	private double low;
 	
+	/**
+	 * Constructor of a time series.
+	 * 
+	 * @param time		The representation of the date.
+	 * @param open		The opening value of the date
+	 * @param close		The value at the closing.
+	 * @param high
+	 * @param low
+	 */
 	public TimeSeries (String time, double open, double close, double high, double low) {
 		this.time = time;
 		this.open = open;
