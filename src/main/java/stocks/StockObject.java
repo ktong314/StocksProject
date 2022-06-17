@@ -1,4 +1,4 @@
-package main.java.stocks;
+package stocks;
 
 import java.util.ArrayList;
 

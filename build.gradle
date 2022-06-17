@@ -2,8 +2,10 @@ plugins {
     id "application"
 }
 apply plugin : "java" 
+apply plugin : "eclipse" 
+
 ext {
-   javaMainClass = "main.java.stocks.Main"
+   javaMainClass = "stocks.Main"
 }
 
 application {
@@ -11,11 +13,11 @@ application {
 }
 
 repositories {
-	jcenter()
+	mavenCentral()
 }
 
 dependencies {
-	compile group: 'com.opencsv', name: 'opencsv', version: '5.6'
+	implementation group: 'com.opencsv', name: 'opencsv', version: '5.6'
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 }

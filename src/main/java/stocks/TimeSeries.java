@@ -1,4 +1,4 @@
-package main.java.stocks;
+package stocks;
 
 public class TimeSeries {
 	private String time;
