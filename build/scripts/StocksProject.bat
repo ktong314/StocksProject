@@ -67,11 +67,11 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\StocksProject.jar;%APP_HOME%\lib\json-simple-1.1.1.jar;%APP_HOME%\lib\junit-4.10.jar;%APP_HOME%\lib\hamcrest-core-1.1.jar
+set CLASSPATH=%APP_HOME%\lib\StocksProject.jar;%APP_HOME%\lib\opencsv-5.6.jar;%APP_HOME%\lib\json-simple-1.1.1.jar;%APP_HOME%\lib\commons-text-1.9.jar;%APP_HOME%\lib\commons-lang3-3.12.0.jar;%APP_HOME%\lib\commons-beanutils-1.9.4.jar;%APP_HOME%\lib\commons-collections4-4.4.jar;%APP_HOME%\lib\junit-4.10.jar;%APP_HOME%\lib\commons-logging-1.2.jar;%APP_HOME%\lib\commons-collections-3.2.2.jar;%APP_HOME%\lib\hamcrest-core-1.1.jar
 
 
 @rem Execute StocksProject
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %STOCKS_PROJECT_OPTS%  -classpath "%CLASSPATH%" main.java.stocks.StockReader %*
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %STOCKS_PROJECT_OPTS%  -classpath "%CLASSPATH%" stocks.Main %*
 
 :end
 @rem End local scope for the variables with windows NT shell
