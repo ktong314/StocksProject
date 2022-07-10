@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="stocks.ClientTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2022-06-17T23:20:04" hostname="LAPTOP-O65IJ8F6" time="0.02">
+<testsuite name="stocks.ClientTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2022-07-07T21:49:00" hostname="LAPTOP-O65IJ8F6" time="0.039">
   <properties/>
-  <testcase name="testGetInterva_DefaultValuel()" classname="stocks.ClientTest" time="0.016"/>
-  <testcase name="testGetOutputSize_NoPropProvided()" classname="stocks.ClientTest" time="0.0"/>
-  <testcase name="testGetOutputSize_NonDefaultValue()" classname="stocks.ClientTest" time="0.001"/>
-  <testcase name="testGetOutputSize_DefaultValuel()" classname="stocks.ClientTest" time="0.0"/>
+  <testcase name="testGetInterva_DefaultValuel()" classname="stocks.ClientTest" time="0.032"/>
+  <testcase name="testGetOutputSize_NoPropProvided()" classname="stocks.ClientTest" time="0.001"/>
+  <testcase name="testGetOutputSize_NonDefaultValue()" classname="stocks.ClientTest" time="0.002"/>
+  <testcase name="testGetOutputSize_DefaultValuel()" classname="stocks.ClientTest" time="0.001"/>
   <testcase name="testGetOutputSize_aPropProvided()" classname="stocks.ClientTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
