@@ -30,6 +30,10 @@ public class StockReader {
 	 * an arraylist of StockObjects
 	 */
 	public static ArrayList<StockObject> stocks = new ArrayList<StockObject>();
+	/**
+	 * an output String
+	 */
+	public static String output = "Data Loading..."; 
 	private static File tickerFile = new File("Tickers.txt");
 	
 	/**
@@ -58,9 +62,11 @@ public class StockReader {
 	    		limiter++;
 	    	}
 		}
+		output = "";
 		for(int i = 0; i < stocks.size(); i++) {
-    		System.out.println(stocks.get(i));
+    		output = output + (stocks.get(i)) + "\n";
     	}
+		System.out.println(output);
 	}
 	
 	/**
@@ -121,9 +127,8 @@ public class StockReader {
 	 */
 	public static void writeCSV() {
 		File file = new File("output.csv");
-		try {
-			FileWriter outputfile = new FileWriter(file);
-			CSVWriter writer = new CSVWriter(outputfile);
+		try (FileWriter outputfile = new FileWriter(file); CSVWriter writer = new CSVWriter(outputfile)){
+			
 			String[] header = { "Ticker", "Date/Time", "Open", "Close", "High", "Low" };
 			writer.writeNext(header);
 			for(int i = 0; i < stocks.size(); i++) {
@@ -135,8 +140,7 @@ public class StockReader {
 	    			writer.writeNext(data);
 	    		}
 	    	}
-			outputfile.close();
-			writer.close();
+		
 			
 			
 		} catch (IOException e) {
