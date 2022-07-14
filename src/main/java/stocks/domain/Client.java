@@ -1,4 +1,4 @@
-package stocks;
+package stocks.domain;
 
 import java.io.File;
 import java.io.FileReader;
@@ -51,7 +51,7 @@ public class Client {
 	 * if the read props are null the interval and outputsize are made to be default
 	 * @param props			read properties from config.properties
 	 */
-	void readExtProps(Properties props) {
+	public void readExtProps(Properties props) {
 		this.interval = props.getProperty("interval") !=null? props.getProperty("interval") : interval;
 		this.outputsize = props.getProperty("outputsize") != null? props.getProperty("outputsize") : outputsize;
 	}

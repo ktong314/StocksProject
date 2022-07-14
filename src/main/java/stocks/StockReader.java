@@ -18,6 +18,10 @@ import org.json.simple.parser.JSONParser;
 
 import com.opencsv.CSVWriter;
 
+import stocks.domain.Client;
+import stocks.domain.StockObject;
+import stocks.domain.TimeSeries;
+
 /**
  * This represents a component that can reead the input sticker codes
  * and query their information from the external API.
@@ -56,7 +60,7 @@ public class StockReader {
 			while(in.hasNextLine()){
 				String ticker = in.nextLine().toUpperCase(Locale.getDefault());
 	    		obtainTimeSeries(ticker);
-	    		if(limiter%4 == 0) {
+	    		if(limiter%4 == 0 && in.hasNextLine()) {
 					TimeUnit.MINUTES.sleep(1);
 				}
 	    		limiter++;
@@ -100,7 +104,6 @@ public class StockReader {
         scanner.close();
         System.out.println(responseData);
         
- 
         JSONObject json = (JSONObject) parser.parse(responseData.toString());
         JSONObject meta = (JSONObject) json.get("meta");
         JSONArray values = (JSONArray) json.get("values");
@@ -133,8 +136,8 @@ public class StockReader {
 			writer.writeNext(header);
 			for(int i = 0; i < stocks.size(); i++) {
 	    		StockObject current = stocks.get(i);
-	    		for(int j = 0; j < current.getTSValues().size(); j++) {
-	    			TimeSeries currentData = current.getTSValues().get(j);
+	    		for(int j = 0; j < current.getTsData().size(); j++) {
+	    			TimeSeries currentData = current.getTsData().get(j);
 	    			String[] data = {current.getTicker(), currentData.getTime() + "", currentData.getOpen() + "", currentData.getClose() + "",
 	    					currentData.getHigh() + "", currentData.getLow() + ""};
 	    			writer.writeNext(data);

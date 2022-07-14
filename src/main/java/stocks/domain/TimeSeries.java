@@ -1,10 +1,13 @@
-package stocks;
+package stocks.domain;
+
+import javax.persistence.Embeddable;
 
 /**
  * A class that records a specific Time Series data
  * @author ktong
  *
  */
+@Embeddable
 public class TimeSeries {
 	private transient String time;
 	private transient double open;

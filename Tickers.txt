@@ -2,4 +2,3 @@ AMZN
 TSLA
 F
 GOOG
-

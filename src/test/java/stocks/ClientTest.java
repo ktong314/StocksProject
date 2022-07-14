@@ -7,6 +7,7 @@ import java.util.Properties;
 import org.junit.jupiter.api.Test;
 
 import junit.framework.Assert;
+import stocks.domain.Client;
 
 class ClientTest {
 
