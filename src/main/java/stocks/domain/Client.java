@@ -12,9 +12,9 @@ import java.util.Properties;
  *
  */
 public class Client {
-	private transient String interval = "1day"; 
-	private transient String outputsize = "5";
-	private transient File configFile = new File("config.properties");
+	private String interval = "1day"; 
+	private String outputsize = "5";
+	private File configFile = new File("config.properties");
 	
 	/**
 	 * Client constructor

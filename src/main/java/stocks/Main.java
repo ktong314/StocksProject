@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import stocks.domain.Product;
 import stocks.domain.StockObject;
+import stocks.domain.TimeSeries;
 import stocks.repository.ProductRepository;
 import stocks.repository.StockRepository;
+import stocks.repository.TimeSeriesRepository;
 
 
  /**
@@ -58,13 +60,29 @@ public class Main {
     }
     
     @Bean
-    CommandLineRunner stockRunner(StockRepository stockRepository) {
+    CommandLineRunner stockRunner(StockRepository stockRepository, TimeSeriesRepository timeSeriesRepository) {
 		return args -> {
+			StockObject stock = new StockObject("GOOG");
+			
+			stockRepository.save(stock);
+			
+			stock = stockRepository.findByTicker("GOOG");
+			
+			timeSeriesRepository.save(new TimeSeries("2022/7/12", 34.501, 12, 123, 12, stock));
+			timeSeriesRepository.save(new TimeSeries("2022/7/13", 34.501, 12, 123, 12, stock));
+			timeSeriesRepository.save(new TimeSeries("2022/7/14", 34.501, 12, 123, 12, stock));
 			
 			for(int i = 0; i < StockReader.stocks.size(); i++) {
-				StockObject currentStockObj = StockReader.stocks.get(i);
-	    		stockRepository.save(new StockObject(currentStockObj.getTicker(), currentStockObj.getTsData()));
-	    	}
+				StockObject currentStock = StockReader.stocks.get(i);
+				stockRepository.save(currentStock);
+				currentStock = stockRepository.findByTicker(currentStock.getTicker());
+				for(int j = 0; j < currentStock.getTimeSeries().size(); j++) {
+					TimeSeries currentTimeSeries = currentStock.getTimeSeries().get(j);
+					TimeSeries newTimeSeries = new TimeSeries(currentTimeSeries.getTime(),currentTimeSeries.getopenPrice(), 
+							currentTimeSeries.getclosePrice(), currentTimeSeries.gethighPrice(), currentTimeSeries.getlowPrice(), currentStock);
+					timeSeriesRepository.save(newTimeSeries);
+				}
+			}
 			
 		};
     	

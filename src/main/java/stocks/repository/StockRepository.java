@@ -7,5 +7,5 @@ import stocks.domain.StockObject;
 @Repository
 public interface StockRepository extends JpaRepository<StockObject, Long>{
 
-
+	StockObject findByTicker(String ticker);
 }

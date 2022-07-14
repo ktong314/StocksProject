@@ -136,10 +136,10 @@ public class StockReader {
 			writer.writeNext(header);
 			for(int i = 0; i < stocks.size(); i++) {
 	    		StockObject current = stocks.get(i);
-	    		for(int j = 0; j < current.getTsData().size(); j++) {
-	    			TimeSeries currentData = current.getTsData().get(j);
-	    			String[] data = {current.getTicker(), currentData.getTime() + "", currentData.getOpen() + "", currentData.getClose() + "",
-	    					currentData.getHigh() + "", currentData.getLow() + ""};
+	    		for(int j = 0; j < current.getTimeSeries().size(); j++) {
+	    			TimeSeries currentData = current.getTimeSeries().get(j);
+	    			String[] data = {current.getTicker(), currentData.getTime() + "", currentData.getopenPrice() + "", currentData.getclosePrice() + "",
+	    					currentData.gethighPrice() + "", currentData.getlowPrice() + ""};
 	    			writer.writeNext(data);
 	    		}
 	    	}

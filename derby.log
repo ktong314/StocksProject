@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Wed Jul 13 16:46:33 CDT 2022:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0181-f987-2554-000003c47e00 
+Thu Jul 14 15:43:07 CDT 2022:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0181-fe73-6f66-000002535ec8 
 on database directory C:\Users\ktong\eclipse-workspace\StocksProject\local with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@70dea4e 
 Loaded from file:/C:/Users/ktong/.gradle/caches/modules-2/files-2.1/org.apache.derby/derby/10.14.2.0/7efad40ef52fbb1f08142f07a83b42d29e47d8ce/derby-10.14.2.0.jar
 java.vendor=Azul Systems, Inc.

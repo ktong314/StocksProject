@@ -1,36 +1,85 @@
 package stocks.domain;
 
-import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * A class that records a specific Time Series data
  * @author ktong
  *
  */
-@Embeddable
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class TimeSeries {
-	private transient String time;
-	private transient double open;
-	private transient double close;
-	private transient double high;
-	private transient double low;
+	
+	
+	@Id
+	@GeneratedValue
+	private long id;
+	
+	private String time;
+	private double openPrice;
+	private double closePrice;
+	private double highPrice;
+	private double lowPrice;
+	
+	
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "stock_id", nullable = false)
+	private StockObject stock;
+	
+	public TimeSeries() {}
 	
 	/**
 	 * Constructor of a time series.
 	 * 
 	 * @param time		The representation of the date.
-	 * @param open		The opening value of the date
-	 * @param close		The value at the closing.
-	 * @param high		The highest value during the time period	
-	 * @param low		the lowest value during the time period
+	 * @param openPrice		The openPriceing value of the date
+	 * @param closePrice		The value at the closing.
+	 * @param highPrice		The highPriceest value during the time period	
+	 * @param lowPrice		the lowPriceest value during the time period
 	 */
-	public TimeSeries (String time, double open, double close, double high, double low) {
+	public TimeSeries (String time, double openPrice, double closePrice, double highPrice, double lowPrice, StockObject stock) {
 		this.time = time;
-		this.open = open;
-		this.close = close;
-		this.high = high;
-		this.low = low;
+		this.openPrice = openPrice;
+		this.closePrice = closePrice;
+		this.highPrice = highPrice;
+		this.lowPrice = lowPrice;
+		this.stock = stock;
 	}
+	
+	/**
+	 * Constructor of a time series.
+	 * 
+	 * @param time		The representation of the date.
+	 * @param openPrice		The openPriceing value of the date
+	 * @param closePrice		The value at the closing.
+	 * @param highPrice		The highPriceest value during the time period	
+	 * @param lowPrice		the lowPriceest value during the time period
+	 */
+	public TimeSeries (String time, double openPrice, double closePrice, double highPrice, double lowPrice) {
+		this.time = time;
+		this.openPrice = openPrice;
+		this.closePrice = closePrice;
+		this.highPrice = highPrice;
+		this.lowPrice = lowPrice;
+	}
+	
+	public Long getId() {
+		return id;
+	}
+	
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
 	
 	/**
 	 * returns date and time
@@ -41,35 +90,35 @@ public class TimeSeries {
 	}
 	
 	/**
-	 * returns open
-	 * @return open
+	 * returns openPrice
+	 * @return openPrice
 	 */
-	public double getOpen() {
-		return open;
+	public double getopenPrice() {
+		return openPrice;
 	}
 	
 	/**
-	 * returns close
-	 * @return close
+	 * returns closePrice
+	 * @return closePrice
 	 */
-	public double getClose() {
-		return close;
+	public double getclosePrice() {
+		return closePrice;
 	}
 	
 	/**
-	 * returns high
-	 * @return high
+	 * returns highPrice
+	 * @return highPrice
 	 */
-	public double getHigh() {
-		return high;
+	public double gethighPrice() {
+		return highPrice;
 	}
 	
 	/**
-	 * returns low
-	 * @return low
+	 * returns lowPrice
+	 * @return lowPrice
 	 */
-	public double getLow() {
-		return low;
+	public double getlowPrice() {
+		return lowPrice;
 	}
 	
 	/**
@@ -77,9 +126,9 @@ public class TimeSeries {
 	 */
 	public String toString() {
 		return "date and time: " + this.time + ", " +
-				"open: " + this.open + ", " +
-				"close: " + this.close + ", " +
-				"high: " + this.high + ", " +
-				"low: " + this.low + "\n";
+				"openPrice: " + this.openPrice + ", " +
+				"closePrice: " + this.closePrice + ", " +
+				"highPrice: " + this.highPrice + ", " +
+				"lowPrice: " + this.lowPrice + "\n";
 	}
 }
