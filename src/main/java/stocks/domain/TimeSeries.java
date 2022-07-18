@@ -1,5 +1,7 @@
 package stocks.domain;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -17,9 +19,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class TimeSeries {
+public class TimeSeries{
 	
 	
+
 	@Id
 	@GeneratedValue
 	private long id;
@@ -78,6 +81,10 @@ public class TimeSeries {
 	
 	public void setId(Long id) {
 		this.id = id;
+	}
+	
+	public StockObject getStock() {
+		return stock;
 	}
 	
 	

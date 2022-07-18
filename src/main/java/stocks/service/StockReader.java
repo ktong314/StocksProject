@@ -1,4 +1,4 @@
-package stocks;
+package stocks.service;
 
 
 import java.io.File;
@@ -18,6 +18,7 @@ import org.json.simple.parser.JSONParser;
 
 import com.opencsv.CSVWriter;
 
+import stocks.Main;
 import stocks.domain.Client;
 import stocks.domain.StockObject;
 import stocks.domain.TimeSeries;
@@ -29,7 +30,7 @@ import stocks.domain.TimeSeries;
  * @author Kevin Tong
  *
  */
-public class StockReader {
+public class StockReader{
 	/**
 	 * an arraylist of StockObjects
 	 */

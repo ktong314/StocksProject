@@ -8,4 +8,5 @@ import stocks.domain.StockObject;
 public interface StockRepository extends JpaRepository<StockObject, Long>{
 
 	StockObject findByTicker(String ticker);
+	long deleteByTicker(String ticker);
 }

@@ -13,6 +13,7 @@ import stocks.domain.TimeSeries;
 import stocks.repository.ProductRepository;
 import stocks.repository.StockRepository;
 import stocks.repository.TimeSeriesRepository;
+import stocks.service.StockReader;
 
 
  /**
@@ -35,49 +36,40 @@ public class Main {
 	 * @throws Exception		whenever exceptions are thrown within the StockReader class
 	 */
     public static void main(String[] args) throws Exception {
-    	StockReader.start();
+    	//StockReader.start();
     	SpringApplication.run(Main.class, args);
     }
     
-    @Bean
-    CommandLineRunner runner(ProductRepository productRepository) {
-		return args -> {
-			
-			Product product1 = new Product("Xbox 360");
-			product1.setPrice(323);
-			productRepository.save(product1);
-			
-			Product product2 = new Product("Wii");
-			product2.setPrice(124);
-			productRepository.save(product2);
-			
-			Product product3 = new Product("Chess");
-			product3.setPrice(24);
-			productRepository.save(product3);
-			
-		};
-    	
-    }
-    
+//    @Bean
+//    CommandLineRunner runner(ProductRepository productRepository) {
+//		return args -> {
+//			
+//			Product product1 = new Product("Xbox 360");
+//			product1.setPrice(323);
+//			productRepository.save(product1);
+//			
+//			Product product2 = new Product("Wii");
+//			product2.setPrice(124);
+//			productRepository.save(product2);
+//			
+//			Product product3 = new Product("Chess");
+//			product3.setPrice(24);
+//			productRepository.save(product3);
+//			
+//		};
+//    	
+//    }
+//    
     @Bean
     CommandLineRunner stockRunner(StockRepository stockRepository, TimeSeriesRepository timeSeriesRepository) {
 		return args -> {
-			StockObject stock = new StockObject("GOOG");
-			
-			stockRepository.save(stock);
-			
-			stock = stockRepository.findByTicker("GOOG");
-			
-			timeSeriesRepository.save(new TimeSeries("2022/7/12", 34.501, 12, 123, 12, stock));
-			timeSeriesRepository.save(new TimeSeries("2022/7/13", 34.501, 12, 123, 12, stock));
-			timeSeriesRepository.save(new TimeSeries("2022/7/14", 34.501, 12, 123, 12, stock));
 			
 			for(int i = 0; i < StockReader.stocks.size(); i++) {
-				StockObject currentStock = StockReader.stocks.get(i);
-				stockRepository.save(currentStock);
-				currentStock = stockRepository.findByTicker(currentStock.getTicker());
-				for(int j = 0; j < currentStock.getTimeSeries().size(); j++) {
-					TimeSeries currentTimeSeries = currentStock.getTimeSeries().get(j);
+				StockObject currentStock = new StockObject(StockReader.stocks.get(i).getTicker());
+				currentStock = stockRepository.save(currentStock);
+				//currentStock = stockRepository.findByTicker(currentStock.getTicker());
+				for(int j = 0; j < StockReader.stocks.get(i).getTimeSeries().size(); j++) {
+					TimeSeries currentTimeSeries = StockReader.stocks.get(i).getTimeSeries().get(j);
 					TimeSeries newTimeSeries = new TimeSeries(currentTimeSeries.getTime(),currentTimeSeries.getopenPrice(), 
 							currentTimeSeries.getclosePrice(), currentTimeSeries.gethighPrice(), currentTimeSeries.getlowPrice(), currentStock);
 					timeSeriesRepository.save(newTimeSeries);
@@ -85,7 +77,7 @@ public class Main {
 			}
 			
 		};
-    	
+    
     }
     
   
