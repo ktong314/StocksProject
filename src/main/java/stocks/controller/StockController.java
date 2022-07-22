@@ -37,7 +37,7 @@ public class StockController {
 		stockService = new StockService(stockRepository);
 	}
 	
-	@PostMapping("newstocks")
+	@PostMapping("/newstocks")
 	public List<StockObject> postStocks(@RequestBody String[] tickers){
 		return stockService.createStocks(tickers);
 	}

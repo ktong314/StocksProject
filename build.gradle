@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '2.7.1'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'application'
+	id "com.github.node-gradle.node" version "3.0.1"
 }
 apply plugin : "java" 
 apply plugin : "eclipse" 
@@ -45,3 +46,21 @@ test {
         events "passed", "skipped", "failed"
     }
 }
+
+node {
+    version = '14.15.5'
+}
+
+task buildReactApp(type: NodeTask, dependsOn: 'npmInstall') {
+    script = project.file('node_modules/webpack/bin/webpack.js')
+    args = [
+            '--mode', 'development',
+            '--entry', './src/main/webapp/index.js',
+            '-o', './src/main/resources/static/dist'
+    ]
+}
+
+processResources.dependsOn 'buildReactApp'
+clean.delete << file('node_modules')
+clean.delete << file('src/main/resources/static/dist')
+
