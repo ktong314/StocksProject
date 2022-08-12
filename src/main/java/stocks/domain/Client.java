@@ -12,7 +12,7 @@ import java.util.Properties;
  *
  */
 public class Client {
-	private String interval = "1day"; 
+	private String interval = "1min"; 
 	private String outputsize = "5";
 	private File configFile = new File("config.properties");
 	

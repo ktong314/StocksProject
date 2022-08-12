@@ -3,6 +3,7 @@ package stocks.service;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -28,20 +29,54 @@ public class TimeSeriesService {
 		this.stockRepository = stockRepository;
 	}
 	
-	public List<TimeSeries> createTimeSeries() throws Exception{
-		List<StockObject> stocks = stockRepository.findAll();
+	public void deleteTimeSeriesByStocks(String[] tickers) {
+		for(String ticker : tickers) {
+			StockObject stock = stockRepository.findByTicker(ticker);
+			if(stock != null){
+				List<TimeSeries> ts = timeSeriesRepository.findByStock(stock);
+				for(TimeSeries timeSeries: ts) {
+					timeSeriesRepository.deleteById(timeSeries.getId());
+				}
+			
+				stockRepository.deleteById(stock.getId());
+
+			}
+			
+		}
+	}
+
+	public List<TimeSeries> fetchStocks(String[] tickers) throws Exception{
+		List<TimeSeries> result= new ArrayList<TimeSeries>();
+
+		List<TimeSeries> timeSeries = createTimeSeries(tickers);
+		for(String ticker : tickers){
+			StockObject stock = stockRepository.findByTicker(ticker);
+			if(stockRepository.findByTicker(ticker) != null){
+				List<TimeSeries> ts = timeSeriesRepository.findByStock(stock);
+				result.addAll(ts);
+			}
+		}
+		return result;
+	}
+
+
+	public List<TimeSeries> createTimeSeries(String[] tickers) throws Exception{
+
 		try {
 			int counter = 1; //NOPMD
-			for(StockObject currentStock : stocks){
-				String ticker = currentStock.getTicker();
-	    		obtainTimeSeries(ticker, currentStock);
-	    		if(counter%4 == 0 && counter < stocks.size()) {
+			for(String ticker : tickers){
+				StockObject stock = stockRepository.findByTicker(ticker);
+				if(stock == null){
+					stock = stockRepository.save(new StockObject(ticker));
+				}
+	    		obtainTimeSeries(ticker, stock);
+	    		if(counter%4 == 0 && counter < tickers.length) {
 					TimeUnit.MINUTES.sleep(1);
 				}
 	    		counter++;
 	    	}
 		} catch (Exception e) {
-			System.out.println("error");
+			System.out.println(e);
 		}
 		return timeSeriesRepository.findAll();
 	}

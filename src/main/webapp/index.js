@@ -2,12 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import StockDetailManager from './StockDetailManager';
+import LoginPage from './LoginPage'
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <StockDetailManager title = "Client" />
+    <LoginPage />
   </React.StrictMode>
 );
 

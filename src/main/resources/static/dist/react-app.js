@@ -1,6 +1,12638 @@
 /******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "./node_modules/@emotion/cache/dist/emotion-cache.browser.esm.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/@emotion/cache/dist/emotion-cache.browser.esm.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _emotion_sheet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @emotion/sheet */ "./node_modules/@emotion/sheet/dist/emotion-sheet.browser.esm.js");
+/* harmony import */ var stylis__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! stylis */ "./node_modules/stylis/src/Tokenizer.js");
+/* harmony import */ var stylis__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! stylis */ "./node_modules/stylis/src/Utility.js");
+/* harmony import */ var stylis__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! stylis */ "./node_modules/stylis/src/Middleware.js");
+/* harmony import */ var stylis__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! stylis */ "./node_modules/stylis/src/Serializer.js");
+/* harmony import */ var stylis__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! stylis */ "./node_modules/stylis/src/Enum.js");
+/* harmony import */ var stylis__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! stylis */ "./node_modules/stylis/src/Parser.js");
+/* harmony import */ var _emotion_weak_memoize__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/weak-memoize */ "./node_modules/@emotion/weak-memoize/dist/emotion-weak-memoize.esm.js");
+/* harmony import */ var _emotion_memoize__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/memoize */ "./node_modules/@emotion/memoize/dist/emotion-memoize.esm.js");
+
+
+
+
+
+var last = function last(arr) {
+  return arr.length ? arr[arr.length - 1] : null;
+}; // based on https://github.com/thysultan/stylis.js/blob/e6843c373ebcbbfade25ebcc23f540ed8508da0a/src/Tokenizer.js#L239-L244
+
+
+var identifierWithPointTracking = function identifierWithPointTracking(begin, points, index) {
+  var previous = 0;
+  var character = 0;
+
+  while (true) {
+    previous = character;
+    character = (0,stylis__WEBPACK_IMPORTED_MODULE_3__.peek)(); // &\f
+
+    if (previous === 38 && character === 12) {
+      points[index] = 1;
+    }
+
+    if ((0,stylis__WEBPACK_IMPORTED_MODULE_3__.token)(character)) {
+      break;
+    }
+
+    (0,stylis__WEBPACK_IMPORTED_MODULE_3__.next)();
+  }
+
+  return (0,stylis__WEBPACK_IMPORTED_MODULE_3__.slice)(begin, stylis__WEBPACK_IMPORTED_MODULE_3__.position);
+};
+
+var toRules = function toRules(parsed, points) {
+  // pretend we've started with a comma
+  var index = -1;
+  var character = 44;
+
+  do {
+    switch ((0,stylis__WEBPACK_IMPORTED_MODULE_3__.token)(character)) {
+      case 0:
+        // &\f
+        if (character === 38 && (0,stylis__WEBPACK_IMPORTED_MODULE_3__.peek)() === 12) {
+          // this is not 100% correct, we don't account for literal sequences here - like for example quoted strings
+          // stylis inserts \f after & to know when & where it should replace this sequence with the context selector
+          // and when it should just concatenate the outer and inner selectors
+          // it's very unlikely for this sequence to actually appear in a different context, so we just leverage this fact here
+          points[index] = 1;
+        }
+
+        parsed[index] += identifierWithPointTracking(stylis__WEBPACK_IMPORTED_MODULE_3__.position - 1, points, index);
+        break;
+
+      case 2:
+        parsed[index] += (0,stylis__WEBPACK_IMPORTED_MODULE_3__.delimit)(character);
+        break;
+
+      case 4:
+        // comma
+        if (character === 44) {
+          // colon
+          parsed[++index] = (0,stylis__WEBPACK_IMPORTED_MODULE_3__.peek)() === 58 ? '&\f' : '';
+          points[index] = parsed[index].length;
+          break;
+        }
+
+      // fallthrough
+
+      default:
+        parsed[index] += (0,stylis__WEBPACK_IMPORTED_MODULE_4__.from)(character);
+    }
+  } while (character = (0,stylis__WEBPACK_IMPORTED_MODULE_3__.next)());
+
+  return parsed;
+};
+
+var getRules = function getRules(value, points) {
+  return (0,stylis__WEBPACK_IMPORTED_MODULE_3__.dealloc)(toRules((0,stylis__WEBPACK_IMPORTED_MODULE_3__.alloc)(value), points));
+}; // WeakSet would be more appropriate, but only WeakMap is supported in IE11
+
+
+var fixedElements = /* #__PURE__ */new WeakMap();
+var compat = function compat(element) {
+  if (element.type !== 'rule' || !element.parent || // positive .length indicates that this rule contains pseudo
+  // negative .length indicates that this rule has been already prefixed
+  element.length < 1) {
+    return;
+  }
+
+  var value = element.value,
+      parent = element.parent;
+  var isImplicitRule = element.column === parent.column && element.line === parent.line;
+
+  while (parent.type !== 'rule') {
+    parent = parent.parent;
+    if (!parent) return;
+  } // short-circuit for the simplest case
+
+
+  if (element.props.length === 1 && value.charCodeAt(0) !== 58
+  /* colon */
+  && !fixedElements.get(parent)) {
+    return;
+  } // if this is an implicitly inserted rule (the one eagerly inserted at the each new nested level)
+  // then the props has already been manipulated beforehand as they that array is shared between it and its "rule parent"
+
+
+  if (isImplicitRule) {
+    return;
+  }
+
+  fixedElements.set(element, true);
+  var points = [];
+  var rules = getRules(value, points);
+  var parentRules = parent.props;
+
+  for (var i = 0, k = 0; i < rules.length; i++) {
+    for (var j = 0; j < parentRules.length; j++, k++) {
+      element.props[k] = points[i] ? rules[i].replace(/&\f/g, parentRules[j]) : parentRules[j] + " " + rules[i];
+    }
+  }
+};
+var removeLabel = function removeLabel(element) {
+  if (element.type === 'decl') {
+    var value = element.value;
+
+    if ( // charcode for l
+    value.charCodeAt(0) === 108 && // charcode for b
+    value.charCodeAt(2) === 98) {
+      // this ignores label
+      element["return"] = '';
+      element.value = '';
+    }
+  }
+};
+var ignoreFlag = 'emotion-disable-server-rendering-unsafe-selector-warning-please-do-not-use-this-the-warning-exists-for-a-reason';
+
+var isIgnoringComment = function isIgnoringComment(element) {
+  return !!element && element.type === 'comm' && element.children.indexOf(ignoreFlag) > -1;
+};
+
+var createUnsafeSelectorsAlarm = function createUnsafeSelectorsAlarm(cache) {
+  return function (element, index, children) {
+    if (element.type !== 'rule') return;
+    var unsafePseudoClasses = element.value.match(/(:first|:nth|:nth-last)-child/g);
+
+    if (unsafePseudoClasses && cache.compat !== true) {
+      var prevElement = index > 0 ? children[index - 1] : null;
+
+      if (prevElement && isIgnoringComment(last(prevElement.children))) {
+        return;
+      }
+
+      unsafePseudoClasses.forEach(function (unsafePseudoClass) {
+        console.error("The pseudo class \"" + unsafePseudoClass + "\" is potentially unsafe when doing server-side rendering. Try changing it to \"" + unsafePseudoClass.split('-child')[0] + "-of-type\".");
+      });
+    }
+  };
+};
+
+var isImportRule = function isImportRule(element) {
+  return element.type.charCodeAt(1) === 105 && element.type.charCodeAt(0) === 64;
+};
+
+var isPrependedWithRegularRules = function isPrependedWithRegularRules(index, children) {
+  for (var i = index - 1; i >= 0; i--) {
+    if (!isImportRule(children[i])) {
+      return true;
+    }
+  }
+
+  return false;
+}; // use this to remove incorrect elements from further processing
+// so they don't get handed to the `sheet` (or anything else)
+// as that could potentially lead to additional logs which in turn could be overhelming to the user
+
+
+var nullifyElement = function nullifyElement(element) {
+  element.type = '';
+  element.value = '';
+  element["return"] = '';
+  element.children = '';
+  element.props = '';
+};
+
+var incorrectImportAlarm = function incorrectImportAlarm(element, index, children) {
+  if (!isImportRule(element)) {
+    return;
+  }
+
+  if (element.parent) {
+    console.error("`@import` rules can't be nested inside other rules. Please move it to the top level and put it before regular rules. Keep in mind that they can only be used within global styles.");
+    nullifyElement(element);
+  } else if (isPrependedWithRegularRules(index, children)) {
+    console.error("`@import` rules can't be after other rules. Please put your `@import` rules before your other rules.");
+    nullifyElement(element);
+  }
+};
+
+var defaultStylisPlugins = [stylis__WEBPACK_IMPORTED_MODULE_5__.prefixer];
+
+var createCache = function createCache(options) {
+  var key = options.key;
+
+  if ( true && !key) {
+    throw new Error("You have to configure `key` for your cache. Please make sure it's unique (and not equal to 'css') as it's used for linking styles to your cache.\n" + "If multiple caches share the same key they might \"fight\" for each other's style elements.");
+  }
+
+  if ( key === 'css') {
+    var ssrStyles = document.querySelectorAll("style[data-emotion]:not([data-s])"); // get SSRed styles out of the way of React's hydration
+    // document.head is a safe place to move them to(though note document.head is not necessarily the last place they will be)
+    // note this very very intentionally targets all style elements regardless of the key to ensure
+    // that creating a cache works inside of render of a React component
+
+    Array.prototype.forEach.call(ssrStyles, function (node) {
+      // we want to only move elements which have a space in the data-emotion attribute value
+      // because that indicates that it is an Emotion 11 server-side rendered style elements
+      // while we will already ignore Emotion 11 client-side inserted styles because of the :not([data-s]) part in the selector
+      // Emotion 10 client-side inserted styles did not have data-s (but importantly did not have a space in their data-emotion attributes)
+      // so checking for the space ensures that loading Emotion 11 after Emotion 10 has inserted some styles
+      // will not result in the Emotion 10 styles being destroyed
+      var dataEmotionAttribute = node.getAttribute('data-emotion');
+
+      if (dataEmotionAttribute.indexOf(' ') === -1) {
+        return;
+      }
+      document.head.appendChild(node);
+      node.setAttribute('data-s', '');
+    });
+  }
+
+  var stylisPlugins = options.stylisPlugins || defaultStylisPlugins;
+
+  if (true) {
+    // $FlowFixMe
+    if (/[^a-z-]/.test(key)) {
+      throw new Error("Emotion key must only contain lower case alphabetical characters and - but \"" + key + "\" was passed");
+    }
+  }
+
+  var inserted = {};
+  var container;
+  var nodesToHydrate = [];
+
+  {
+    container = options.container || document.head;
+    Array.prototype.forEach.call( // this means we will ignore elements which don't have a space in them which
+    // means that the style elements we're looking at are only Emotion 11 server-rendered style elements
+    document.querySelectorAll("style[data-emotion^=\"" + key + " \"]"), function (node) {
+      var attrib = node.getAttribute("data-emotion").split(' '); // $FlowFixMe
+
+      for (var i = 1; i < attrib.length; i++) {
+        inserted[attrib[i]] = true;
+      }
+
+      nodesToHydrate.push(node);
+    });
+  }
+
+  var _insert;
+
+  var omnipresentPlugins = [compat, removeLabel];
+
+  if (true) {
+    omnipresentPlugins.push(createUnsafeSelectorsAlarm({
+      get compat() {
+        return cache.compat;
+      }
+
+    }), incorrectImportAlarm);
+  }
+
+  {
+    var currentSheet;
+    var finalizingPlugins = [stylis__WEBPACK_IMPORTED_MODULE_6__.stringify,  true ? function (element) {
+      if (!element.root) {
+        if (element["return"]) {
+          currentSheet.insert(element["return"]);
+        } else if (element.value && element.type !== stylis__WEBPACK_IMPORTED_MODULE_7__.COMMENT) {
+          // insert empty rule in non-production environments
+          // so @emotion/jest can grab `key` from the (JS)DOM for caches without any rules inserted yet
+          currentSheet.insert(element.value + "{}");
+        }
+      }
+    } : 0];
+    var serializer = (0,stylis__WEBPACK_IMPORTED_MODULE_5__.middleware)(omnipresentPlugins.concat(stylisPlugins, finalizingPlugins));
+
+    var stylis = function stylis(styles) {
+      return (0,stylis__WEBPACK_IMPORTED_MODULE_6__.serialize)((0,stylis__WEBPACK_IMPORTED_MODULE_8__.compile)(styles), serializer);
+    };
+
+    _insert = function insert(selector, serialized, sheet, shouldCache) {
+      currentSheet = sheet;
+
+      if ( true && serialized.map !== undefined) {
+        currentSheet = {
+          insert: function insert(rule) {
+            sheet.insert(rule + serialized.map);
+          }
+        };
+      }
+
+      stylis(selector ? selector + "{" + serialized.styles + "}" : serialized.styles);
+
+      if (shouldCache) {
+        cache.inserted[serialized.name] = true;
+      }
+    };
+  }
+
+  var cache = {
+    key: key,
+    sheet: new _emotion_sheet__WEBPACK_IMPORTED_MODULE_0__.StyleSheet({
+      key: key,
+      container: container,
+      nonce: options.nonce,
+      speedy: options.speedy,
+      prepend: options.prepend,
+      insertionPoint: options.insertionPoint
+    }),
+    nonce: options.nonce,
+    inserted: inserted,
+    registered: {},
+    insert: _insert
+  };
+  cache.sheet.hydrate(nodesToHydrate);
+  return cache;
+};
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (createCache);
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/hash/dist/emotion-hash.esm.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/@emotion/hash/dist/emotion-hash.esm.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* eslint-disable */
+// Inspired by https://github.com/garycourt/murmurhash-js
+// Ported from https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash2.cpp#L37-L86
+function murmur2(str) {
+  // 'm' and 'r' are mixing constants generated offline.
+  // They're not really 'magic', they just happen to work well.
+  // const m = 0x5bd1e995;
+  // const r = 24;
+  // Initialize the hash
+  var h = 0; // Mix 4 bytes at a time into the hash
+
+  var k,
+      i = 0,
+      len = str.length;
+
+  for (; len >= 4; ++i, len -= 4) {
+    k = str.charCodeAt(i) & 0xff | (str.charCodeAt(++i) & 0xff) << 8 | (str.charCodeAt(++i) & 0xff) << 16 | (str.charCodeAt(++i) & 0xff) << 24;
+    k =
+    /* Math.imul(k, m): */
+    (k & 0xffff) * 0x5bd1e995 + ((k >>> 16) * 0xe995 << 16);
+    k ^=
+    /* k >>> r: */
+    k >>> 24;
+    h =
+    /* Math.imul(k, m): */
+    (k & 0xffff) * 0x5bd1e995 + ((k >>> 16) * 0xe995 << 16) ^
+    /* Math.imul(h, m): */
+    (h & 0xffff) * 0x5bd1e995 + ((h >>> 16) * 0xe995 << 16);
+  } // Handle the last few bytes of the input array
+
+
+  switch (len) {
+    case 3:
+      h ^= (str.charCodeAt(i + 2) & 0xff) << 16;
+
+    case 2:
+      h ^= (str.charCodeAt(i + 1) & 0xff) << 8;
+
+    case 1:
+      h ^= str.charCodeAt(i) & 0xff;
+      h =
+      /* Math.imul(h, m): */
+      (h & 0xffff) * 0x5bd1e995 + ((h >>> 16) * 0xe995 << 16);
+  } // Do a few final mixes of the hash to ensure the last few
+  // bytes are well-incorporated.
+
+
+  h ^= h >>> 13;
+  h =
+  /* Math.imul(h, m): */
+  (h & 0xffff) * 0x5bd1e995 + ((h >>> 16) * 0xe995 << 16);
+  return ((h ^ h >>> 15) >>> 0).toString(36);
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (murmur2);
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/memoize/dist/emotion-memoize.esm.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@emotion/memoize/dist/emotion-memoize.esm.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+function memoize(fn) {
+  var cache = Object.create(null);
+  return function (arg) {
+    if (cache[arg] === undefined) cache[arg] = fn(arg);
+    return cache[arg];
+  };
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (memoize);
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/react/_isolated-hnrs/dist/emotion-react-_isolated-hnrs.browser.esm.js":
+/*!*****************************************************************************************************!*\
+  !*** ./node_modules/@emotion/react/_isolated-hnrs/dist/emotion-react-_isolated-hnrs.browser.esm.js ***!
+  \*****************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var hoist_non_react_statics__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! hoist-non-react-statics */ "./node_modules/hoist-non-react-statics/dist/hoist-non-react-statics.cjs.js");
+/* harmony import */ var hoist_non_react_statics__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(hoist_non_react_statics__WEBPACK_IMPORTED_MODULE_0__);
+
+
+// this file isolates this package that is not tree-shakeable
+// and if this module doesn't actually contain any logic of its own
+// then Rollup just use 'hoist-non-react-statics' directly in other chunks
+
+var hoistNonReactStatics = (function (targetComponent, sourceComponent) {
+  return hoist_non_react_statics__WEBPACK_IMPORTED_MODULE_0___default()(targetComponent, sourceComponent);
+});
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (hoistNonReactStatics);
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/react/dist/emotion-element-cbed451f.browser.esm.js":
+/*!**********************************************************************************!*\
+  !*** ./node_modules/@emotion/react/dist/emotion-element-cbed451f.browser.esm.js ***!
+  \**********************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "C": () => (/* binding */ CacheProvider),
+/* harmony export */   "E": () => (/* binding */ Emotion),
+/* harmony export */   "T": () => (/* binding */ ThemeContext),
+/* harmony export */   "_": () => (/* binding */ __unsafe_useEmotionCache),
+/* harmony export */   "a": () => (/* binding */ useTheme),
+/* harmony export */   "b": () => (/* binding */ ThemeProvider),
+/* harmony export */   "c": () => (/* binding */ createEmotionProps),
+/* harmony export */   "d": () => (/* binding */ withTheme),
+/* harmony export */   "h": () => (/* binding */ hasOwnProperty),
+/* harmony export */   "u": () => (/* binding */ useInsertionEffectMaybe),
+/* harmony export */   "w": () => (/* binding */ withEmotionCache)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _emotion_cache__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/cache */ "./node_modules/@emotion/cache/dist/emotion-cache.browser.esm.js");
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _emotion_weak_memoize__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/weak-memoize */ "./node_modules/@emotion/weak-memoize/dist/emotion-weak-memoize.esm.js");
+/* harmony import */ var _isolated_hnrs_dist_emotion_react_isolated_hnrs_browser_esm_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../_isolated-hnrs/dist/emotion-react-_isolated-hnrs.browser.esm.js */ "./node_modules/@emotion/react/_isolated-hnrs/dist/emotion-react-_isolated-hnrs.browser.esm.js");
+/* harmony import */ var _emotion_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/utils */ "./node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js");
+/* harmony import */ var _emotion_serialize__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/serialize */ "./node_modules/@emotion/serialize/dist/emotion-serialize.browser.esm.js");
+
+
+
+
+
+
+
+
+
+var hasOwnProperty = {}.hasOwnProperty;
+
+var EmotionCacheContext = /* #__PURE__ */(0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)( // we're doing this to avoid preconstruct's dead code elimination in this one case
+// because this module is primarily intended for the browser and node
+// but it's also required in react native and similar environments sometimes
+// and we could have a special build just for that
+// but this is much easier and the native packages
+// might use a different theme context in the future anyway
+typeof HTMLElement !== 'undefined' ? /* #__PURE__ */(0,_emotion_cache__WEBPACK_IMPORTED_MODULE_1__["default"])({
+  key: 'css'
+}) : null);
+
+if (true) {
+  EmotionCacheContext.displayName = 'EmotionCacheContext';
+}
+
+var CacheProvider = EmotionCacheContext.Provider;
+var __unsafe_useEmotionCache = function useEmotionCache() {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(EmotionCacheContext);
+};
+
+var withEmotionCache = function withEmotionCache(func) {
+  // $FlowFixMe
+  return /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.forwardRef)(function (props, ref) {
+    // the cache will never be null in the browser
+    var cache = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(EmotionCacheContext);
+    return func(props, cache, ref);
+  });
+};
+
+var ThemeContext = /* #__PURE__ */(0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)({});
+
+if (true) {
+  ThemeContext.displayName = 'EmotionThemeContext';
+}
+
+var useTheme = function useTheme() {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(ThemeContext);
+};
+
+var getTheme = function getTheme(outerTheme, theme) {
+  if (typeof theme === 'function') {
+    var mergedTheme = theme(outerTheme);
+
+    if ( true && (mergedTheme == null || typeof mergedTheme !== 'object' || Array.isArray(mergedTheme))) {
+      throw new Error('[ThemeProvider] Please return an object from your theme function, i.e. theme={() => ({})}!');
+    }
+
+    return mergedTheme;
+  }
+
+  if ( true && (theme == null || typeof theme !== 'object' || Array.isArray(theme))) {
+    throw new Error('[ThemeProvider] Please make your theme prop a plain object');
+  }
+
+  return (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_2__["default"])({}, outerTheme, theme);
+};
+
+var createCacheWithTheme = /* #__PURE__ */(0,_emotion_weak_memoize__WEBPACK_IMPORTED_MODULE_3__["default"])(function (outerTheme) {
+  return (0,_emotion_weak_memoize__WEBPACK_IMPORTED_MODULE_3__["default"])(function (theme) {
+    return getTheme(outerTheme, theme);
+  });
+});
+var ThemeProvider = function ThemeProvider(props) {
+  var theme = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(ThemeContext);
+
+  if (props.theme !== theme) {
+    theme = createCacheWithTheme(theme)(props.theme);
+  }
+
+  return /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(ThemeContext.Provider, {
+    value: theme
+  }, props.children);
+};
+function withTheme(Component) {
+  var componentName = Component.displayName || Component.name || 'Component';
+
+  var render = function render(props, ref) {
+    var theme = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(ThemeContext);
+    return /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(Component, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_2__["default"])({
+      theme: theme,
+      ref: ref
+    }, props));
+  }; // $FlowFixMe
+
+
+  var WithTheme = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.forwardRef)(render);
+  WithTheme.displayName = "WithTheme(" + componentName + ")";
+  return (0,_isolated_hnrs_dist_emotion_react_isolated_hnrs_browser_esm_js__WEBPACK_IMPORTED_MODULE_6__["default"])(WithTheme, Component);
+}
+
+var getLastPart = function getLastPart(functionName) {
+  // The match may be something like 'Object.createEmotionProps' or
+  // 'Loader.prototype.render'
+  var parts = functionName.split('.');
+  return parts[parts.length - 1];
+};
+
+var getFunctionNameFromStackTraceLine = function getFunctionNameFromStackTraceLine(line) {
+  // V8
+  var match = /^\s+at\s+([A-Za-z0-9$.]+)\s/.exec(line);
+  if (match) return getLastPart(match[1]); // Safari / Firefox
+
+  match = /^([A-Za-z0-9$.]+)@/.exec(line);
+  if (match) return getLastPart(match[1]);
+  return undefined;
+};
+
+var internalReactFunctionNames = /* #__PURE__ */new Set(['renderWithHooks', 'processChild', 'finishClassComponent', 'renderToString']); // These identifiers come from error stacks, so they have to be valid JS
+// identifiers, thus we only need to replace what is a valid character for JS,
+// but not for CSS.
+
+var sanitizeIdentifier = function sanitizeIdentifier(identifier) {
+  return identifier.replace(/\$/g, '-');
+};
+
+var getLabelFromStackTrace = function getLabelFromStackTrace(stackTrace) {
+  if (!stackTrace) return undefined;
+  var lines = stackTrace.split('\n');
+
+  for (var i = 0; i < lines.length; i++) {
+    var functionName = getFunctionNameFromStackTraceLine(lines[i]); // The first line of V8 stack traces is just "Error"
+
+    if (!functionName) continue; // If we reach one of these, we have gone too far and should quit
+
+    if (internalReactFunctionNames.has(functionName)) break; // The component name is the first function in the stack that starts with an
+    // uppercase letter
+
+    if (/^[A-Z]/.test(functionName)) return sanitizeIdentifier(functionName);
+  }
+
+  return undefined;
+};
+
+var useInsertionEffect = react__WEBPACK_IMPORTED_MODULE_0__['useInsertion' + 'Effect'] ? react__WEBPACK_IMPORTED_MODULE_0__['useInsertion' + 'Effect'] : function useInsertionEffect(create) {
+  create();
+};
+function useInsertionEffectMaybe(create) {
+
+  useInsertionEffect(create);
+}
+
+var typePropName = '__EMOTION_TYPE_PLEASE_DO_NOT_USE__';
+var labelPropName = '__EMOTION_LABEL_PLEASE_DO_NOT_USE__';
+var createEmotionProps = function createEmotionProps(type, props) {
+  if ( true && typeof props.css === 'string' && // check if there is a css declaration
+  props.css.indexOf(':') !== -1) {
+    throw new Error("Strings are not allowed as css prop values, please wrap it in a css template literal from '@emotion/react' like this: css`" + props.css + "`");
+  }
+
+  var newProps = {};
+
+  for (var key in props) {
+    if (hasOwnProperty.call(props, key)) {
+      newProps[key] = props[key];
+    }
+  }
+
+  newProps[typePropName] = type; // For performance, only call getLabelFromStackTrace in development and when
+  // the label hasn't already been computed
+
+  if ( true && !!props.css && (typeof props.css !== 'object' || typeof props.css.name !== 'string' || props.css.name.indexOf('-') === -1)) {
+    var label = getLabelFromStackTrace(new Error().stack);
+    if (label) newProps[labelPropName] = label;
+  }
+
+  return newProps;
+};
+
+var Insertion = function Insertion(_ref) {
+  var cache = _ref.cache,
+      serialized = _ref.serialized,
+      isStringTag = _ref.isStringTag;
+  (0,_emotion_utils__WEBPACK_IMPORTED_MODULE_4__.registerStyles)(cache, serialized, isStringTag);
+  var rules = useInsertionEffectMaybe(function () {
+    return (0,_emotion_utils__WEBPACK_IMPORTED_MODULE_4__.insertStyles)(cache, serialized, isStringTag);
+  });
+
+  return null;
+};
+
+var Emotion = /* #__PURE__ */withEmotionCache(function (props, cache, ref) {
+  var cssProp = props.css; // so that using `css` from `emotion` and passing the result to the css prop works
+  // not passing the registered cache to serializeStyles because it would
+  // make certain babel optimisations not possible
+
+  if (typeof cssProp === 'string' && cache.registered[cssProp] !== undefined) {
+    cssProp = cache.registered[cssProp];
+  }
+
+  var WrappedComponent = props[typePropName];
+  var registeredStyles = [cssProp];
+  var className = '';
+
+  if (typeof props.className === 'string') {
+    className = (0,_emotion_utils__WEBPACK_IMPORTED_MODULE_4__.getRegisteredStyles)(cache.registered, registeredStyles, props.className);
+  } else if (props.className != null) {
+    className = props.className + " ";
+  }
+
+  var serialized = (0,_emotion_serialize__WEBPACK_IMPORTED_MODULE_5__.serializeStyles)(registeredStyles, undefined, (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(ThemeContext));
+
+  if ( true && serialized.name.indexOf('-') === -1) {
+    var labelFromStack = props[labelPropName];
+
+    if (labelFromStack) {
+      serialized = (0,_emotion_serialize__WEBPACK_IMPORTED_MODULE_5__.serializeStyles)([serialized, 'label:' + labelFromStack + ';']);
+    }
+  }
+
+  className += cache.key + "-" + serialized.name;
+  var newProps = {};
+
+  for (var key in props) {
+    if (hasOwnProperty.call(props, key) && key !== 'css' && key !== typePropName && ( false || key !== labelPropName)) {
+      newProps[key] = props[key];
+    }
+  }
+
+  newProps.ref = ref;
+  newProps.className = className;
+  return /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(Insertion, {
+    cache: cache,
+    serialized: serialized,
+    isStringTag: typeof WrappedComponent === 'string'
+  }), /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(WrappedComponent, newProps));
+});
+
+if (true) {
+  Emotion.displayName = 'EmotionCssPropInternal';
+}
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/react/dist/emotion-react.browser.esm.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/@emotion/react/dist/emotion-react.browser.esm.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CacheProvider": () => (/* reexport safe */ _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.C),
+/* harmony export */   "ClassNames": () => (/* binding */ ClassNames),
+/* harmony export */   "Global": () => (/* binding */ Global),
+/* harmony export */   "ThemeContext": () => (/* reexport safe */ _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.T),
+/* harmony export */   "ThemeProvider": () => (/* reexport safe */ _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.b),
+/* harmony export */   "__unsafe_useEmotionCache": () => (/* reexport safe */ _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__._),
+/* harmony export */   "createElement": () => (/* binding */ jsx),
+/* harmony export */   "css": () => (/* binding */ css),
+/* harmony export */   "jsx": () => (/* binding */ jsx),
+/* harmony export */   "keyframes": () => (/* binding */ keyframes),
+/* harmony export */   "useTheme": () => (/* reexport safe */ _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.a),
+/* harmony export */   "withEmotionCache": () => (/* reexport safe */ _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.w),
+/* harmony export */   "withTheme": () => (/* reexport safe */ _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.d)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _emotion_cache__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/cache */ "./node_modules/@emotion/cache/dist/emotion-cache.browser.esm.js");
+/* harmony import */ var _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./emotion-element-cbed451f.browser.esm.js */ "./node_modules/@emotion/react/dist/emotion-element-cbed451f.browser.esm.js");
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _emotion_weak_memoize__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/weak-memoize */ "./node_modules/@emotion/weak-memoize/dist/emotion-weak-memoize.esm.js");
+/* harmony import */ var hoist_non_react_statics__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! hoist-non-react-statics */ "./node_modules/hoist-non-react-statics/dist/hoist-non-react-statics.cjs.js");
+/* harmony import */ var hoist_non_react_statics__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(hoist_non_react_statics__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _emotion_utils__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @emotion/utils */ "./node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js");
+/* harmony import */ var _emotion_serialize__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/serialize */ "./node_modules/@emotion/serialize/dist/emotion-serialize.browser.esm.js");
+
+
+
+
+
+
+
+
+
+
+
+
+var pkg = {
+	name: "@emotion/react",
+	version: "11.10.0",
+	main: "dist/emotion-react.cjs.js",
+	module: "dist/emotion-react.esm.js",
+	browser: {
+		"./dist/emotion-react.esm.js": "./dist/emotion-react.browser.esm.js"
+	},
+	exports: {
+		".": {
+			module: {
+				worker: "./dist/emotion-react.worker.esm.js",
+				browser: "./dist/emotion-react.browser.esm.js",
+				"default": "./dist/emotion-react.esm.js"
+			},
+			"default": "./dist/emotion-react.cjs.js"
+		},
+		"./jsx-runtime": {
+			module: {
+				worker: "./jsx-runtime/dist/emotion-react-jsx-runtime.worker.esm.js",
+				browser: "./jsx-runtime/dist/emotion-react-jsx-runtime.browser.esm.js",
+				"default": "./jsx-runtime/dist/emotion-react-jsx-runtime.esm.js"
+			},
+			"default": "./jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js"
+		},
+		"./_isolated-hnrs": {
+			module: {
+				worker: "./_isolated-hnrs/dist/emotion-react-_isolated-hnrs.worker.esm.js",
+				browser: "./_isolated-hnrs/dist/emotion-react-_isolated-hnrs.browser.esm.js",
+				"default": "./_isolated-hnrs/dist/emotion-react-_isolated-hnrs.esm.js"
+			},
+			"default": "./_isolated-hnrs/dist/emotion-react-_isolated-hnrs.cjs.js"
+		},
+		"./jsx-dev-runtime": {
+			module: {
+				worker: "./jsx-dev-runtime/dist/emotion-react-jsx-dev-runtime.worker.esm.js",
+				browser: "./jsx-dev-runtime/dist/emotion-react-jsx-dev-runtime.browser.esm.js",
+				"default": "./jsx-dev-runtime/dist/emotion-react-jsx-dev-runtime.esm.js"
+			},
+			"default": "./jsx-dev-runtime/dist/emotion-react-jsx-dev-runtime.cjs.js"
+		},
+		"./package.json": "./package.json",
+		"./types/css-prop": "./types/css-prop.d.ts",
+		"./macro": "./macro.js"
+	},
+	types: "types/index.d.ts",
+	files: [
+		"src",
+		"dist",
+		"jsx-runtime",
+		"jsx-dev-runtime",
+		"_isolated-hnrs",
+		"types/*.d.ts",
+		"macro.js",
+		"macro.d.ts",
+		"macro.js.flow"
+	],
+	sideEffects: false,
+	author: "Emotion Contributors",
+	license: "MIT",
+	scripts: {
+		"test:typescript": "dtslint types"
+	},
+	dependencies: {
+		"@babel/runtime": "^7.18.3",
+		"@emotion/babel-plugin": "^11.10.0",
+		"@emotion/cache": "^11.10.0",
+		"@emotion/serialize": "^1.1.0",
+		"@emotion/utils": "^1.2.0",
+		"@emotion/weak-memoize": "^0.3.0",
+		"hoist-non-react-statics": "^3.3.1"
+	},
+	peerDependencies: {
+		"@babel/core": "^7.0.0",
+		react: ">=16.8.0"
+	},
+	peerDependenciesMeta: {
+		"@babel/core": {
+			optional: true
+		},
+		"@types/react": {
+			optional: true
+		}
+	},
+	devDependencies: {
+		"@babel/core": "^7.18.5",
+		"@definitelytyped/dtslint": "0.0.112",
+		"@emotion/css": "11.10.0",
+		"@emotion/css-prettifier": "1.1.0",
+		"@emotion/server": "11.10.0",
+		"@emotion/styled": "11.10.0",
+		"html-tag-names": "^1.1.2",
+		react: "16.14.0",
+		"svg-tag-names": "^1.1.1",
+		typescript: "^4.5.5"
+	},
+	repository: "https://github.com/emotion-js/emotion/tree/main/packages/react",
+	publishConfig: {
+		access: "public"
+	},
+	"umd:main": "dist/emotion-react.umd.min.js",
+	preconstruct: {
+		entrypoints: [
+			"./index.js",
+			"./jsx-runtime.js",
+			"./jsx-dev-runtime.js",
+			"./_isolated-hnrs.js"
+		],
+		umdName: "emotionReact",
+		exports: {
+			envConditions: [
+				"browser",
+				"worker"
+			],
+			extra: {
+				"./types/css-prop": "./types/css-prop.d.ts",
+				"./macro": "./macro.js"
+			}
+		}
+	}
+};
+
+var jsx = function jsx(type, props) {
+  var args = arguments;
+
+  if (props == null || !_emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.h.call(props, 'css')) {
+    // $FlowFixMe
+    return react__WEBPACK_IMPORTED_MODULE_0__.createElement.apply(undefined, args);
+  }
+
+  var argsLength = args.length;
+  var createElementArgArray = new Array(argsLength);
+  createElementArgArray[0] = _emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.E;
+  createElementArgArray[1] = (0,_emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.c)(type, props);
+
+  for (var i = 2; i < argsLength; i++) {
+    createElementArgArray[i] = args[i];
+  } // $FlowFixMe
+
+
+  return react__WEBPACK_IMPORTED_MODULE_0__.createElement.apply(null, createElementArgArray);
+};
+
+var useInsertionEffect = react__WEBPACK_IMPORTED_MODULE_0__['useInsertion' + 'Effect'] ? react__WEBPACK_IMPORTED_MODULE_0__['useInsertion' + 'Effect'] : react__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect;
+var warnedAboutCssPropForGlobal = false; // maintain place over rerenders.
+// initial render from browser, insertBefore context.sheet.tags[0] or if a style hasn't been inserted there yet, appendChild
+// initial client-side render from SSR, use place of hydrating tag
+
+var Global = /* #__PURE__ */(0,_emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.w)(function (props, cache) {
+  if ( true && !warnedAboutCssPropForGlobal && ( // check for className as well since the user is
+  // probably using the custom createElement which
+  // means it will be turned into a className prop
+  // $FlowFixMe I don't really want to add it to the type since it shouldn't be used
+  props.className || props.css)) {
+    console.error("It looks like you're using the css prop on Global, did you mean to use the styles prop instead?");
+    warnedAboutCssPropForGlobal = true;
+  }
+
+  var styles = props.styles;
+  var serialized = (0,_emotion_serialize__WEBPACK_IMPORTED_MODULE_7__.serializeStyles)([styles], undefined, (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(_emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.T));
+  // but it is based on a constant that will never change at runtime
+  // it's effectively like having two implementations and switching them out
+  // so it's not actually breaking anything
+
+
+  var sheetRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
+  useInsertionEffect(function () {
+    var key = cache.key + "-global"; // use case of https://github.com/emotion-js/emotion/issues/2675
+
+    var sheet = new cache.sheet.constructor({
+      key: key,
+      nonce: cache.sheet.nonce,
+      container: cache.sheet.container,
+      speedy: cache.sheet.isSpeedy
+    });
+    var rehydrating = false; // $FlowFixMe
+
+    var node = document.querySelector("style[data-emotion=\"" + key + " " + serialized.name + "\"]");
+
+    if (cache.sheet.tags.length) {
+      sheet.before = cache.sheet.tags[0];
+    }
+
+    if (node !== null) {
+      rehydrating = true; // clear the hash so this node won't be recognizable as rehydratable by other <Global/>s
+
+      node.setAttribute('data-emotion', key);
+      sheet.hydrate([node]);
+    }
+
+    sheetRef.current = [sheet, rehydrating];
+    return function () {
+      sheet.flush();
+    };
+  }, [cache]);
+  useInsertionEffect(function () {
+    var sheetRefCurrent = sheetRef.current;
+    var sheet = sheetRefCurrent[0],
+        rehydrating = sheetRefCurrent[1];
+
+    if (rehydrating) {
+      sheetRefCurrent[1] = false;
+      return;
+    }
+
+    if (serialized.next !== undefined) {
+      // insert keyframes
+      (0,_emotion_utils__WEBPACK_IMPORTED_MODULE_6__.insertStyles)(cache, serialized.next, true);
+    }
+
+    if (sheet.tags.length) {
+      // if this doesn't exist then it will be null so the style element will be appended
+      var element = sheet.tags[sheet.tags.length - 1].nextElementSibling;
+      sheet.before = element;
+      sheet.flush();
+    }
+
+    cache.insert("", serialized, sheet, false);
+  }, [cache, serialized.name]);
+  return null;
+});
+
+if (true) {
+  Global.displayName = 'EmotionGlobal';
+}
+
+function css() {
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  return (0,_emotion_serialize__WEBPACK_IMPORTED_MODULE_7__.serializeStyles)(args);
+}
+
+var keyframes = function keyframes() {
+  var insertable = css.apply(void 0, arguments);
+  var name = "animation-" + insertable.name; // $FlowFixMe
+
+  return {
+    name: name,
+    styles: "@keyframes " + name + "{" + insertable.styles + "}",
+    anim: 1,
+    toString: function toString() {
+      return "_EMO_" + this.name + "_" + this.styles + "_EMO_";
+    }
+  };
+};
+
+var classnames = function classnames(args) {
+  var len = args.length;
+  var i = 0;
+  var cls = '';
+
+  for (; i < len; i++) {
+    var arg = args[i];
+    if (arg == null) continue;
+    var toAdd = void 0;
+
+    switch (typeof arg) {
+      case 'boolean':
+        break;
+
+      case 'object':
+        {
+          if (Array.isArray(arg)) {
+            toAdd = classnames(arg);
+          } else {
+            if ( true && arg.styles !== undefined && arg.name !== undefined) {
+              console.error('You have passed styles created with `css` from `@emotion/react` package to the `cx`.\n' + '`cx` is meant to compose class names (strings) so you should convert those styles to a class name by passing them to the `css` received from <ClassNames/> component.');
+            }
+
+            toAdd = '';
+
+            for (var k in arg) {
+              if (arg[k] && k) {
+                toAdd && (toAdd += ' ');
+                toAdd += k;
+              }
+            }
+          }
+
+          break;
+        }
+
+      default:
+        {
+          toAdd = arg;
+        }
+    }
+
+    if (toAdd) {
+      cls && (cls += ' ');
+      cls += toAdd;
+    }
+  }
+
+  return cls;
+};
+
+function merge(registered, css, className) {
+  var registeredStyles = [];
+  var rawClassName = (0,_emotion_utils__WEBPACK_IMPORTED_MODULE_6__.getRegisteredStyles)(registered, registeredStyles, className);
+
+  if (registeredStyles.length < 2) {
+    return className;
+  }
+
+  return rawClassName + css(registeredStyles);
+}
+
+var Insertion = function Insertion(_ref) {
+  var cache = _ref.cache,
+      serializedArr = _ref.serializedArr;
+  var rules = (0,_emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.u)(function () {
+
+    for (var i = 0; i < serializedArr.length; i++) {
+      var res = (0,_emotion_utils__WEBPACK_IMPORTED_MODULE_6__.insertStyles)(cache, serializedArr[i], false);
+    }
+  });
+
+  return null;
+};
+
+var ClassNames = /* #__PURE__ */(0,_emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.w)(function (props, cache) {
+  var hasRendered = false;
+  var serializedArr = [];
+
+  var css = function css() {
+    if (hasRendered && "development" !== 'production') {
+      throw new Error('css can only be used during render');
+    }
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var serialized = (0,_emotion_serialize__WEBPACK_IMPORTED_MODULE_7__.serializeStyles)(args, cache.registered);
+    serializedArr.push(serialized); // registration has to happen here as the result of this might get consumed by `cx`
+
+    (0,_emotion_utils__WEBPACK_IMPORTED_MODULE_6__.registerStyles)(cache, serialized, false);
+    return cache.key + "-" + serialized.name;
+  };
+
+  var cx = function cx() {
+    if (hasRendered && "development" !== 'production') {
+      throw new Error('cx can only be used during render');
+    }
+
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    return merge(cache.registered, css, classnames(args));
+  };
+
+  var content = {
+    css: css,
+    cx: cx,
+    theme: (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(_emotion_element_cbed451f_browser_esm_js__WEBPACK_IMPORTED_MODULE_2__.T)
+  };
+  var ele = props.children(content);
+  hasRendered = true;
+  return /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(Insertion, {
+    cache: cache,
+    serializedArr: serializedArr
+  }), ele);
+});
+
+if (true) {
+  ClassNames.displayName = 'EmotionClassNames';
+}
+
+if (true) {
+  var isBrowser = "object" !== 'undefined'; // #1727 for some reason Jest evaluates modules twice if some consuming module gets mocked with jest.mock
+
+  var isJest = typeof jest !== 'undefined';
+
+  if (isBrowser && !isJest) {
+    // globalThis has wide browser support - https://caniuse.com/?search=globalThis, Node.js 12 and later
+    var globalContext = // $FlowIgnore
+    typeof globalThis !== 'undefined' ? globalThis // eslint-disable-line no-undef
+    : isBrowser ? window : __webpack_require__.g;
+    var globalKey = "__EMOTION_REACT_" + pkg.version.split('.')[0] + "__";
+
+    if (globalContext[globalKey]) {
+      console.warn('You are loading @emotion/react when it is already loaded. Running ' + 'multiple instances may cause problems. This can happen if multiple ' + 'versions are used, or if multiple builds of the same version are ' + 'used.');
+    }
+
+    globalContext[globalKey] = true;
+  }
+}
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/serialize/dist/emotion-serialize.browser.esm.js":
+/*!*******************************************************************************!*\
+  !*** ./node_modules/@emotion/serialize/dist/emotion-serialize.browser.esm.js ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "serializeStyles": () => (/* binding */ serializeStyles)
+/* harmony export */ });
+/* harmony import */ var _emotion_hash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @emotion/hash */ "./node_modules/@emotion/hash/dist/emotion-hash.esm.js");
+/* harmony import */ var _emotion_unitless__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/unitless */ "./node_modules/@emotion/unitless/dist/emotion-unitless.esm.js");
+/* harmony import */ var _emotion_memoize__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/memoize */ "./node_modules/@emotion/memoize/dist/emotion-memoize.esm.js");
+
+
+
+
+var ILLEGAL_ESCAPE_SEQUENCE_ERROR = "You have illegal escape sequence in your template literal, most likely inside content's property value.\nBecause you write your CSS inside a JavaScript string you actually have to do double escaping, so for example \"content: '\\00d7';\" should become \"content: '\\\\00d7';\".\nYou can read more about this here:\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#ES2018_revision_of_illegal_escape_sequences";
+var UNDEFINED_AS_OBJECT_KEY_ERROR = "You have passed in falsy value as style object's key (can happen when in example you pass unexported component as computed key).";
+var hyphenateRegex = /[A-Z]|^ms/g;
+var animationRegex = /_EMO_([^_]+?)_([^]*?)_EMO_/g;
+
+var isCustomProperty = function isCustomProperty(property) {
+  return property.charCodeAt(1) === 45;
+};
+
+var isProcessableValue = function isProcessableValue(value) {
+  return value != null && typeof value !== 'boolean';
+};
+
+var processStyleName = /* #__PURE__ */(0,_emotion_memoize__WEBPACK_IMPORTED_MODULE_2__["default"])(function (styleName) {
+  return isCustomProperty(styleName) ? styleName : styleName.replace(hyphenateRegex, '-$&').toLowerCase();
+});
+
+var processStyleValue = function processStyleValue(key, value) {
+  switch (key) {
+    case 'animation':
+    case 'animationName':
+      {
+        if (typeof value === 'string') {
+          return value.replace(animationRegex, function (match, p1, p2) {
+            cursor = {
+              name: p1,
+              styles: p2,
+              next: cursor
+            };
+            return p1;
+          });
+        }
+      }
+  }
+
+  if (_emotion_unitless__WEBPACK_IMPORTED_MODULE_1__["default"][key] !== 1 && !isCustomProperty(key) && typeof value === 'number' && value !== 0) {
+    return value + 'px';
+  }
+
+  return value;
+};
+
+if (true) {
+  var contentValuePattern = /(var|attr|counters?|url|(((repeating-)?(linear|radial))|conic)-gradient)\(|(no-)?(open|close)-quote/;
+  var contentValues = ['normal', 'none', 'initial', 'inherit', 'unset'];
+  var oldProcessStyleValue = processStyleValue;
+  var msPattern = /^-ms-/;
+  var hyphenPattern = /-(.)/g;
+  var hyphenatedCache = {};
+
+  processStyleValue = function processStyleValue(key, value) {
+    if (key === 'content') {
+      if (typeof value !== 'string' || contentValues.indexOf(value) === -1 && !contentValuePattern.test(value) && (value.charAt(0) !== value.charAt(value.length - 1) || value.charAt(0) !== '"' && value.charAt(0) !== "'")) {
+        throw new Error("You seem to be using a value for 'content' without quotes, try replacing it with `content: '\"" + value + "\"'`");
+      }
+    }
+
+    var processed = oldProcessStyleValue(key, value);
+
+    if (processed !== '' && !isCustomProperty(key) && key.indexOf('-') !== -1 && hyphenatedCache[key] === undefined) {
+      hyphenatedCache[key] = true;
+      console.error("Using kebab-case for css properties in objects is not supported. Did you mean " + key.replace(msPattern, 'ms-').replace(hyphenPattern, function (str, _char) {
+        return _char.toUpperCase();
+      }) + "?");
+    }
+
+    return processed;
+  };
+}
+
+var noComponentSelectorMessage = 'Component selectors can only be used in conjunction with ' + '@emotion/babel-plugin, the swc Emotion plugin, or another Emotion-aware ' + 'compiler transform.';
+
+function handleInterpolation(mergedProps, registered, interpolation) {
+  if (interpolation == null) {
+    return '';
+  }
+
+  if (interpolation.__emotion_styles !== undefined) {
+    if ( true && interpolation.toString() === 'NO_COMPONENT_SELECTOR') {
+      throw new Error(noComponentSelectorMessage);
+    }
+
+    return interpolation;
+  }
+
+  switch (typeof interpolation) {
+    case 'boolean':
+      {
+        return '';
+      }
+
+    case 'object':
+      {
+        if (interpolation.anim === 1) {
+          cursor = {
+            name: interpolation.name,
+            styles: interpolation.styles,
+            next: cursor
+          };
+          return interpolation.name;
+        }
+
+        if (interpolation.styles !== undefined) {
+          var next = interpolation.next;
+
+          if (next !== undefined) {
+            // not the most efficient thing ever but this is a pretty rare case
+            // and there will be very few iterations of this generally
+            while (next !== undefined) {
+              cursor = {
+                name: next.name,
+                styles: next.styles,
+                next: cursor
+              };
+              next = next.next;
+            }
+          }
+
+          var styles = interpolation.styles + ";";
+
+          if ( true && interpolation.map !== undefined) {
+            styles += interpolation.map;
+          }
+
+          return styles;
+        }
+
+        return createStringFromObject(mergedProps, registered, interpolation);
+      }
+
+    case 'function':
+      {
+        if (mergedProps !== undefined) {
+          var previousCursor = cursor;
+          var result = interpolation(mergedProps);
+          cursor = previousCursor;
+          return handleInterpolation(mergedProps, registered, result);
+        } else if (true) {
+          console.error('Functions that are interpolated in css calls will be stringified.\n' + 'If you want to have a css call based on props, create a function that returns a css call like this\n' + 'let dynamicStyle = (props) => css`color: ${props.color}`\n' + 'It can be called directly with props or interpolated in a styled call like this\n' + "let SomeComponent = styled('div')`${dynamicStyle}`");
+        }
+
+        break;
+      }
+
+    case 'string':
+      if (true) {
+        var matched = [];
+        var replaced = interpolation.replace(animationRegex, function (match, p1, p2) {
+          var fakeVarName = "animation" + matched.length;
+          matched.push("const " + fakeVarName + " = keyframes`" + p2.replace(/^@keyframes animation-\w+/, '') + "`");
+          return "${" + fakeVarName + "}";
+        });
+
+        if (matched.length) {
+          console.error('`keyframes` output got interpolated into plain string, please wrap it with `css`.\n\n' + 'Instead of doing this:\n\n' + [].concat(matched, ["`" + replaced + "`"]).join('\n') + '\n\nYou should wrap it with `css` like this:\n\n' + ("css`" + replaced + "`"));
+        }
+      }
+
+      break;
+  } // finalize string values (regular strings and functions interpolated into css calls)
+
+
+  if (registered == null) {
+    return interpolation;
+  }
+
+  var cached = registered[interpolation];
+  return cached !== undefined ? cached : interpolation;
+}
+
+function createStringFromObject(mergedProps, registered, obj) {
+  var string = '';
+
+  if (Array.isArray(obj)) {
+    for (var i = 0; i < obj.length; i++) {
+      string += handleInterpolation(mergedProps, registered, obj[i]) + ";";
+    }
+  } else {
+    for (var _key in obj) {
+      var value = obj[_key];
+
+      if (typeof value !== 'object') {
+        if (registered != null && registered[value] !== undefined) {
+          string += _key + "{" + registered[value] + "}";
+        } else if (isProcessableValue(value)) {
+          string += processStyleName(_key) + ":" + processStyleValue(_key, value) + ";";
+        }
+      } else {
+        if (_key === 'NO_COMPONENT_SELECTOR' && "development" !== 'production') {
+          throw new Error(noComponentSelectorMessage);
+        }
+
+        if (Array.isArray(value) && typeof value[0] === 'string' && (registered == null || registered[value[0]] === undefined)) {
+          for (var _i = 0; _i < value.length; _i++) {
+            if (isProcessableValue(value[_i])) {
+              string += processStyleName(_key) + ":" + processStyleValue(_key, value[_i]) + ";";
+            }
+          }
+        } else {
+          var interpolated = handleInterpolation(mergedProps, registered, value);
+
+          switch (_key) {
+            case 'animation':
+            case 'animationName':
+              {
+                string += processStyleName(_key) + ":" + interpolated + ";";
+                break;
+              }
+
+            default:
+              {
+                if ( true && _key === 'undefined') {
+                  console.error(UNDEFINED_AS_OBJECT_KEY_ERROR);
+                }
+
+                string += _key + "{" + interpolated + "}";
+              }
+          }
+        }
+      }
+    }
+  }
+
+  return string;
+}
+
+var labelPattern = /label:\s*([^\s;\n{]+)\s*(;|$)/g;
+var sourceMapPattern;
+
+if (true) {
+  sourceMapPattern = /\/\*#\ssourceMappingURL=data:application\/json;\S+\s+\*\//g;
+} // this is the cursor for keyframes
+// keyframes are stored on the SerializedStyles object as a linked list
+
+
+var cursor;
+var serializeStyles = function serializeStyles(args, registered, mergedProps) {
+  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && args[0].styles !== undefined) {
+    return args[0];
+  }
+
+  var stringMode = true;
+  var styles = '';
+  cursor = undefined;
+  var strings = args[0];
+
+  if (strings == null || strings.raw === undefined) {
+    stringMode = false;
+    styles += handleInterpolation(mergedProps, registered, strings);
+  } else {
+    if ( true && strings[0] === undefined) {
+      console.error(ILLEGAL_ESCAPE_SEQUENCE_ERROR);
+    }
+
+    styles += strings[0];
+  } // we start at 1 since we've already handled the first arg
+
+
+  for (var i = 1; i < args.length; i++) {
+    styles += handleInterpolation(mergedProps, registered, args[i]);
+
+    if (stringMode) {
+      if ( true && strings[i] === undefined) {
+        console.error(ILLEGAL_ESCAPE_SEQUENCE_ERROR);
+      }
+
+      styles += strings[i];
+    }
+  }
+
+  var sourceMap;
+
+  if (true) {
+    styles = styles.replace(sourceMapPattern, function (match) {
+      sourceMap = match;
+      return '';
+    });
+  } // using a global regex with .exec is stateful so lastIndex has to be reset each time
+
+
+  labelPattern.lastIndex = 0;
+  var identifierName = '';
+  var match; // https://esbench.com/bench/5b809c2cf2949800a0f61fb5
+
+  while ((match = labelPattern.exec(styles)) !== null) {
+    identifierName += '-' + // $FlowFixMe we know it's not null
+    match[1];
+  }
+
+  var name = (0,_emotion_hash__WEBPACK_IMPORTED_MODULE_0__["default"])(styles) + identifierName;
+
+  if (true) {
+    // $FlowFixMe SerializedStyles type doesn't have toString property (and we don't want to add it)
+    return {
+      name: name,
+      styles: styles,
+      map: sourceMap,
+      next: cursor,
+      toString: function toString() {
+        return "You have tried to stringify object returned from `css` function. It isn't supposed to be used directly (e.g. as value of the `className` prop), but rather handed to emotion so it can handle it (e.g. as value of `css` prop).";
+      }
+    };
+  }
+
+  return {
+    name: name,
+    styles: styles,
+    next: cursor
+  };
+};
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/sheet/dist/emotion-sheet.browser.esm.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/@emotion/sheet/dist/emotion-sheet.browser.esm.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "StyleSheet": () => (/* binding */ StyleSheet)
+/* harmony export */ });
+/*
+
+Based off glamor's StyleSheet, thanks Sunil ❤️
+
+high performance StyleSheet for css-in-js systems
+
+- uses multiple style tags behind the scenes for millions of rules
+- uses `insertRule` for appending in production for *much* faster performance
+
+// usage
+
+import { StyleSheet } from '@emotion/sheet'
+
+let styleSheet = new StyleSheet({ key: '', container: document.head })
+
+styleSheet.insert('#box { border: 1px solid red; }')
+- appends a css rule into the stylesheet
+
+styleSheet.flush()
+- empties the stylesheet of all its contents
+
+*/
+// $FlowFixMe
+function sheetForTag(tag) {
+  if (tag.sheet) {
+    // $FlowFixMe
+    return tag.sheet;
+  } // this weirdness brought to you by firefox
+
+  /* istanbul ignore next */
+
+
+  for (var i = 0; i < document.styleSheets.length; i++) {
+    if (document.styleSheets[i].ownerNode === tag) {
+      // $FlowFixMe
+      return document.styleSheets[i];
+    }
+  }
+}
+
+function createStyleElement(options) {
+  var tag = document.createElement('style');
+  tag.setAttribute('data-emotion', options.key);
+
+  if (options.nonce !== undefined) {
+    tag.setAttribute('nonce', options.nonce);
+  }
+
+  tag.appendChild(document.createTextNode(''));
+  tag.setAttribute('data-s', '');
+  return tag;
+}
+
+var StyleSheet = /*#__PURE__*/function () {
+  // Using Node instead of HTMLElement since container may be a ShadowRoot
+  function StyleSheet(options) {
+    var _this = this;
+
+    this._insertTag = function (tag) {
+      var before;
+
+      if (_this.tags.length === 0) {
+        if (_this.insertionPoint) {
+          before = _this.insertionPoint.nextSibling;
+        } else if (_this.prepend) {
+          before = _this.container.firstChild;
+        } else {
+          before = _this.before;
+        }
+      } else {
+        before = _this.tags[_this.tags.length - 1].nextSibling;
+      }
+
+      _this.container.insertBefore(tag, before);
+
+      _this.tags.push(tag);
+    };
+
+    this.isSpeedy = options.speedy === undefined ? "development" === 'production' : options.speedy;
+    this.tags = [];
+    this.ctr = 0;
+    this.nonce = options.nonce; // key is the value of the data-emotion attribute, it's used to identify different sheets
+
+    this.key = options.key;
+    this.container = options.container;
+    this.prepend = options.prepend;
+    this.insertionPoint = options.insertionPoint;
+    this.before = null;
+  }
+
+  var _proto = StyleSheet.prototype;
+
+  _proto.hydrate = function hydrate(nodes) {
+    nodes.forEach(this._insertTag);
+  };
+
+  _proto.insert = function insert(rule) {
+    // the max length is how many rules we have per style tag, it's 65000 in speedy mode
+    // it's 1 in dev because we insert source maps that map a single rule to a location
+    // and you can only have one source map per style tag
+    if (this.ctr % (this.isSpeedy ? 65000 : 1) === 0) {
+      this._insertTag(createStyleElement(this));
+    }
+
+    var tag = this.tags[this.tags.length - 1];
+
+    if (true) {
+      var isImportRule = rule.charCodeAt(0) === 64 && rule.charCodeAt(1) === 105;
+
+      if (isImportRule && this._alreadyInsertedOrderInsensitiveRule) {
+        // this would only cause problem in speedy mode
+        // but we don't want enabling speedy to affect the observable behavior
+        // so we report this error at all times
+        console.error("You're attempting to insert the following rule:\n" + rule + '\n\n`@import` rules must be before all other types of rules in a stylesheet but other rules have already been inserted. Please ensure that `@import` rules are before all other rules.');
+      }
+      this._alreadyInsertedOrderInsensitiveRule = this._alreadyInsertedOrderInsensitiveRule || !isImportRule;
+    }
+
+    if (this.isSpeedy) {
+      var sheet = sheetForTag(tag);
+
+      try {
+        // this is the ultrafast version, works across browsers
+        // the big drawback is that the css won't be editable in devtools
+        sheet.insertRule(rule, sheet.cssRules.length);
+      } catch (e) {
+        if ( true && !/:(-moz-placeholder|-moz-focus-inner|-moz-focusring|-ms-input-placeholder|-moz-read-write|-moz-read-only|-ms-clear){/.test(rule)) {
+          console.error("There was a problem inserting the following rule: \"" + rule + "\"", e);
+        }
+      }
+    } else {
+      tag.appendChild(document.createTextNode(rule));
+    }
+
+    this.ctr++;
+  };
+
+  _proto.flush = function flush() {
+    // $FlowFixMe
+    this.tags.forEach(function (tag) {
+      return tag.parentNode && tag.parentNode.removeChild(tag);
+    });
+    this.tags = [];
+    this.ctr = 0;
+
+    if (true) {
+      this._alreadyInsertedOrderInsensitiveRule = false;
+    }
+  };
+
+  return StyleSheet;
+}();
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/unitless/dist/emotion-unitless.esm.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/@emotion/unitless/dist/emotion-unitless.esm.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+var unitlessKeys = {
+  animationIterationCount: 1,
+  borderImageOutset: 1,
+  borderImageSlice: 1,
+  borderImageWidth: 1,
+  boxFlex: 1,
+  boxFlexGroup: 1,
+  boxOrdinalGroup: 1,
+  columnCount: 1,
+  columns: 1,
+  flex: 1,
+  flexGrow: 1,
+  flexPositive: 1,
+  flexShrink: 1,
+  flexNegative: 1,
+  flexOrder: 1,
+  gridRow: 1,
+  gridRowEnd: 1,
+  gridRowSpan: 1,
+  gridRowStart: 1,
+  gridColumn: 1,
+  gridColumnEnd: 1,
+  gridColumnSpan: 1,
+  gridColumnStart: 1,
+  msGridRow: 1,
+  msGridRowSpan: 1,
+  msGridColumn: 1,
+  msGridColumnSpan: 1,
+  fontWeight: 1,
+  lineHeight: 1,
+  opacity: 1,
+  order: 1,
+  orphans: 1,
+  tabSize: 1,
+  widows: 1,
+  zIndex: 1,
+  zoom: 1,
+  WebkitLineClamp: 1,
+  // SVG-related properties
+  fillOpacity: 1,
+  floodOpacity: 1,
+  stopOpacity: 1,
+  strokeDasharray: 1,
+  strokeDashoffset: 1,
+  strokeMiterlimit: 1,
+  strokeOpacity: 1,
+  strokeWidth: 1
+};
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (unitlessKeys);
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getRegisteredStyles": () => (/* binding */ getRegisteredStyles),
+/* harmony export */   "insertStyles": () => (/* binding */ insertStyles),
+/* harmony export */   "registerStyles": () => (/* binding */ registerStyles)
+/* harmony export */ });
+var isBrowser = "object" !== 'undefined';
+function getRegisteredStyles(registered, registeredStyles, classNames) {
+  var rawClassName = '';
+  classNames.split(' ').forEach(function (className) {
+    if (registered[className] !== undefined) {
+      registeredStyles.push(registered[className] + ";");
+    } else {
+      rawClassName += className + " ";
+    }
+  });
+  return rawClassName;
+}
+var registerStyles = function registerStyles(cache, serialized, isStringTag) {
+  var className = cache.key + "-" + serialized.name;
+
+  if ( // we only need to add the styles to the registered cache if the
+  // class name could be used further down
+  // the tree but if it's a string tag, we know it won't
+  // so we don't have to add it to registered cache.
+  // this improves memory usage since we can avoid storing the whole style string
+  (isStringTag === false || // we need to always store it if we're in compat mode and
+  // in node since emotion-server relies on whether a style is in
+  // the registered cache to know whether a style is global or not
+  // also, note that this check will be dead code eliminated in the browser
+  isBrowser === false ) && cache.registered[className] === undefined) {
+    cache.registered[className] = serialized.styles;
+  }
+};
+var insertStyles = function insertStyles(cache, serialized, isStringTag) {
+  registerStyles(cache, serialized, isStringTag);
+  var className = cache.key + "-" + serialized.name;
+
+  if (cache.inserted[serialized.name] === undefined) {
+    var current = serialized;
+
+    do {
+      var maybeStyles = cache.insert(serialized === current ? "." + className : '', current, cache.sheet, true);
+
+      current = current.next;
+    } while (current !== undefined);
+  }
+};
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@emotion/weak-memoize/dist/emotion-weak-memoize.esm.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/@emotion/weak-memoize/dist/emotion-weak-memoize.esm.js ***!
+  \*****************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+var weakMemoize = function weakMemoize(func) {
+  // $FlowFixMe flow doesn't include all non-primitive types as allowed for weakmaps
+  var cache = new WeakMap();
+  return function (arg) {
+    if (cache.has(arg)) {
+      // $FlowFixMe
+      return cache.get(arg);
+    }
+
+    var ret = func(arg);
+    cache.set(arg, ret);
+    return ret;
+  };
+};
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (weakMemoize);
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/matchers.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/matchers.js ***!
+  \*****************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+Object.defineProperty(exports, "toBeChecked", ({
+  enumerable: true,
+  get: function () {
+    return _toBeChecked.toBeChecked;
+  }
+}));
+Object.defineProperty(exports, "toBeDisabled", ({
+  enumerable: true,
+  get: function () {
+    return _toBeDisabled.toBeDisabled;
+  }
+}));
+Object.defineProperty(exports, "toBeEmpty", ({
+  enumerable: true,
+  get: function () {
+    return _toBeEmpty.toBeEmpty;
+  }
+}));
+Object.defineProperty(exports, "toBeEmptyDOMElement", ({
+  enumerable: true,
+  get: function () {
+    return _toBeEmptyDomElement.toBeEmptyDOMElement;
+  }
+}));
+Object.defineProperty(exports, "toBeEnabled", ({
+  enumerable: true,
+  get: function () {
+    return _toBeDisabled.toBeEnabled;
+  }
+}));
+Object.defineProperty(exports, "toBeInTheDOM", ({
+  enumerable: true,
+  get: function () {
+    return _toBeInTheDom.toBeInTheDOM;
+  }
+}));
+Object.defineProperty(exports, "toBeInTheDocument", ({
+  enumerable: true,
+  get: function () {
+    return _toBeInTheDocument.toBeInTheDocument;
+  }
+}));
+Object.defineProperty(exports, "toBeInvalid", ({
+  enumerable: true,
+  get: function () {
+    return _toBeInvalid.toBeInvalid;
+  }
+}));
+Object.defineProperty(exports, "toBePartiallyChecked", ({
+  enumerable: true,
+  get: function () {
+    return _toBePartiallyChecked.toBePartiallyChecked;
+  }
+}));
+Object.defineProperty(exports, "toBeRequired", ({
+  enumerable: true,
+  get: function () {
+    return _toBeRequired.toBeRequired;
+  }
+}));
+Object.defineProperty(exports, "toBeValid", ({
+  enumerable: true,
+  get: function () {
+    return _toBeInvalid.toBeValid;
+  }
+}));
+Object.defineProperty(exports, "toBeVisible", ({
+  enumerable: true,
+  get: function () {
+    return _toBeVisible.toBeVisible;
+  }
+}));
+Object.defineProperty(exports, "toContainElement", ({
+  enumerable: true,
+  get: function () {
+    return _toContainElement.toContainElement;
+  }
+}));
+Object.defineProperty(exports, "toContainHTML", ({
+  enumerable: true,
+  get: function () {
+    return _toContainHtml.toContainHTML;
+  }
+}));
+Object.defineProperty(exports, "toHaveAccessibleDescription", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveAccessibleDescription.toHaveAccessibleDescription;
+  }
+}));
+Object.defineProperty(exports, "toHaveAccessibleName", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveAccessibleName.toHaveAccessibleName;
+  }
+}));
+Object.defineProperty(exports, "toHaveAttribute", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveAttribute.toHaveAttribute;
+  }
+}));
+Object.defineProperty(exports, "toHaveClass", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveClass.toHaveClass;
+  }
+}));
+Object.defineProperty(exports, "toHaveDescription", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveDescription.toHaveDescription;
+  }
+}));
+Object.defineProperty(exports, "toHaveDisplayValue", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveDisplayValue.toHaveDisplayValue;
+  }
+}));
+Object.defineProperty(exports, "toHaveErrorMessage", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveErrormessage.toHaveErrorMessage;
+  }
+}));
+Object.defineProperty(exports, "toHaveFocus", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveFocus.toHaveFocus;
+  }
+}));
+Object.defineProperty(exports, "toHaveFormValues", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveFormValues.toHaveFormValues;
+  }
+}));
+Object.defineProperty(exports, "toHaveStyle", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveStyle.toHaveStyle;
+  }
+}));
+Object.defineProperty(exports, "toHaveTextContent", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveTextContent.toHaveTextContent;
+  }
+}));
+Object.defineProperty(exports, "toHaveValue", ({
+  enumerable: true,
+  get: function () {
+    return _toHaveValue.toHaveValue;
+  }
+}));
+
+var _toBeInTheDom = __webpack_require__(/*! ./to-be-in-the-dom */ "./node_modules/@testing-library/jest-dom/dist/to-be-in-the-dom.js");
+
+var _toBeInTheDocument = __webpack_require__(/*! ./to-be-in-the-document */ "./node_modules/@testing-library/jest-dom/dist/to-be-in-the-document.js");
+
+var _toBeEmpty = __webpack_require__(/*! ./to-be-empty */ "./node_modules/@testing-library/jest-dom/dist/to-be-empty.js");
+
+var _toBeEmptyDomElement = __webpack_require__(/*! ./to-be-empty-dom-element */ "./node_modules/@testing-library/jest-dom/dist/to-be-empty-dom-element.js");
+
+var _toContainElement = __webpack_require__(/*! ./to-contain-element */ "./node_modules/@testing-library/jest-dom/dist/to-contain-element.js");
+
+var _toContainHtml = __webpack_require__(/*! ./to-contain-html */ "./node_modules/@testing-library/jest-dom/dist/to-contain-html.js");
+
+var _toHaveTextContent = __webpack_require__(/*! ./to-have-text-content */ "./node_modules/@testing-library/jest-dom/dist/to-have-text-content.js");
+
+var _toHaveAccessibleDescription = __webpack_require__(/*! ./to-have-accessible-description */ "./node_modules/@testing-library/jest-dom/dist/to-have-accessible-description.js");
+
+var _toHaveAccessibleName = __webpack_require__(/*! ./to-have-accessible-name */ "./node_modules/@testing-library/jest-dom/dist/to-have-accessible-name.js");
+
+var _toHaveAttribute = __webpack_require__(/*! ./to-have-attribute */ "./node_modules/@testing-library/jest-dom/dist/to-have-attribute.js");
+
+var _toHaveClass = __webpack_require__(/*! ./to-have-class */ "./node_modules/@testing-library/jest-dom/dist/to-have-class.js");
+
+var _toHaveStyle = __webpack_require__(/*! ./to-have-style */ "./node_modules/@testing-library/jest-dom/dist/to-have-style.js");
+
+var _toHaveFocus = __webpack_require__(/*! ./to-have-focus */ "./node_modules/@testing-library/jest-dom/dist/to-have-focus.js");
+
+var _toHaveFormValues = __webpack_require__(/*! ./to-have-form-values */ "./node_modules/@testing-library/jest-dom/dist/to-have-form-values.js");
+
+var _toBeVisible = __webpack_require__(/*! ./to-be-visible */ "./node_modules/@testing-library/jest-dom/dist/to-be-visible.js");
+
+var _toBeDisabled = __webpack_require__(/*! ./to-be-disabled */ "./node_modules/@testing-library/jest-dom/dist/to-be-disabled.js");
+
+var _toBeRequired = __webpack_require__(/*! ./to-be-required */ "./node_modules/@testing-library/jest-dom/dist/to-be-required.js");
+
+var _toBeInvalid = __webpack_require__(/*! ./to-be-invalid */ "./node_modules/@testing-library/jest-dom/dist/to-be-invalid.js");
+
+var _toHaveValue = __webpack_require__(/*! ./to-have-value */ "./node_modules/@testing-library/jest-dom/dist/to-have-value.js");
+
+var _toHaveDisplayValue = __webpack_require__(/*! ./to-have-display-value */ "./node_modules/@testing-library/jest-dom/dist/to-have-display-value.js");
+
+var _toBeChecked = __webpack_require__(/*! ./to-be-checked */ "./node_modules/@testing-library/jest-dom/dist/to-be-checked.js");
+
+var _toBePartiallyChecked = __webpack_require__(/*! ./to-be-partially-checked */ "./node_modules/@testing-library/jest-dom/dist/to-be-partially-checked.js");
+
+var _toHaveDescription = __webpack_require__(/*! ./to-have-description */ "./node_modules/@testing-library/jest-dom/dist/to-have-description.js");
+
+var _toHaveErrormessage = __webpack_require__(/*! ./to-have-errormessage */ "./node_modules/@testing-library/jest-dom/dist/to-have-errormessage.js");
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-checked.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-checked.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeChecked = toBeChecked;
+
+var _ariaQuery = __webpack_require__(/*! aria-query */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/index.js");
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toBeChecked(element) {
+  (0, _utils.checkHtmlElement)(element, toBeChecked, this);
+
+  const isValidInput = () => {
+    return element.tagName.toLowerCase() === 'input' && ['checkbox', 'radio'].includes(element.type);
+  };
+
+  const isValidAriaElement = () => {
+    return roleSupportsChecked(element.getAttribute('role')) && ['true', 'false'].includes(element.getAttribute('aria-checked'));
+  };
+
+  if (!isValidInput() && !isValidAriaElement()) {
+    return {
+      pass: false,
+      message: () => `only inputs with type="checkbox" or type="radio" or elements with ${supportedRolesSentence()} and a valid aria-checked attribute can be used with .toBeChecked(). Use .toHaveValue() instead`
+    };
+  }
+
+  const isChecked = () => {
+    if (isValidInput()) return element.checked;
+    return element.getAttribute('aria-checked') === 'true';
+  };
+
+  return {
+    pass: isChecked(),
+    message: () => {
+      const is = isChecked() ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeChecked`, 'element', ''), '', `Received element ${is} checked:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+function supportedRolesSentence() {
+  return (0, _utils.toSentence)(supportedRoles().map(role => `role="${role}"`), {
+    lastWordConnector: ' or '
+  });
+}
+
+function supportedRoles() {
+  return _ariaQuery.roles.keys().filter(roleSupportsChecked);
+}
+
+function roleSupportsChecked(role) {
+  var _roles$get;
+
+  return ((_roles$get = _ariaQuery.roles.get(role)) == null ? void 0 : _roles$get.props['aria-checked']) !== undefined;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-disabled.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-disabled.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeDisabled = toBeDisabled;
+exports.toBeEnabled = toBeEnabled;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+// form elements that support 'disabled'
+const FORM_TAGS = ['fieldset', 'input', 'select', 'optgroup', 'option', 'button', 'textarea'];
+/*
+ * According to specification:
+ * If <fieldset> is disabled, the form controls that are its descendants,
+ * except descendants of its first optional <legend> element, are disabled
+ *
+ * https://html.spec.whatwg.org/multipage/form-elements.html#concept-fieldset-disabled
+ *
+ * This method tests whether element is first legend child of fieldset parent
+ */
+
+function isFirstLegendChildOfFieldset(element, parent) {
+  return (0, _utils.getTag)(element) === 'legend' && (0, _utils.getTag)(parent) === 'fieldset' && element.isSameNode(Array.from(parent.children).find(child => (0, _utils.getTag)(child) === 'legend'));
+}
+
+function isElementDisabledByParent(element, parent) {
+  return isElementDisabled(parent) && !isFirstLegendChildOfFieldset(element, parent);
+}
+
+function isCustomElement(tag) {
+  return tag.includes('-');
+}
+/*
+ * Only certain form elements and custom elements can actually be disabled:
+ * https://html.spec.whatwg.org/multipage/semantics-other.html#disabled-elements
+ */
+
+
+function canElementBeDisabled(element) {
+  const tag = (0, _utils.getTag)(element);
+  return FORM_TAGS.includes(tag) || isCustomElement(tag);
+}
+
+function isElementDisabled(element) {
+  return canElementBeDisabled(element) && element.hasAttribute('disabled');
+}
+
+function isAncestorDisabled(element) {
+  const parent = element.parentElement;
+  return Boolean(parent) && (isElementDisabledByParent(element, parent) || isAncestorDisabled(parent));
+}
+
+function isElementOrAncestorDisabled(element) {
+  return canElementBeDisabled(element) && (isElementDisabled(element) || isAncestorDisabled(element));
+}
+
+function toBeDisabled(element) {
+  (0, _utils.checkHtmlElement)(element, toBeDisabled, this);
+  const isDisabled = isElementOrAncestorDisabled(element);
+  return {
+    pass: isDisabled,
+    message: () => {
+      const is = isDisabled ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeDisabled`, 'element', ''), '', `Received element ${is} disabled:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+function toBeEnabled(element) {
+  (0, _utils.checkHtmlElement)(element, toBeEnabled, this);
+  const isEnabled = !isElementOrAncestorDisabled(element);
+  return {
+    pass: isEnabled,
+    message: () => {
+      const is = isEnabled ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeEnabled`, 'element', ''), '', `Received element ${is} enabled:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-empty-dom-element.js":
+/*!********************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-empty-dom-element.js ***!
+  \********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeEmptyDOMElement = toBeEmptyDOMElement;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toBeEmptyDOMElement(element) {
+  (0, _utils.checkHtmlElement)(element, toBeEmptyDOMElement, this);
+  return {
+    pass: isEmptyElement(element),
+    message: () => {
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeEmptyDOMElement`, 'element', ''), '', 'Received:', `  ${this.utils.printReceived(element.innerHTML)}`].join('\n');
+    }
+  };
+}
+/**
+ * Identifies if an element doesn't contain child nodes (excluding comments)
+ * ℹ Node.COMMENT_NODE can't be used because of the following issue 
+ * https://github.com/jsdom/jsdom/issues/2220
+ *
+ * @param {*} element an HtmlElement or SVGElement
+ * @return {*} true if the element only contains comments or none
+ */
+
+
+function isEmptyElement(element) {
+  const nonCommentChildNodes = [...element.childNodes].filter(node => node.nodeType !== 8);
+  return nonCommentChildNodes.length === 0;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-empty.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-empty.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeEmpty = toBeEmpty;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toBeEmpty(element) {
+  (0, _utils.deprecate)('toBeEmpty', 'Please use instead toBeEmptyDOMElement for finding empty nodes in the DOM.');
+  (0, _utils.checkHtmlElement)(element, toBeEmpty, this);
+  return {
+    pass: element.innerHTML === '',
+    message: () => {
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeEmpty`, 'element', ''), '', 'Received:', `  ${this.utils.printReceived(element.innerHTML)}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-in-the-document.js":
+/*!******************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-in-the-document.js ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeInTheDocument = toBeInTheDocument;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toBeInTheDocument(element) {
+  if (element !== null || !this.isNot) {
+    (0, _utils.checkHtmlElement)(element, toBeInTheDocument, this);
+  }
+
+  const pass = element === null ? false : element.ownerDocument === element.getRootNode({
+    composed: true
+  });
+
+  const errorFound = () => {
+    return `expected document not to contain element, found ${this.utils.stringify(element.cloneNode(true))} instead`;
+  };
+
+  const errorNotFound = () => {
+    return `element could not be found in the document`;
+  };
+
+  return {
+    pass,
+    message: () => {
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeInTheDocument`, 'element', ''), '', // eslint-disable-next-line @babel/new-cap
+      this.utils.RECEIVED_COLOR(this.isNot ? errorFound() : errorNotFound())].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-in-the-dom.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-in-the-dom.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeInTheDOM = toBeInTheDOM;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toBeInTheDOM(element, container) {
+  (0, _utils.deprecate)('toBeInTheDOM', 'Please use toBeInTheDocument for searching the entire document and toContainElement for searching a specific container.');
+
+  if (element) {
+    (0, _utils.checkHtmlElement)(element, toBeInTheDOM, this);
+  }
+
+  if (container) {
+    (0, _utils.checkHtmlElement)(container, toBeInTheDOM, this);
+  }
+
+  return {
+    pass: container ? container.contains(element) : !!element,
+    message: () => {
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeInTheDOM`, 'element', ''), '', 'Received:', `  ${this.utils.printReceived(element ? element.cloneNode(false) : element)}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-invalid.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-invalid.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeInvalid = toBeInvalid;
+exports.toBeValid = toBeValid;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+const FORM_TAGS = ['form', 'input', 'select', 'textarea'];
+
+function isElementHavingAriaInvalid(element) {
+  return element.hasAttribute('aria-invalid') && element.getAttribute('aria-invalid') !== 'false';
+}
+
+function isSupportsValidityMethod(element) {
+  return FORM_TAGS.includes((0, _utils.getTag)(element));
+}
+
+function isElementInvalid(element) {
+  const isHaveAriaInvalid = isElementHavingAriaInvalid(element);
+
+  if (isSupportsValidityMethod(element)) {
+    return isHaveAriaInvalid || !element.checkValidity();
+  } else {
+    return isHaveAriaInvalid;
+  }
+}
+
+function toBeInvalid(element) {
+  (0, _utils.checkHtmlElement)(element, toBeInvalid, this);
+  const isInvalid = isElementInvalid(element);
+  return {
+    pass: isInvalid,
+    message: () => {
+      const is = isInvalid ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeInvalid`, 'element', ''), '', `Received element ${is} currently invalid:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+function toBeValid(element) {
+  (0, _utils.checkHtmlElement)(element, toBeValid, this);
+  const isValid = !isElementInvalid(element);
+  return {
+    pass: isValid,
+    message: () => {
+      const is = isValid ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeValid`, 'element', ''), '', `Received element ${is} currently valid:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-partially-checked.js":
+/*!********************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-partially-checked.js ***!
+  \********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBePartiallyChecked = toBePartiallyChecked;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toBePartiallyChecked(element) {
+  (0, _utils.checkHtmlElement)(element, toBePartiallyChecked, this);
+
+  const isValidInput = () => {
+    return element.tagName.toLowerCase() === 'input' && element.type === 'checkbox';
+  };
+
+  const isValidAriaElement = () => {
+    return element.getAttribute('role') === 'checkbox';
+  };
+
+  if (!isValidInput() && !isValidAriaElement()) {
+    return {
+      pass: false,
+      message: () => 'only inputs with type="checkbox" or elements with role="checkbox" and a valid aria-checked attribute can be used with .toBePartiallyChecked(). Use .toHaveValue() instead'
+    };
+  }
+
+  const isPartiallyChecked = () => {
+    const isAriaMixed = element.getAttribute('aria-checked') === 'mixed';
+
+    if (isValidInput()) {
+      return element.indeterminate || isAriaMixed;
+    }
+
+    return isAriaMixed;
+  };
+
+  return {
+    pass: isPartiallyChecked(),
+    message: () => {
+      const is = isPartiallyChecked() ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBePartiallyChecked`, 'element', ''), '', `Received element ${is} partially checked:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-required.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-required.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeRequired = toBeRequired;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+// form elements that support 'required'
+const FORM_TAGS = ['select', 'textarea'];
+const ARIA_FORM_TAGS = ['input', 'select', 'textarea'];
+const UNSUPPORTED_INPUT_TYPES = ['color', 'hidden', 'range', 'submit', 'image', 'reset'];
+const SUPPORTED_ARIA_ROLES = ['combobox', 'gridcell', 'radiogroup', 'spinbutton', 'tree'];
+
+function isRequiredOnFormTagsExceptInput(element) {
+  return FORM_TAGS.includes((0, _utils.getTag)(element)) && element.hasAttribute('required');
+}
+
+function isRequiredOnSupportedInput(element) {
+  return (0, _utils.getTag)(element) === 'input' && element.hasAttribute('required') && (element.hasAttribute('type') && !UNSUPPORTED_INPUT_TYPES.includes(element.getAttribute('type')) || !element.hasAttribute('type'));
+}
+
+function isElementRequiredByARIA(element) {
+  return element.hasAttribute('aria-required') && element.getAttribute('aria-required') === 'true' && (ARIA_FORM_TAGS.includes((0, _utils.getTag)(element)) || element.hasAttribute('role') && SUPPORTED_ARIA_ROLES.includes(element.getAttribute('role')));
+}
+
+function toBeRequired(element) {
+  (0, _utils.checkHtmlElement)(element, toBeRequired, this);
+  const isRequired = isRequiredOnFormTagsExceptInput(element) || isRequiredOnSupportedInput(element) || isElementRequiredByARIA(element);
+  return {
+    pass: isRequired,
+    message: () => {
+      const is = isRequired ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeRequired`, 'element', ''), '', `Received element ${is} required:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-be-visible.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-be-visible.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toBeVisible = toBeVisible;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function isStyleVisible(element) {
+  const {
+    getComputedStyle
+  } = element.ownerDocument.defaultView;
+  const {
+    display,
+    visibility,
+    opacity
+  } = getComputedStyle(element);
+  return display !== 'none' && visibility !== 'hidden' && visibility !== 'collapse' && opacity !== '0' && opacity !== 0;
+}
+
+function isAttributeVisible(element, previousElement) {
+  let detailsVisibility;
+
+  if (previousElement) {
+    detailsVisibility = element.nodeName === 'DETAILS' && previousElement.nodeName !== 'SUMMARY' ? element.hasAttribute('open') : true;
+  } else {
+    detailsVisibility = element.nodeName === 'DETAILS' ? element.hasAttribute('open') : true;
+  }
+
+  return !element.hasAttribute('hidden') && detailsVisibility;
+}
+
+function isElementVisible(element, previousElement) {
+  return isStyleVisible(element) && isAttributeVisible(element, previousElement) && (!element.parentElement || isElementVisible(element.parentElement, element));
+}
+
+function toBeVisible(element) {
+  (0, _utils.checkHtmlElement)(element, toBeVisible, this);
+  const isInDocument = element.ownerDocument === element.getRootNode({
+    composed: true
+  });
+  const isVisible = isInDocument && isElementVisible(element);
+  return {
+    pass: isVisible,
+    message: () => {
+      const is = isVisible ? 'is' : 'is not';
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toBeVisible`, 'element', ''), '', `Received element ${is} visible${isInDocument ? '' : ' (element is not in the document)'}:`, `  ${this.utils.printReceived(element.cloneNode(false))}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-contain-element.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-contain-element.js ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toContainElement = toContainElement;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toContainElement(container, element) {
+  (0, _utils.checkHtmlElement)(container, toContainElement, this);
+
+  if (element !== null) {
+    (0, _utils.checkHtmlElement)(element, toContainElement, this);
+  }
+
+  return {
+    pass: container.contains(element),
+    message: () => {
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toContainElement`, 'element', 'element'), '', // eslint-disable-next-line @babel/new-cap
+      this.utils.RECEIVED_COLOR(`${this.utils.stringify(container.cloneNode(false))} ${this.isNot ? 'contains:' : 'does not contain:'} ${this.utils.stringify(element ? element.cloneNode(false) : element)}
+        `)].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-contain-html.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-contain-html.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toContainHTML = toContainHTML;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function getNormalizedHtml(container, htmlText) {
+  const div = container.ownerDocument.createElement('div');
+  div.innerHTML = htmlText;
+  return div.innerHTML;
+}
+
+function toContainHTML(container, htmlText) {
+  (0, _utils.checkHtmlElement)(container, toContainHTML, this);
+
+  if (typeof htmlText !== 'string') {
+    throw new Error(`.toContainHTML() expects a string value, got ${htmlText}`);
+  }
+
+  return {
+    pass: container.outerHTML.includes(getNormalizedHtml(container, htmlText)),
+    message: () => {
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toContainHTML`, 'element', ''), 'Expected:', // eslint-disable-next-line @babel/new-cap
+      `  ${this.utils.EXPECTED_COLOR(htmlText)}`, 'Received:', `  ${this.utils.printReceived(container.cloneNode(true))}`].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-accessible-description.js":
+/*!***************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-accessible-description.js ***!
+  \***************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveAccessibleDescription = toHaveAccessibleDescription;
+
+var _domAccessibilityApi = __webpack_require__(/*! dom-accessibility-api */ "./node_modules/dom-accessibility-api/dist/index.js");
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toHaveAccessibleDescription(htmlElement, expectedAccessibleDescription) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveAccessibleDescription, this);
+  const actualAccessibleDescription = (0, _domAccessibilityApi.computeAccessibleDescription)(htmlElement);
+  const missingExpectedValue = arguments.length === 1;
+  let pass = false;
+
+  if (missingExpectedValue) {
+    // When called without an expected value we only want to validate that the element has an
+    // accessible description, whatever it may be.
+    pass = actualAccessibleDescription !== '';
+  } else {
+    pass = expectedAccessibleDescription instanceof RegExp ? expectedAccessibleDescription.test(actualAccessibleDescription) : this.equals(actualAccessibleDescription, expectedAccessibleDescription);
+  }
+
+  return {
+    pass,
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      return (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.${toHaveAccessibleDescription.name}`, 'element', ''), `Expected element ${to} have accessible description`, expectedAccessibleDescription, 'Received', actualAccessibleDescription);
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-accessible-name.js":
+/*!********************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-accessible-name.js ***!
+  \********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveAccessibleName = toHaveAccessibleName;
+
+var _domAccessibilityApi = __webpack_require__(/*! dom-accessibility-api */ "./node_modules/dom-accessibility-api/dist/index.js");
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toHaveAccessibleName(htmlElement, expectedAccessibleName) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveAccessibleName, this);
+  const actualAccessibleName = (0, _domAccessibilityApi.computeAccessibleName)(htmlElement);
+  const missingExpectedValue = arguments.length === 1;
+  let pass = false;
+
+  if (missingExpectedValue) {
+    // When called without an expected value we only want to validate that the element has an
+    // accessible name, whatever it may be.
+    pass = actualAccessibleName !== '';
+  } else {
+    pass = expectedAccessibleName instanceof RegExp ? expectedAccessibleName.test(actualAccessibleName) : this.equals(actualAccessibleName, expectedAccessibleName);
+  }
+
+  return {
+    pass,
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      return (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.${toHaveAccessibleName.name}`, 'element', ''), `Expected element ${to} have accessible name`, expectedAccessibleName, 'Received', actualAccessibleName);
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-attribute.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-attribute.js ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveAttribute = toHaveAttribute;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function printAttribute(stringify, name, value) {
+  return value === undefined ? name : `${name}=${stringify(value)}`;
+}
+
+function getAttributeComment(stringify, name, value) {
+  return value === undefined ? `element.hasAttribute(${stringify(name)})` : `element.getAttribute(${stringify(name)}) === ${stringify(value)}`;
+}
+
+function toHaveAttribute(htmlElement, name, expectedValue) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveAttribute, this);
+  const isExpectedValuePresent = expectedValue !== undefined;
+  const hasAttribute = htmlElement.hasAttribute(name);
+  const receivedValue = htmlElement.getAttribute(name);
+  return {
+    pass: isExpectedValuePresent ? hasAttribute && this.equals(receivedValue, expectedValue) : hasAttribute,
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      const receivedAttribute = hasAttribute ? printAttribute(this.utils.stringify, name, receivedValue) : null;
+      const matcher = this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveAttribute`, 'element', this.utils.printExpected(name), {
+        secondArgument: isExpectedValuePresent ? this.utils.printExpected(expectedValue) : undefined,
+        comment: getAttributeComment(this.utils.stringify, name, expectedValue)
+      });
+      return (0, _utils.getMessage)(this, matcher, `Expected the element ${to} have attribute`, printAttribute(this.utils.stringify, name, expectedValue), 'Received', receivedAttribute);
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-class.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-class.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveClass = toHaveClass;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function getExpectedClassNamesAndOptions(params) {
+  const lastParam = params.pop();
+  let expectedClassNames, options;
+
+  if (typeof lastParam === 'object') {
+    expectedClassNames = params;
+    options = lastParam;
+  } else {
+    expectedClassNames = params.concat(lastParam);
+    options = {
+      exact: false
+    };
+  }
+
+  return {
+    expectedClassNames,
+    options
+  };
+}
+
+function splitClassNames(str) {
+  if (!str) {
+    return [];
+  }
+
+  return str.split(/\s+/).filter(s => s.length > 0);
+}
+
+function isSubset(subset, superset) {
+  return subset.every(item => superset.includes(item));
+}
+
+function toHaveClass(htmlElement, ...params) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveClass, this);
+  const {
+    expectedClassNames,
+    options
+  } = getExpectedClassNamesAndOptions(params);
+  const received = splitClassNames(htmlElement.getAttribute('class'));
+  const expected = expectedClassNames.reduce((acc, className) => acc.concat(splitClassNames(className)), []);
+
+  if (options.exact) {
+    return {
+      pass: isSubset(expected, received) && expected.length === received.length,
+      message: () => {
+        const to = this.isNot ? 'not to' : 'to';
+        return (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveClass`, 'element', this.utils.printExpected(expected.join(' '))), `Expected the element ${to} have EXACTLY defined classes`, expected.join(' '), 'Received', received.join(' '));
+      }
+    };
+  }
+
+  return expected.length > 0 ? {
+    pass: isSubset(expected, received),
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      return (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveClass`, 'element', this.utils.printExpected(expected.join(' '))), `Expected the element ${to} have class`, expected.join(' '), 'Received', received.join(' '));
+    }
+  } : {
+    pass: this.isNot ? received.length > 0 : false,
+    message: () => this.isNot ? (0, _utils.getMessage)(this, this.utils.matcherHint('.not.toHaveClass', 'element', ''), 'Expected the element to have classes', '(none)', 'Received', received.join(' ')) : [this.utils.matcherHint(`.toHaveClass`, 'element'), 'At least one expected class must be provided.'].join('\n')
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-description.js":
+/*!****************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-description.js ***!
+  \****************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveDescription = toHaveDescription;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+// See algoritm: https://www.w3.org/TR/accname-1.1/#mapping_additional_nd_description
+function toHaveDescription(htmlElement, checkWith) {
+  (0, _utils.deprecate)('toHaveDescription', 'Please use toHaveAccessibleDescription.');
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveDescription, this);
+  const expectsDescription = checkWith !== undefined;
+  const descriptionIDRaw = htmlElement.getAttribute('aria-describedby') || '';
+  const descriptionIDs = descriptionIDRaw.split(/\s+/).filter(Boolean);
+  let description = '';
+
+  if (descriptionIDs.length > 0) {
+    const document = htmlElement.ownerDocument;
+    const descriptionEls = descriptionIDs.map(descriptionID => document.getElementById(descriptionID)).filter(Boolean);
+    description = (0, _utils.normalize)(descriptionEls.map(el => el.textContent).join(' '));
+  }
+
+  return {
+    pass: expectsDescription ? checkWith instanceof RegExp ? checkWith.test(description) : this.equals(description, checkWith) : Boolean(description),
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      return (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveDescription`, 'element', ''), `Expected the element ${to} have description`, this.utils.printExpected(checkWith), 'Received', this.utils.printReceived(description));
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-display-value.js":
+/*!******************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-display-value.js ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveDisplayValue = toHaveDisplayValue;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toHaveDisplayValue(htmlElement, expectedValue) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveDisplayValue, this);
+  const tagName = htmlElement.tagName.toLowerCase();
+
+  if (!['select', 'input', 'textarea'].includes(tagName)) {
+    throw new Error('.toHaveDisplayValue() currently supports only input, textarea or select elements, try with another matcher instead.');
+  }
+
+  if (tagName === 'input' && ['radio', 'checkbox'].includes(htmlElement.type)) {
+    throw new Error(`.toHaveDisplayValue() currently does not support input[type="${htmlElement.type}"], try with another matcher instead.`);
+  }
+
+  const values = getValues(tagName, htmlElement);
+  const expectedValues = getExpectedValues(expectedValue);
+  const numberOfMatchesWithValues = expectedValues.filter(expected => values.some(value => expected instanceof RegExp ? expected.test(value) : this.equals(value, String(expected)))).length;
+  const matchedWithAllValues = numberOfMatchesWithValues === values.length;
+  const matchedWithAllExpectedValues = numberOfMatchesWithValues === expectedValues.length;
+  return {
+    pass: matchedWithAllValues && matchedWithAllExpectedValues,
+    message: () => (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveDisplayValue`, 'element', ''), `Expected element ${this.isNot ? 'not ' : ''}to have display value`, expectedValue, 'Received', values)
+  };
+}
+
+function getValues(tagName, htmlElement) {
+  return tagName === 'select' ? Array.from(htmlElement).filter(option => option.selected).map(option => option.textContent) : [htmlElement.value];
+}
+
+function getExpectedValues(expectedValue) {
+  return expectedValue instanceof Array ? expectedValue : [expectedValue];
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-errormessage.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-errormessage.js ***!
+  \*****************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveErrorMessage = toHaveErrorMessage;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+// See aria-errormessage spec https://www.w3.org/TR/wai-aria-1.2/#aria-errormessage
+function toHaveErrorMessage(htmlElement, checkWith) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveErrorMessage, this);
+
+  if (!htmlElement.hasAttribute('aria-invalid') || htmlElement.getAttribute('aria-invalid') === 'false') {
+    const not = this.isNot ? '.not' : '';
+    return {
+      pass: false,
+      message: () => {
+        return (0, _utils.getMessage)(this, this.utils.matcherHint(`${not}.toHaveErrorMessage`, 'element', ''), `Expected the element to have invalid state indicated by`, 'aria-invalid="true"', 'Received', htmlElement.hasAttribute('aria-invalid') ? `aria-invalid="${htmlElement.getAttribute('aria-invalid')}"` : this.utils.printReceived(''));
+      }
+    };
+  }
+
+  const expectsErrorMessage = checkWith !== undefined;
+  const errormessageIDRaw = htmlElement.getAttribute('aria-errormessage') || '';
+  const errormessageIDs = errormessageIDRaw.split(/\s+/).filter(Boolean);
+  let errormessage = '';
+
+  if (errormessageIDs.length > 0) {
+    const document = htmlElement.ownerDocument;
+    const errormessageEls = errormessageIDs.map(errormessageID => document.getElementById(errormessageID)).filter(Boolean);
+    errormessage = (0, _utils.normalize)(errormessageEls.map(el => el.textContent).join(' '));
+  }
+
+  return {
+    pass: expectsErrorMessage ? checkWith instanceof RegExp ? checkWith.test(errormessage) : this.equals(errormessage, checkWith) : Boolean(errormessage),
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      return (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveErrorMessage`, 'element', ''), `Expected the element ${to} have error message`, this.utils.printExpected(checkWith), 'Received', this.utils.printReceived(errormessage));
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-focus.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-focus.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveFocus = toHaveFocus;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toHaveFocus(element) {
+  (0, _utils.checkHtmlElement)(element, toHaveFocus, this);
+  return {
+    pass: element.ownerDocument.activeElement === element,
+    message: () => {
+      return [this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveFocus`, 'element', ''), '', ...(this.isNot ? ['Received element is focused:', `  ${this.utils.printReceived(element)}`] : ['Expected element with focus:', `  ${this.utils.printExpected(element)}`, 'Received element with focus:', `  ${this.utils.printReceived(element.ownerDocument.activeElement)}`])].join('\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-form-values.js":
+/*!****************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-form-values.js ***!
+  \****************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveFormValues = toHaveFormValues;
+
+var _extends2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/extends */ "./node_modules/@babel/runtime/helpers/extends.js"));
+
+var _isEqualWith = _interopRequireDefault(__webpack_require__(/*! lodash/isEqualWith */ "./node_modules/lodash/isEqualWith.js"));
+
+var _uniq = _interopRequireDefault(__webpack_require__(/*! lodash/uniq */ "./node_modules/lodash/uniq.js"));
+
+var _css = _interopRequireDefault(__webpack_require__(/*! css.escape */ "./node_modules/css.escape/css.escape.js"));
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+// Returns the combined value of several elements that have the same name
+// e.g. radio buttons or groups of checkboxes
+function getMultiElementValue(elements) {
+  const types = (0, _uniq.default)(elements.map(element => element.type));
+
+  if (types.length !== 1) {
+    throw new Error('Multiple form elements with the same name must be of the same type');
+  }
+
+  switch (types[0]) {
+    case 'radio':
+      {
+        const theChosenOne = elements.find(radio => radio.checked);
+        return theChosenOne ? theChosenOne.value : undefined;
+      }
+
+    case 'checkbox':
+      return elements.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+
+    default:
+      // NOTE: Not even sure this is a valid use case, but just in case...
+      return elements.map(element => element.value);
+  }
+}
+
+function getFormValue(container, name) {
+  const elements = [...container.querySelectorAll(`[name="${(0, _css.default)(name)}"]`)];
+  /* istanbul ignore if */
+
+  if (elements.length === 0) {
+    return undefined; // shouldn't happen, but just in case
+  }
+
+  switch (elements.length) {
+    case 1:
+      return (0, _utils.getSingleElementValue)(elements[0]);
+
+    default:
+      return getMultiElementValue(elements);
+  }
+} // Strips the `[]` suffix off a form value name
+
+
+function getPureName(name) {
+  return /\[\]$/.test(name) ? name.slice(0, -2) : name;
+}
+
+function getAllFormValues(container) {
+  const names = Array.from(container.elements).map(element => element.name);
+  return names.reduce((obj, name) => (0, _extends2.default)({}, obj, {
+    [getPureName(name)]: getFormValue(container, name)
+  }), {});
+}
+
+function toHaveFormValues(formElement, expectedValues) {
+  (0, _utils.checkHtmlElement)(formElement, toHaveFormValues, this);
+
+  if (!formElement.elements) {
+    // TODO: Change condition to use instanceof against the appropriate element classes instead
+    throw new Error('toHaveFormValues must be called on a form or a fieldset');
+  }
+
+  const formValues = getAllFormValues(formElement);
+  return {
+    pass: Object.entries(expectedValues).every(([name, expectedValue]) => (0, _isEqualWith.default)(formValues[name], expectedValue, _utils.compareArraysAsSet)),
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      const matcher = `${this.isNot ? '.not' : ''}.toHaveFormValues`;
+      const commonKeyValues = Object.keys(formValues).filter(key => expectedValues.hasOwnProperty(key)).reduce((obj, key) => (0, _extends2.default)({}, obj, {
+        [key]: formValues[key]
+      }), {});
+      return [this.utils.matcherHint(matcher, 'element', ''), `Expected the element ${to} have form values`, this.utils.diff(expectedValues, commonKeyValues)].join('\n\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-style.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-style.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveStyle = toHaveStyle;
+
+var _chalk = _interopRequireDefault(__webpack_require__(/*! chalk */ "./node_modules/@testing-library/jest-dom/node_modules/chalk/source/index.js"));
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function getStyleDeclaration(document, css) {
+  const styles = {}; // The next block is necessary to normalize colors
+
+  const copy = document.createElement('div');
+  Object.keys(css).forEach(property => {
+    copy.style[property] = css[property];
+    styles[property] = copy.style[property];
+  });
+  return styles;
+}
+
+function isSubset(styles, computedStyle) {
+  return !!Object.keys(styles).length && Object.entries(styles).every(([prop, value]) => computedStyle[prop] === value || computedStyle.getPropertyValue(prop.toLowerCase()) === value);
+}
+
+function printoutStyles(styles) {
+  return Object.keys(styles).sort().map(prop => `${prop}: ${styles[prop]};`).join('\n');
+} // Highlights only style rules that were expected but were not found in the
+// received computed styles
+
+
+function expectedDiff(diffFn, expected, computedStyles) {
+  const received = Array.from(computedStyles).filter(prop => expected[prop] !== undefined).reduce((obj, prop) => Object.assign(obj, {
+    [prop]: computedStyles.getPropertyValue(prop)
+  }), {});
+  const diffOutput = diffFn(printoutStyles(expected), printoutStyles(received)); // Remove the "+ Received" annotation because this is a one-way diff
+
+  return diffOutput.replace(`${_chalk.default.red('+ Received')}\n`, '');
+}
+
+function toHaveStyle(htmlElement, css) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveStyle, this);
+  const parsedCSS = typeof css === 'object' ? css : (0, _utils.parseCSS)(css, toHaveStyle, this);
+  const {
+    getComputedStyle
+  } = htmlElement.ownerDocument.defaultView;
+  const expected = getStyleDeclaration(htmlElement.ownerDocument, parsedCSS);
+  const received = getComputedStyle(htmlElement);
+  return {
+    pass: isSubset(expected, received),
+    message: () => {
+      const matcher = `${this.isNot ? '.not' : ''}.toHaveStyle`;
+      return [this.utils.matcherHint(matcher, 'element', ''), expectedDiff(this.utils.diff, expected, received)].join('\n\n');
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-text-content.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-text-content.js ***!
+  \*****************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveTextContent = toHaveTextContent;
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toHaveTextContent(node, checkWith, options = {
+  normalizeWhitespace: true
+}) {
+  (0, _utils.checkNode)(node, toHaveTextContent, this);
+  const textContent = options.normalizeWhitespace ? (0, _utils.normalize)(node.textContent) : node.textContent.replace(/\u00a0/g, ' '); // Replace &nbsp; with normal spaces
+
+  const checkingWithEmptyString = textContent !== '' && checkWith === '';
+  return {
+    pass: !checkingWithEmptyString && (0, _utils.matches)(textContent, checkWith),
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      return (0, _utils.getMessage)(this, this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveTextContent`, 'element', ''), checkingWithEmptyString ? `Checking with empty string will always match, use .toBeEmptyDOMElement() instead` : `Expected element ${to} have text content`, checkWith, 'Received', textContent);
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/to-have-value.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/to-have-value.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.toHaveValue = toHaveValue;
+
+var _isEqualWith = _interopRequireDefault(__webpack_require__(/*! lodash/isEqualWith */ "./node_modules/lodash/isEqualWith.js"));
+
+var _utils = __webpack_require__(/*! ./utils */ "./node_modules/@testing-library/jest-dom/dist/utils.js");
+
+function toHaveValue(htmlElement, expectedValue) {
+  (0, _utils.checkHtmlElement)(htmlElement, toHaveValue, this);
+
+  if (htmlElement.tagName.toLowerCase() === 'input' && ['checkbox', 'radio'].includes(htmlElement.type)) {
+    throw new Error('input with type=checkbox or type=radio cannot be used with .toHaveValue(). Use .toBeChecked() for type=checkbox or .toHaveFormValues() instead');
+  }
+
+  const receivedValue = (0, _utils.getSingleElementValue)(htmlElement);
+  const expectsValue = expectedValue !== undefined;
+  let expectedTypedValue = expectedValue;
+  let receivedTypedValue = receivedValue;
+
+  if (expectedValue == receivedValue && expectedValue !== receivedValue) {
+    expectedTypedValue = `${expectedValue} (${typeof expectedValue})`;
+    receivedTypedValue = `${receivedValue} (${typeof receivedValue})`;
+  }
+
+  return {
+    pass: expectsValue ? (0, _isEqualWith.default)(receivedValue, expectedValue, _utils.compareArraysAsSet) : Boolean(receivedValue),
+    message: () => {
+      const to = this.isNot ? 'not to' : 'to';
+      const matcher = this.utils.matcherHint(`${this.isNot ? '.not' : ''}.toHaveValue`, 'element', expectedValue);
+      return (0, _utils.getMessage)(this, matcher, `Expected the element ${to} have value`, expectsValue ? expectedTypedValue : '(any)', 'Received', receivedTypedValue);
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/dist/utils.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/dist/utils.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.NodeTypeError = exports.HtmlElementTypeError = void 0;
+exports.checkHtmlElement = checkHtmlElement;
+exports.checkNode = checkNode;
+exports.compareArraysAsSet = compareArraysAsSet;
+exports.deprecate = deprecate;
+exports.getMessage = getMessage;
+exports.getSingleElementValue = getSingleElementValue;
+exports.getTag = getTag;
+exports.matches = matches;
+exports.normalize = normalize;
+exports.parseCSS = parseCSS;
+exports.toSentence = toSentence;
+
+var _redent = _interopRequireDefault(__webpack_require__(/*! redent */ "./node_modules/redent/index.js"));
+
+var _parse = _interopRequireDefault(__webpack_require__(/*! css/lib/parse */ "./node_modules/css/lib/parse/index.js"));
+
+var _isEqual = _interopRequireDefault(__webpack_require__(/*! lodash/isEqual */ "./node_modules/lodash/isEqual.js"));
+
+class GenericTypeError extends Error {
+  constructor(expectedString, received, matcherFn, context) {
+    super();
+    /* istanbul ignore next */
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, matcherFn);
+    }
+
+    let withType = '';
+
+    try {
+      withType = context.utils.printWithType('Received', received, context.utils.printReceived);
+    } catch (e) {// Can throw for Document:
+      // https://github.com/jsdom/jsdom/issues/2304
+    }
+
+    this.message = [context.utils.matcherHint(`${context.isNot ? '.not' : ''}.${matcherFn.name}`, 'received', ''), '', // eslint-disable-next-line @babel/new-cap
+    `${context.utils.RECEIVED_COLOR('received')} value must ${expectedString}.`, withType].join('\n');
+  }
+
+}
+
+class HtmlElementTypeError extends GenericTypeError {
+  constructor(...args) {
+    super('be an HTMLElement or an SVGElement', ...args);
+  }
+
+}
+
+exports.HtmlElementTypeError = HtmlElementTypeError;
+
+class NodeTypeError extends GenericTypeError {
+  constructor(...args) {
+    super('be a Node', ...args);
+  }
+
+}
+
+exports.NodeTypeError = NodeTypeError;
+
+function checkHasWindow(htmlElement, ErrorClass, ...args) {
+  if (!htmlElement || !htmlElement.ownerDocument || !htmlElement.ownerDocument.defaultView) {
+    throw new ErrorClass(htmlElement, ...args);
+  }
+}
+
+function checkNode(node, ...args) {
+  checkHasWindow(node, NodeTypeError, ...args);
+  const window = node.ownerDocument.defaultView;
+
+  if (!(node instanceof window.Node)) {
+    throw new NodeTypeError(node, ...args);
+  }
+}
+
+function checkHtmlElement(htmlElement, ...args) {
+  checkHasWindow(htmlElement, HtmlElementTypeError, ...args);
+  const window = htmlElement.ownerDocument.defaultView;
+
+  if (!(htmlElement instanceof window.HTMLElement) && !(htmlElement instanceof window.SVGElement)) {
+    throw new HtmlElementTypeError(htmlElement, ...args);
+  }
+}
+
+class InvalidCSSError extends Error {
+  constructor(received, matcherFn, context) {
+    super();
+    /* istanbul ignore next */
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, matcherFn);
+    }
+
+    this.message = [received.message, '', // eslint-disable-next-line @babel/new-cap
+    context.utils.RECEIVED_COLOR(`Failing css:`), // eslint-disable-next-line @babel/new-cap
+    context.utils.RECEIVED_COLOR(`${received.css}`)].join('\n');
+  }
+
+}
+
+function parseCSS(css, ...args) {
+  const ast = (0, _parse.default)(`selector { ${css} }`, {
+    silent: true
+  }).stylesheet;
+
+  if (ast.parsingErrors && ast.parsingErrors.length > 0) {
+    const {
+      reason,
+      line
+    } = ast.parsingErrors[0];
+    throw new InvalidCSSError({
+      css,
+      message: `Syntax error parsing expected css: ${reason} on line: ${line}`
+    }, ...args);
+  }
+
+  const parsedRules = ast.rules[0].declarations.filter(d => d.type === 'declaration').reduce((obj, {
+    property,
+    value
+  }) => Object.assign(obj, {
+    [property]: value
+  }), {});
+  return parsedRules;
+}
+
+function display(context, value) {
+  return typeof value === 'string' ? value : context.utils.stringify(value);
+}
+
+function getMessage(context, matcher, expectedLabel, expectedValue, receivedLabel, receivedValue) {
+  return [`${matcher}\n`, // eslint-disable-next-line @babel/new-cap
+  `${expectedLabel}:\n${context.utils.EXPECTED_COLOR((0, _redent.default)(display(context, expectedValue), 2))}`, // eslint-disable-next-line @babel/new-cap
+  `${receivedLabel}:\n${context.utils.RECEIVED_COLOR((0, _redent.default)(display(context, receivedValue), 2))}`].join('\n');
+}
+
+function matches(textToMatch, matcher) {
+  if (matcher instanceof RegExp) {
+    return matcher.test(textToMatch);
+  } else {
+    return textToMatch.includes(String(matcher));
+  }
+}
+
+function deprecate(name, replacementText) {
+  // Notify user that they are using deprecated functionality.
+  // eslint-disable-next-line no-console
+  console.warn(`Warning: ${name} has been deprecated and will be removed in future updates.`, replacementText);
+}
+
+function normalize(text) {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function getTag(element) {
+  return element.tagName && element.tagName.toLowerCase();
+}
+
+function getSelectValue({
+  multiple,
+  options
+}) {
+  const selectedOptions = [...options].filter(option => option.selected);
+
+  if (multiple) {
+    return [...selectedOptions].map(opt => opt.value);
+  }
+  /* istanbul ignore if */
+
+
+  if (selectedOptions.length === 0) {
+    return undefined; // Couldn't make this happen, but just in case
+  }
+
+  return selectedOptions[0].value;
+}
+
+function getInputValue(inputElement) {
+  switch (inputElement.type) {
+    case 'number':
+      return inputElement.value === '' ? null : Number(inputElement.value);
+
+    case 'checkbox':
+      return inputElement.checked;
+
+    default:
+      return inputElement.value;
+  }
+}
+
+function getSingleElementValue(element) {
+  /* istanbul ignore if */
+  if (!element) {
+    return undefined;
+  }
+
+  switch (element.tagName.toLowerCase()) {
+    case 'input':
+      return getInputValue(element);
+
+    case 'select':
+      return getSelectValue(element);
+
+    default:
+      return element.value;
+  }
+}
+
+function compareArraysAsSet(a, b) {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return (0, _isEqual.default)(new Set(a), new Set(b));
+  }
+
+  return undefined;
+}
+
+function toSentence(array, {
+  wordConnector = ', ',
+  lastWordConnector = ' and '
+} = {}) {
+  return [array.slice(0, -1).join(wordConnector), array[array.length - 1]].join(array.length > 1 ? lastWordConnector : '');
+}
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/ansi-styles/index.js":
+/*!**********************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/ansi-styles/index.js ***!
+  \**********************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+/* module decorator */ module = __webpack_require__.nmd(module);
+
+
+const wrapAnsi16 = (fn, offset) => (...args) => {
+	const code = fn(...args);
+	return `\u001B[${code + offset}m`;
+};
+
+const wrapAnsi256 = (fn, offset) => (...args) => {
+	const code = fn(...args);
+	return `\u001B[${38 + offset};5;${code}m`;
+};
+
+const wrapAnsi16m = (fn, offset) => (...args) => {
+	const rgb = fn(...args);
+	return `\u001B[${38 + offset};2;${rgb[0]};${rgb[1]};${rgb[2]}m`;
+};
+
+const ansi2ansi = n => n;
+const rgb2rgb = (r, g, b) => [r, g, b];
+
+const setLazyProperty = (object, property, get) => {
+	Object.defineProperty(object, property, {
+		get: () => {
+			const value = get();
+
+			Object.defineProperty(object, property, {
+				value,
+				enumerable: true,
+				configurable: true
+			});
+
+			return value;
+		},
+		enumerable: true,
+		configurable: true
+	});
+};
+
+/** @type {typeof import('color-convert')} */
+let colorConvert;
+const makeDynamicStyles = (wrap, targetSpace, identity, isBackground) => {
+	if (colorConvert === undefined) {
+		colorConvert = __webpack_require__(/*! color-convert */ "./node_modules/@testing-library/jest-dom/node_modules/color-convert/index.js");
+	}
+
+	const offset = isBackground ? 10 : 0;
+	const styles = {};
+
+	for (const [sourceSpace, suite] of Object.entries(colorConvert)) {
+		const name = sourceSpace === 'ansi16' ? 'ansi' : sourceSpace;
+		if (sourceSpace === targetSpace) {
+			styles[name] = wrap(identity, offset);
+		} else if (typeof suite === 'object') {
+			styles[name] = wrap(suite[targetSpace], offset);
+		}
+	}
+
+	return styles;
+};
+
+function assembleStyles() {
+	const codes = new Map();
+	const styles = {
+		modifier: {
+			reset: [0, 0],
+			// 21 isn't widely supported and 22 does the same thing
+			bold: [1, 22],
+			dim: [2, 22],
+			italic: [3, 23],
+			underline: [4, 24],
+			inverse: [7, 27],
+			hidden: [8, 28],
+			strikethrough: [9, 29]
+		},
+		color: {
+			black: [30, 39],
+			red: [31, 39],
+			green: [32, 39],
+			yellow: [33, 39],
+			blue: [34, 39],
+			magenta: [35, 39],
+			cyan: [36, 39],
+			white: [37, 39],
+
+			// Bright color
+			blackBright: [90, 39],
+			redBright: [91, 39],
+			greenBright: [92, 39],
+			yellowBright: [93, 39],
+			blueBright: [94, 39],
+			magentaBright: [95, 39],
+			cyanBright: [96, 39],
+			whiteBright: [97, 39]
+		},
+		bgColor: {
+			bgBlack: [40, 49],
+			bgRed: [41, 49],
+			bgGreen: [42, 49],
+			bgYellow: [43, 49],
+			bgBlue: [44, 49],
+			bgMagenta: [45, 49],
+			bgCyan: [46, 49],
+			bgWhite: [47, 49],
+
+			// Bright color
+			bgBlackBright: [100, 49],
+			bgRedBright: [101, 49],
+			bgGreenBright: [102, 49],
+			bgYellowBright: [103, 49],
+			bgBlueBright: [104, 49],
+			bgMagentaBright: [105, 49],
+			bgCyanBright: [106, 49],
+			bgWhiteBright: [107, 49]
+		}
+	};
+
+	// Alias bright black as gray (and grey)
+	styles.color.gray = styles.color.blackBright;
+	styles.bgColor.bgGray = styles.bgColor.bgBlackBright;
+	styles.color.grey = styles.color.blackBright;
+	styles.bgColor.bgGrey = styles.bgColor.bgBlackBright;
+
+	for (const [groupName, group] of Object.entries(styles)) {
+		for (const [styleName, style] of Object.entries(group)) {
+			styles[styleName] = {
+				open: `\u001B[${style[0]}m`,
+				close: `\u001B[${style[1]}m`
+			};
+
+			group[styleName] = styles[styleName];
+
+			codes.set(style[0], style[1]);
+		}
+
+		Object.defineProperty(styles, groupName, {
+			value: group,
+			enumerable: false
+		});
+	}
+
+	Object.defineProperty(styles, 'codes', {
+		value: codes,
+		enumerable: false
+	});
+
+	styles.color.close = '\u001B[39m';
+	styles.bgColor.close = '\u001B[49m';
+
+	setLazyProperty(styles.color, 'ansi', () => makeDynamicStyles(wrapAnsi16, 'ansi16', ansi2ansi, false));
+	setLazyProperty(styles.color, 'ansi256', () => makeDynamicStyles(wrapAnsi256, 'ansi256', ansi2ansi, false));
+	setLazyProperty(styles.color, 'ansi16m', () => makeDynamicStyles(wrapAnsi16m, 'rgb', rgb2rgb, false));
+	setLazyProperty(styles.bgColor, 'ansi', () => makeDynamicStyles(wrapAnsi16, 'ansi16', ansi2ansi, true));
+	setLazyProperty(styles.bgColor, 'ansi256', () => makeDynamicStyles(wrapAnsi256, 'ansi256', ansi2ansi, true));
+	setLazyProperty(styles.bgColor, 'ansi16m', () => makeDynamicStyles(wrapAnsi16m, 'rgb', rgb2rgb, true));
+
+	return styles;
+}
+
+// Make the export immutable
+Object.defineProperty(module, 'exports', {
+	enumerable: true,
+	get: assembleStyles
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/ariaPropsMap.js":
+/*!********************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/ariaPropsMap.js ***!
+  \********************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+var properties = [['aria-activedescendant', {
+  'type': 'id'
+}], ['aria-atomic', {
+  'type': 'boolean'
+}], ['aria-autocomplete', {
+  'type': 'token',
+  'values': ['inline', 'list', 'both', 'none']
+}], ['aria-busy', {
+  'type': 'boolean'
+}], ['aria-checked', {
+  'type': 'tristate'
+}], ['aria-colcount', {
+  type: 'integer'
+}], ['aria-colindex', {
+  type: 'integer'
+}], ['aria-colspan', {
+  type: 'integer'
+}], ['aria-controls', {
+  'type': 'idlist'
+}], ['aria-current', {
+  type: 'token',
+  values: ['page', 'step', 'location', 'date', 'time', true, false]
+}], ['aria-describedby', {
+  'type': 'idlist'
+}], ['aria-details', {
+  'type': 'id'
+}], ['aria-disabled', {
+  'type': 'boolean'
+}], ['aria-dropeffect', {
+  'type': 'tokenlist',
+  'values': ['copy', 'execute', 'link', 'move', 'none', 'popup']
+}], ['aria-errormessage', {
+  'type': 'id'
+}], ['aria-expanded', {
+  'type': 'boolean',
+  'allowundefined': true
+}], ['aria-flowto', {
+  'type': 'idlist'
+}], ['aria-grabbed', {
+  'type': 'boolean',
+  'allowundefined': true
+}], ['aria-haspopup', {
+  'type': 'token',
+  'values': [false, true, 'menu', 'listbox', 'tree', 'grid', 'dialog']
+}], ['aria-hidden', {
+  'type': 'boolean',
+  'allowundefined': true
+}], ['aria-invalid', {
+  'type': 'token',
+  'values': ['grammar', false, 'spelling', true]
+}], ['aria-keyshortcuts', {
+  type: 'string'
+}], ['aria-label', {
+  'type': 'string'
+}], ['aria-labelledby', {
+  'type': 'idlist'
+}], ['aria-level', {
+  'type': 'integer'
+}], ['aria-live', {
+  'type': 'token',
+  'values': ['assertive', 'off', 'polite']
+}], ['aria-modal', {
+  type: 'boolean'
+}], ['aria-multiline', {
+  'type': 'boolean'
+}], ['aria-multiselectable', {
+  'type': 'boolean'
+}], ['aria-orientation', {
+  'type': 'token',
+  'values': ['vertical', 'undefined', 'horizontal']
+}], ['aria-owns', {
+  'type': 'idlist'
+}], ['aria-placeholder', {
+  type: 'string'
+}], ['aria-posinset', {
+  'type': 'integer'
+}], ['aria-pressed', {
+  'type': 'tristate'
+}], ['aria-readonly', {
+  'type': 'boolean'
+}], ['aria-relevant', {
+  'type': 'tokenlist',
+  'values': ['additions', 'all', 'removals', 'text']
+}], ['aria-required', {
+  'type': 'boolean'
+}], ['aria-roledescription', {
+  type: 'string'
+}], ['aria-rowcount', {
+  type: 'integer'
+}], ['aria-rowindex', {
+  type: 'integer'
+}], ['aria-rowspan', {
+  type: 'integer'
+}], ['aria-selected', {
+  'type': 'boolean',
+  'allowundefined': true
+}], ['aria-setsize', {
+  'type': 'integer'
+}], ['aria-sort', {
+  'type': 'token',
+  'values': ['ascending', 'descending', 'none', 'other']
+}], ['aria-valuemax', {
+  'type': 'number'
+}], ['aria-valuemin', {
+  'type': 'number'
+}], ['aria-valuenow', {
+  'type': 'number'
+}], ['aria-valuetext', {
+  'type': 'string'
+}]];
+var ariaPropsMap = {
+  entries: function entries() {
+    return properties;
+  },
+  get: function get(key) {
+    var item = properties.find(function (tuple) {
+      return tuple[0] === key ? true : false;
+    });
+    return item && item[1];
+  },
+  has: function has(key) {
+    return !!this.get(key);
+  },
+  keys: function keys() {
+    return properties.map(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 1),
+          key = _ref2[0];
+
+      return key;
+    });
+  },
+  values: function values() {
+    return properties.map(function (_ref3) {
+      var _ref4 = _slicedToArray(_ref3, 2),
+          values = _ref4[1];
+
+      return values;
+    });
+  }
+};
+var _default = ariaPropsMap;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/domMap.js":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/domMap.js ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+var dom = [['a', {
+  reserved: false
+}], ['abbr', {
+  reserved: false
+}], ['acronym', {
+  reserved: false
+}], ['address', {
+  reserved: false
+}], ['applet', {
+  reserved: false
+}], ['area', {
+  reserved: false
+}], ['article', {
+  reserved: false
+}], ['aside', {
+  reserved: false
+}], ['audio', {
+  reserved: false
+}], ['b', {
+  reserved: false
+}], ['base', {
+  reserved: true
+}], ['bdi', {
+  reserved: false
+}], ['bdo', {
+  reserved: false
+}], ['big', {
+  reserved: false
+}], ['blink', {
+  reserved: false
+}], ['blockquote', {
+  reserved: false
+}], ['body', {
+  reserved: false
+}], ['br', {
+  reserved: false
+}], ['button', {
+  reserved: false
+}], ['canvas', {
+  reserved: false
+}], ['caption', {
+  reserved: false
+}], ['center', {
+  reserved: false
+}], ['cite', {
+  reserved: false
+}], ['code', {
+  reserved: false
+}], ['col', {
+  reserved: true
+}], ['colgroup', {
+  reserved: true
+}], ['content', {
+  reserved: false
+}], ['data', {
+  reserved: false
+}], ['datalist', {
+  reserved: false
+}], ['dd', {
+  reserved: false
+}], ['del', {
+  reserved: false
+}], ['details', {
+  reserved: false
+}], ['dfn', {
+  reserved: false
+}], ['dialog', {
+  reserved: false
+}], ['dir', {
+  reserved: false
+}], ['div', {
+  reserved: false
+}], ['dl', {
+  reserved: false
+}], ['dt', {
+  reserved: false
+}], ['em', {
+  reserved: false
+}], ['embed', {
+  reserved: false
+}], ['fieldset', {
+  reserved: false
+}], ['figcaption', {
+  reserved: false
+}], ['figure', {
+  reserved: false
+}], ['font', {
+  reserved: false
+}], ['footer', {
+  reserved: false
+}], ['form', {
+  reserved: false
+}], ['frame', {
+  reserved: false
+}], ['frameset', {
+  reserved: false
+}], ['h1', {
+  reserved: false
+}], ['h2', {
+  reserved: false
+}], ['h3', {
+  reserved: false
+}], ['h4', {
+  reserved: false
+}], ['h5', {
+  reserved: false
+}], ['h6', {
+  reserved: false
+}], ['head', {
+  reserved: true
+}], ['header', {
+  reserved: false
+}], ['hgroup', {
+  reserved: false
+}], ['hr', {
+  reserved: false
+}], ['html', {
+  reserved: true
+}], ['i', {
+  reserved: false
+}], ['iframe', {
+  reserved: false
+}], ['img', {
+  reserved: false
+}], ['input', {
+  reserved: false
+}], ['ins', {
+  reserved: false
+}], ['kbd', {
+  reserved: false
+}], ['keygen', {
+  reserved: false
+}], ['label', {
+  reserved: false
+}], ['legend', {
+  reserved: false
+}], ['li', {
+  reserved: false
+}], ['link', {
+  reserved: true
+}], ['main', {
+  reserved: false
+}], ['map', {
+  reserved: false
+}], ['mark', {
+  reserved: false
+}], ['marquee', {
+  reserved: false
+}], ['menu', {
+  reserved: false
+}], ['menuitem', {
+  reserved: false
+}], ['meta', {
+  reserved: true
+}], ['meter', {
+  reserved: false
+}], ['nav', {
+  reserved: false
+}], ['noembed', {
+  reserved: true
+}], ['noscript', {
+  reserved: true
+}], ['object', {
+  reserved: false
+}], ['ol', {
+  reserved: false
+}], ['optgroup', {
+  reserved: false
+}], ['option', {
+  reserved: false
+}], ['output', {
+  reserved: false
+}], ['p', {
+  reserved: false
+}], ['param', {
+  reserved: true
+}], ['picture', {
+  reserved: true
+}], ['pre', {
+  reserved: false
+}], ['progress', {
+  reserved: false
+}], ['q', {
+  reserved: false
+}], ['rp', {
+  reserved: false
+}], ['rt', {
+  reserved: false
+}], ['rtc', {
+  reserved: false
+}], ['ruby', {
+  reserved: false
+}], ['s', {
+  reserved: false
+}], ['samp', {
+  reserved: false
+}], ['script', {
+  reserved: true
+}], ['section', {
+  reserved: false
+}], ['select', {
+  reserved: false
+}], ['small', {
+  reserved: false
+}], ['source', {
+  reserved: true
+}], ['spacer', {
+  reserved: false
+}], ['span', {
+  reserved: false
+}], ['strike', {
+  reserved: false
+}], ['strong', {
+  reserved: false
+}], ['style', {
+  reserved: true
+}], ['sub', {
+  reserved: false
+}], ['summary', {
+  reserved: false
+}], ['sup', {
+  reserved: false
+}], ['table', {
+  reserved: false
+}], ['tbody', {
+  reserved: false
+}], ['td', {
+  reserved: false
+}], ['textarea', {
+  reserved: false
+}], ['tfoot', {
+  reserved: false
+}], ['th', {
+  reserved: false
+}], ['thead', {
+  reserved: false
+}], ['time', {
+  reserved: false
+}], ['title', {
+  reserved: true
+}], ['tr', {
+  reserved: false
+}], ['track', {
+  reserved: true
+}], ['tt', {
+  reserved: false
+}], ['u', {
+  reserved: false
+}], ['ul', {
+  reserved: false
+}], ['var', {
+  reserved: false
+}], ['video', {
+  reserved: false
+}], ['wbr', {
+  reserved: false
+}], ['xmp', {
+  reserved: false
+}]];
+var domMap = {
+  entries: function entries() {
+    return dom;
+  },
+  get: function get(key) {
+    var item = dom.find(function (tuple) {
+      return tuple[0] === key ? true : false;
+    });
+    return item && item[1];
+  },
+  has: function has(key) {
+    return !!this.get(key);
+  },
+  keys: function keys() {
+    return dom.map(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 1),
+          key = _ref2[0];
+
+      return key;
+    });
+  },
+  values: function values() {
+    return dom.map(function (_ref3) {
+      var _ref4 = _slicedToArray(_ref3, 2),
+          values = _ref4[1];
+
+      return values;
+    });
+  }
+};
+var _default = domMap;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/elementRoleMap.js":
+/*!**********************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/elementRoleMap.js ***!
+  \**********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rolesMap = _interopRequireDefault(__webpack_require__(/*! ./rolesMap */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/rolesMap.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+var elementRoles = [];
+
+var keys = _rolesMap.default.keys();
+
+for (var i = 0; i < keys.length; i++) {
+  var _key = keys[i];
+
+  var role = _rolesMap.default.get(_key);
+
+  if (role) {
+    var concepts = [].concat(role.baseConcepts, role.relatedConcepts);
+
+    for (var k = 0; k < concepts.length; k++) {
+      var relation = concepts[k];
+
+      if (relation.module === 'HTML') {
+        var concept = relation.concept;
+
+        if (concept) {
+          (function () {
+            var conceptStr = JSON.stringify(concept);
+            var elementRoleRelation = elementRoles.find(function (relation) {
+              return JSON.stringify(relation[0]) === conceptStr;
+            });
+            var roles = void 0;
+
+            if (elementRoleRelation) {
+              roles = elementRoleRelation[1];
+            } else {
+              roles = [];
+            }
+
+            var isUnique = true;
+
+            for (var _i = 0; _i < roles.length; _i++) {
+              if (roles[_i] === _key) {
+                isUnique = false;
+                break;
+              }
+            }
+
+            if (isUnique) {
+              roles.push(_key);
+            }
+
+            elementRoles.push([concept, roles]);
+          })();
+        }
+      }
+    }
+  }
+}
+
+var elementRoleMap = {
+  entries: function entries() {
+    return elementRoles;
+  },
+  get: function get(key) {
+    var item = elementRoles.find(function (tuple) {
+      return JSON.stringify(tuple[0]) === JSON.stringify(key) ? true : false;
+    });
+    return item && item[1];
+  },
+  has: function has(key) {
+    return !!this.get(key);
+  },
+  keys: function keys() {
+    return elementRoles.map(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 1),
+          key = _ref2[0];
+
+      return key;
+    });
+  },
+  values: function values() {
+    return elementRoles.map(function (_ref3) {
+      var _ref4 = _slicedToArray(_ref3, 2),
+          values = _ref4[1];
+
+      return values;
+    });
+  }
+};
+var _default = elementRoleMap;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/commandRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/commandRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var commandRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'menuitem'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget']]
+};
+var _default = commandRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/compositeRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/compositeRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var compositeRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-activedescendant': null,
+    'aria-disabled': null
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget']]
+};
+var _default = compositeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/inputRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/inputRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var inputRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'input'
+    },
+    module: 'XForms'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget']]
+};
+var _default = inputRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/landmarkRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/landmarkRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var landmarkRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = landmarkRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/rangeRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/rangeRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var rangeRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-valuemax': null,
+    'aria-valuemin': null,
+    'aria-valuenow': null
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = rangeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/roletypeRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/roletypeRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var roletypeRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: [],
+  prohibitedProps: [],
+  props: {
+    'aria-atomic': null,
+    'aria-busy': null,
+    'aria-controls': null,
+    'aria-current': null,
+    'aria-describedby': null,
+    'aria-details': null,
+    'aria-dropeffect': null,
+    'aria-flowto': null,
+    'aria-grabbed': null,
+    'aria-hidden': null,
+    'aria-keyshortcuts': null,
+    'aria-label': null,
+    'aria-labelledby': null,
+    'aria-live': null,
+    'aria-owns': null,
+    'aria-relevant': null,
+    'aria-roledescription': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'rel'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'role'
+    },
+    module: 'XHTML'
+  }, {
+    concept: {
+      name: 'type'
+    },
+    module: 'Dublin Core'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: []
+};
+var _default = roletypeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/sectionRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/sectionRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var sectionRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: [],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'frontmatter'
+    },
+    module: 'DTB'
+  }, {
+    concept: {
+      name: 'level'
+    },
+    module: 'DTB'
+  }, {
+    concept: {
+      name: 'level'
+    },
+    module: 'SMIL'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = sectionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/sectionheadRole.js":
+/*!******************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/sectionheadRole.js ***!
+  \******************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var sectionheadRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = sectionheadRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/selectRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/selectRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var selectRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-orientation': null
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite'], ['roletype', 'structure', 'section', 'group']]
+};
+var _default = selectRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/structureRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/structureRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var structureRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: [],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype']]
+};
+var _default = structureRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/widgetRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/widgetRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var widgetRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: [],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype']]
+};
+var _default = widgetRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/windowRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/windowRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var windowRole = {
+  abstract: true,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-modal': null
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype']]
+};
+var _default = windowRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaAbstractRoles.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaAbstractRoles.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _commandRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/commandRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/commandRole.js"));
+
+var _compositeRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/compositeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/compositeRole.js"));
+
+var _inputRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/inputRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/inputRole.js"));
+
+var _landmarkRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/landmarkRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/landmarkRole.js"));
+
+var _rangeRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/rangeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/rangeRole.js"));
+
+var _roletypeRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/roletypeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/roletypeRole.js"));
+
+var _sectionRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/sectionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/sectionRole.js"));
+
+var _sectionheadRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/sectionheadRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/sectionheadRole.js"));
+
+var _selectRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/selectRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/selectRole.js"));
+
+var _structureRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/structureRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/structureRole.js"));
+
+var _widgetRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/widgetRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/widgetRole.js"));
+
+var _windowRole = _interopRequireDefault(__webpack_require__(/*! ./abstract/windowRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/abstract/windowRole.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var ariaAbstractRoles = [['command', _commandRole.default], ['composite', _compositeRole.default], ['input', _inputRole.default], ['landmark', _landmarkRole.default], ['range', _rangeRole.default], ['roletype', _roletypeRole.default], ['section', _sectionRole.default], ['sectionhead', _sectionheadRole.default], ['select', _selectRole.default], ['structure', _structureRole.default], ['widget', _widgetRole.default], ['window', _windowRole.default]];
+var _default = ariaAbstractRoles;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaDpubRoles.js":
+/*!*******************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaDpubRoles.js ***!
+  \*******************************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _docAbstractRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docAbstractRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAbstractRole.js"));
+
+var _docAcknowledgmentsRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docAcknowledgmentsRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAcknowledgmentsRole.js"));
+
+var _docAfterwordRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docAfterwordRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAfterwordRole.js"));
+
+var _docAppendixRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docAppendixRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAppendixRole.js"));
+
+var _docBacklinkRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docBacklinkRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBacklinkRole.js"));
+
+var _docBiblioentryRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docBiblioentryRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBiblioentryRole.js"));
+
+var _docBibliographyRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docBibliographyRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBibliographyRole.js"));
+
+var _docBibliorefRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docBibliorefRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBibliorefRole.js"));
+
+var _docChapterRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docChapterRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docChapterRole.js"));
+
+var _docColophonRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docColophonRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docColophonRole.js"));
+
+var _docConclusionRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docConclusionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docConclusionRole.js"));
+
+var _docCoverRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docCoverRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCoverRole.js"));
+
+var _docCreditRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docCreditRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCreditRole.js"));
+
+var _docCreditsRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docCreditsRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCreditsRole.js"));
+
+var _docDedicationRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docDedicationRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docDedicationRole.js"));
+
+var _docEndnoteRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docEndnoteRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEndnoteRole.js"));
+
+var _docEndnotesRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docEndnotesRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEndnotesRole.js"));
+
+var _docEpigraphRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docEpigraphRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEpigraphRole.js"));
+
+var _docEpilogueRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docEpilogueRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEpilogueRole.js"));
+
+var _docErrataRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docErrataRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docErrataRole.js"));
+
+var _docExampleRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docExampleRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docExampleRole.js"));
+
+var _docFootnoteRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docFootnoteRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docFootnoteRole.js"));
+
+var _docForewordRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docForewordRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docForewordRole.js"));
+
+var _docGlossaryRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docGlossaryRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docGlossaryRole.js"));
+
+var _docGlossrefRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docGlossrefRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docGlossrefRole.js"));
+
+var _docIndexRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docIndexRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docIndexRole.js"));
+
+var _docIntroductionRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docIntroductionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docIntroductionRole.js"));
+
+var _docNoterefRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docNoterefRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docNoterefRole.js"));
+
+var _docNoticeRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docNoticeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docNoticeRole.js"));
+
+var _docPagebreakRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docPagebreakRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPagebreakRole.js"));
+
+var _docPagelistRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docPagelistRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPagelistRole.js"));
+
+var _docPartRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docPartRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPartRole.js"));
+
+var _docPrefaceRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docPrefaceRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPrefaceRole.js"));
+
+var _docPrologueRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docPrologueRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPrologueRole.js"));
+
+var _docPullquoteRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docPullquoteRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPullquoteRole.js"));
+
+var _docQnaRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docQnaRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docQnaRole.js"));
+
+var _docSubtitleRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docSubtitleRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docSubtitleRole.js"));
+
+var _docTipRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docTipRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docTipRole.js"));
+
+var _docTocRole = _interopRequireDefault(__webpack_require__(/*! ./dpub/docTocRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docTocRole.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var ariaDpubRoles = [['doc-abstract', _docAbstractRole.default], ['doc-acknowledgments', _docAcknowledgmentsRole.default], ['doc-afterword', _docAfterwordRole.default], ['doc-appendix', _docAppendixRole.default], ['doc-backlink', _docBacklinkRole.default], ['doc-biblioentry', _docBiblioentryRole.default], ['doc-bibliography', _docBibliographyRole.default], ['doc-biblioref', _docBibliorefRole.default], ['doc-chapter', _docChapterRole.default], ['doc-colophon', _docColophonRole.default], ['doc-conclusion', _docConclusionRole.default], ['doc-cover', _docCoverRole.default], ['doc-credit', _docCreditRole.default], ['doc-credits', _docCreditsRole.default], ['doc-dedication', _docDedicationRole.default], ['doc-endnote', _docEndnoteRole.default], ['doc-endnotes', _docEndnotesRole.default], ['doc-epigraph', _docEpigraphRole.default], ['doc-epilogue', _docEpilogueRole.default], ['doc-errata', _docErrataRole.default], ['doc-example', _docExampleRole.default], ['doc-footnote', _docFootnoteRole.default], ['doc-foreword', _docForewordRole.default], ['doc-glossary', _docGlossaryRole.default], ['doc-glossref', _docGlossrefRole.default], ['doc-index', _docIndexRole.default], ['doc-introduction', _docIntroductionRole.default], ['doc-noteref', _docNoterefRole.default], ['doc-notice', _docNoticeRole.default], ['doc-pagebreak', _docPagebreakRole.default], ['doc-pagelist', _docPagelistRole.default], ['doc-part', _docPartRole.default], ['doc-preface', _docPrefaceRole.default], ['doc-prologue', _docPrologueRole.default], ['doc-pullquote', _docPullquoteRole.default], ['doc-qna', _docQnaRole.default], ['doc-subtitle', _docSubtitleRole.default], ['doc-tip', _docTipRole.default], ['doc-toc', _docTocRole.default]];
+var _default = ariaDpubRoles;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaLiteralRoles.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaLiteralRoles.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _alertRole = _interopRequireDefault(__webpack_require__(/*! ./literal/alertRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/alertRole.js"));
+
+var _alertdialogRole = _interopRequireDefault(__webpack_require__(/*! ./literal/alertdialogRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/alertdialogRole.js"));
+
+var _applicationRole = _interopRequireDefault(__webpack_require__(/*! ./literal/applicationRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/applicationRole.js"));
+
+var _articleRole = _interopRequireDefault(__webpack_require__(/*! ./literal/articleRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/articleRole.js"));
+
+var _bannerRole = _interopRequireDefault(__webpack_require__(/*! ./literal/bannerRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/bannerRole.js"));
+
+var _blockquoteRole = _interopRequireDefault(__webpack_require__(/*! ./literal/blockquoteRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/blockquoteRole.js"));
+
+var _buttonRole = _interopRequireDefault(__webpack_require__(/*! ./literal/buttonRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/buttonRole.js"));
+
+var _captionRole = _interopRequireDefault(__webpack_require__(/*! ./literal/captionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/captionRole.js"));
+
+var _cellRole = _interopRequireDefault(__webpack_require__(/*! ./literal/cellRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/cellRole.js"));
+
+var _checkboxRole = _interopRequireDefault(__webpack_require__(/*! ./literal/checkboxRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/checkboxRole.js"));
+
+var _codeRole = _interopRequireDefault(__webpack_require__(/*! ./literal/codeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/codeRole.js"));
+
+var _columnheaderRole = _interopRequireDefault(__webpack_require__(/*! ./literal/columnheaderRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/columnheaderRole.js"));
+
+var _comboboxRole = _interopRequireDefault(__webpack_require__(/*! ./literal/comboboxRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/comboboxRole.js"));
+
+var _complementaryRole = _interopRequireDefault(__webpack_require__(/*! ./literal/complementaryRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/complementaryRole.js"));
+
+var _contentinfoRole = _interopRequireDefault(__webpack_require__(/*! ./literal/contentinfoRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/contentinfoRole.js"));
+
+var _definitionRole = _interopRequireDefault(__webpack_require__(/*! ./literal/definitionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/definitionRole.js"));
+
+var _deletionRole = _interopRequireDefault(__webpack_require__(/*! ./literal/deletionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/deletionRole.js"));
+
+var _dialogRole = _interopRequireDefault(__webpack_require__(/*! ./literal/dialogRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/dialogRole.js"));
+
+var _directoryRole = _interopRequireDefault(__webpack_require__(/*! ./literal/directoryRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/directoryRole.js"));
+
+var _documentRole = _interopRequireDefault(__webpack_require__(/*! ./literal/documentRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/documentRole.js"));
+
+var _emphasisRole = _interopRequireDefault(__webpack_require__(/*! ./literal/emphasisRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/emphasisRole.js"));
+
+var _feedRole = _interopRequireDefault(__webpack_require__(/*! ./literal/feedRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/feedRole.js"));
+
+var _figureRole = _interopRequireDefault(__webpack_require__(/*! ./literal/figureRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/figureRole.js"));
+
+var _formRole = _interopRequireDefault(__webpack_require__(/*! ./literal/formRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/formRole.js"));
+
+var _genericRole = _interopRequireDefault(__webpack_require__(/*! ./literal/genericRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/genericRole.js"));
+
+var _gridRole = _interopRequireDefault(__webpack_require__(/*! ./literal/gridRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/gridRole.js"));
+
+var _gridcellRole = _interopRequireDefault(__webpack_require__(/*! ./literal/gridcellRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/gridcellRole.js"));
+
+var _groupRole = _interopRequireDefault(__webpack_require__(/*! ./literal/groupRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/groupRole.js"));
+
+var _headingRole = _interopRequireDefault(__webpack_require__(/*! ./literal/headingRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/headingRole.js"));
+
+var _imgRole = _interopRequireDefault(__webpack_require__(/*! ./literal/imgRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/imgRole.js"));
+
+var _insertionRole = _interopRequireDefault(__webpack_require__(/*! ./literal/insertionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/insertionRole.js"));
+
+var _linkRole = _interopRequireDefault(__webpack_require__(/*! ./literal/linkRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/linkRole.js"));
+
+var _listRole = _interopRequireDefault(__webpack_require__(/*! ./literal/listRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listRole.js"));
+
+var _listboxRole = _interopRequireDefault(__webpack_require__(/*! ./literal/listboxRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listboxRole.js"));
+
+var _listitemRole = _interopRequireDefault(__webpack_require__(/*! ./literal/listitemRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listitemRole.js"));
+
+var _logRole = _interopRequireDefault(__webpack_require__(/*! ./literal/logRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/logRole.js"));
+
+var _mainRole = _interopRequireDefault(__webpack_require__(/*! ./literal/mainRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/mainRole.js"));
+
+var _marqueeRole = _interopRequireDefault(__webpack_require__(/*! ./literal/marqueeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/marqueeRole.js"));
+
+var _mathRole = _interopRequireDefault(__webpack_require__(/*! ./literal/mathRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/mathRole.js"));
+
+var _menuRole = _interopRequireDefault(__webpack_require__(/*! ./literal/menuRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuRole.js"));
+
+var _menubarRole = _interopRequireDefault(__webpack_require__(/*! ./literal/menubarRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menubarRole.js"));
+
+var _menuitemRole = _interopRequireDefault(__webpack_require__(/*! ./literal/menuitemRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemRole.js"));
+
+var _menuitemcheckboxRole = _interopRequireDefault(__webpack_require__(/*! ./literal/menuitemcheckboxRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemcheckboxRole.js"));
+
+var _menuitemradioRole = _interopRequireDefault(__webpack_require__(/*! ./literal/menuitemradioRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemradioRole.js"));
+
+var _meterRole = _interopRequireDefault(__webpack_require__(/*! ./literal/meterRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/meterRole.js"));
+
+var _navigationRole = _interopRequireDefault(__webpack_require__(/*! ./literal/navigationRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/navigationRole.js"));
+
+var _noneRole = _interopRequireDefault(__webpack_require__(/*! ./literal/noneRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/noneRole.js"));
+
+var _noteRole = _interopRequireDefault(__webpack_require__(/*! ./literal/noteRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/noteRole.js"));
+
+var _optionRole = _interopRequireDefault(__webpack_require__(/*! ./literal/optionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/optionRole.js"));
+
+var _paragraphRole = _interopRequireDefault(__webpack_require__(/*! ./literal/paragraphRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/paragraphRole.js"));
+
+var _presentationRole = _interopRequireDefault(__webpack_require__(/*! ./literal/presentationRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/presentationRole.js"));
+
+var _progressbarRole = _interopRequireDefault(__webpack_require__(/*! ./literal/progressbarRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/progressbarRole.js"));
+
+var _radioRole = _interopRequireDefault(__webpack_require__(/*! ./literal/radioRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/radioRole.js"));
+
+var _radiogroupRole = _interopRequireDefault(__webpack_require__(/*! ./literal/radiogroupRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/radiogroupRole.js"));
+
+var _regionRole = _interopRequireDefault(__webpack_require__(/*! ./literal/regionRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/regionRole.js"));
+
+var _rowRole = _interopRequireDefault(__webpack_require__(/*! ./literal/rowRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowRole.js"));
+
+var _rowgroupRole = _interopRequireDefault(__webpack_require__(/*! ./literal/rowgroupRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowgroupRole.js"));
+
+var _rowheaderRole = _interopRequireDefault(__webpack_require__(/*! ./literal/rowheaderRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowheaderRole.js"));
+
+var _scrollbarRole = _interopRequireDefault(__webpack_require__(/*! ./literal/scrollbarRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/scrollbarRole.js"));
+
+var _searchRole = _interopRequireDefault(__webpack_require__(/*! ./literal/searchRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/searchRole.js"));
+
+var _searchboxRole = _interopRequireDefault(__webpack_require__(/*! ./literal/searchboxRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/searchboxRole.js"));
+
+var _separatorRole = _interopRequireDefault(__webpack_require__(/*! ./literal/separatorRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/separatorRole.js"));
+
+var _sliderRole = _interopRequireDefault(__webpack_require__(/*! ./literal/sliderRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/sliderRole.js"));
+
+var _spinbuttonRole = _interopRequireDefault(__webpack_require__(/*! ./literal/spinbuttonRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/spinbuttonRole.js"));
+
+var _statusRole = _interopRequireDefault(__webpack_require__(/*! ./literal/statusRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/statusRole.js"));
+
+var _strongRole = _interopRequireDefault(__webpack_require__(/*! ./literal/strongRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/strongRole.js"));
+
+var _subscriptRole = _interopRequireDefault(__webpack_require__(/*! ./literal/subscriptRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/subscriptRole.js"));
+
+var _superscriptRole = _interopRequireDefault(__webpack_require__(/*! ./literal/superscriptRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/superscriptRole.js"));
+
+var _switchRole = _interopRequireDefault(__webpack_require__(/*! ./literal/switchRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/switchRole.js"));
+
+var _tabRole = _interopRequireDefault(__webpack_require__(/*! ./literal/tabRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tabRole.js"));
+
+var _tableRole = _interopRequireDefault(__webpack_require__(/*! ./literal/tableRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tableRole.js"));
+
+var _tablistRole = _interopRequireDefault(__webpack_require__(/*! ./literal/tablistRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tablistRole.js"));
+
+var _tabpanelRole = _interopRequireDefault(__webpack_require__(/*! ./literal/tabpanelRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tabpanelRole.js"));
+
+var _termRole = _interopRequireDefault(__webpack_require__(/*! ./literal/termRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/termRole.js"));
+
+var _textboxRole = _interopRequireDefault(__webpack_require__(/*! ./literal/textboxRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/textboxRole.js"));
+
+var _timeRole = _interopRequireDefault(__webpack_require__(/*! ./literal/timeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/timeRole.js"));
+
+var _timerRole = _interopRequireDefault(__webpack_require__(/*! ./literal/timerRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/timerRole.js"));
+
+var _toolbarRole = _interopRequireDefault(__webpack_require__(/*! ./literal/toolbarRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/toolbarRole.js"));
+
+var _tooltipRole = _interopRequireDefault(__webpack_require__(/*! ./literal/tooltipRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tooltipRole.js"));
+
+var _treeRole = _interopRequireDefault(__webpack_require__(/*! ./literal/treeRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treeRole.js"));
+
+var _treegridRole = _interopRequireDefault(__webpack_require__(/*! ./literal/treegridRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treegridRole.js"));
+
+var _treeitemRole = _interopRequireDefault(__webpack_require__(/*! ./literal/treeitemRole */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treeitemRole.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var ariaLiteralRoles = [['alert', _alertRole.default], ['alertdialog', _alertdialogRole.default], ['application', _applicationRole.default], ['article', _articleRole.default], ['banner', _bannerRole.default], ['blockquote', _blockquoteRole.default], ['button', _buttonRole.default], ['caption', _captionRole.default], ['cell', _cellRole.default], ['checkbox', _checkboxRole.default], ['code', _codeRole.default], ['columnheader', _columnheaderRole.default], ['combobox', _comboboxRole.default], ['complementary', _complementaryRole.default], ['contentinfo', _contentinfoRole.default], ['definition', _definitionRole.default], ['deletion', _deletionRole.default], ['dialog', _dialogRole.default], ['directory', _directoryRole.default], ['document', _documentRole.default], ['emphasis', _emphasisRole.default], ['feed', _feedRole.default], ['figure', _figureRole.default], ['form', _formRole.default], ['generic', _genericRole.default], ['grid', _gridRole.default], ['gridcell', _gridcellRole.default], ['group', _groupRole.default], ['heading', _headingRole.default], ['img', _imgRole.default], ['insertion', _insertionRole.default], ['link', _linkRole.default], ['list', _listRole.default], ['listbox', _listboxRole.default], ['listitem', _listitemRole.default], ['log', _logRole.default], ['main', _mainRole.default], ['marquee', _marqueeRole.default], ['math', _mathRole.default], ['menu', _menuRole.default], ['menubar', _menubarRole.default], ['menuitem', _menuitemRole.default], ['menuitemcheckbox', _menuitemcheckboxRole.default], ['menuitemradio', _menuitemradioRole.default], ['meter', _meterRole.default], ['navigation', _navigationRole.default], ['none', _noneRole.default], ['note', _noteRole.default], ['option', _optionRole.default], ['paragraph', _paragraphRole.default], ['presentation', _presentationRole.default], ['progressbar', _progressbarRole.default], ['radio', _radioRole.default], ['radiogroup', _radiogroupRole.default], ['region', _regionRole.default], ['row', _rowRole.default], ['rowgroup', _rowgroupRole.default], ['rowheader', _rowheaderRole.default], ['scrollbar', _scrollbarRole.default], ['search', _searchRole.default], ['searchbox', _searchboxRole.default], ['separator', _separatorRole.default], ['slider', _sliderRole.default], ['spinbutton', _spinbuttonRole.default], ['status', _statusRole.default], ['strong', _strongRole.default], ['subscript', _subscriptRole.default], ['superscript', _superscriptRole.default], ['switch', _switchRole.default], ['tab', _tabRole.default], ['table', _tableRole.default], ['tablist', _tablistRole.default], ['tabpanel', _tabpanelRole.default], ['term', _termRole.default], ['textbox', _textboxRole.default], ['time', _timeRole.default], ['timer', _timerRole.default], ['toolbar', _toolbarRole.default], ['tooltip', _tooltipRole.default], ['tree', _treeRole.default], ['treegrid', _treegridRole.default], ['treeitem', _treeitemRole.default]];
+var _default = ariaLiteralRoles;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAbstractRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAbstractRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docAbstractRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'abstract [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docAbstractRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAcknowledgmentsRole.js":
+/*!*********************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAcknowledgmentsRole.js ***!
+  \*********************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docAcknowledgmentsRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'acknowledgments [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docAcknowledgmentsRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAfterwordRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAfterwordRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docAfterwordRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'afterword [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docAfterwordRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAppendixRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docAppendixRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docAppendixRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'appendix [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docAppendixRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBacklinkRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBacklinkRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docBacklinkRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'content'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'referrer [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'command', 'link']]
+};
+var _default = docBacklinkRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBiblioentryRole.js":
+/*!*****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBiblioentryRole.js ***!
+  \*****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docBiblioentryRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'EPUB biblioentry [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: ['doc-bibliography'],
+  requiredContextRole: ['doc-bibliography'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'listitem']]
+};
+var _default = docBiblioentryRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBibliographyRole.js":
+/*!******************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBibliographyRole.js ***!
+  \******************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docBibliographyRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'bibliography [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['doc-biblioentry']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docBibliographyRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBibliorefRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docBibliorefRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docBibliorefRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'biblioref [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'command', 'link']]
+};
+var _default = docBibliorefRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docChapterRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docChapterRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docChapterRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'chapter [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docChapterRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docColophonRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docColophonRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docColophonRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'colophon [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docColophonRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docConclusionRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docConclusionRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docConclusionRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'conclusion [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docConclusionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCoverRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCoverRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docCoverRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'cover [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'img']]
+};
+var _default = docCoverRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCreditRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCreditRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docCreditRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'credit [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docCreditRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCreditsRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docCreditsRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docCreditsRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'credits [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docCreditsRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docDedicationRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docDedicationRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docDedicationRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'dedication [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docDedicationRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEndnoteRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEndnoteRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docEndnoteRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'rearnote [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: ['doc-endnotes'],
+  requiredContextRole: ['doc-endnotes'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'listitem']]
+};
+var _default = docEndnoteRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEndnotesRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEndnotesRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docEndnotesRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'rearnotes [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['doc-endnote']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docEndnotesRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEpigraphRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEpigraphRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docEpigraphRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'epigraph [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docEpigraphRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEpilogueRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docEpilogueRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docEpilogueRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'epilogue [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docEpilogueRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docErrataRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docErrataRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docErrataRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'errata [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docErrataRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docExampleRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docExampleRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docExampleRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docExampleRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docFootnoteRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docFootnoteRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docFootnoteRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'footnote [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docFootnoteRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docForewordRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docForewordRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docForewordRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'foreword [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docForewordRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docGlossaryRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docGlossaryRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docGlossaryRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'glossary [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['definition'], ['term']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docGlossaryRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docGlossrefRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docGlossrefRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docGlossrefRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'glossref [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'command', 'link']]
+};
+var _default = docGlossrefRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docIndexRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docIndexRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docIndexRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'index [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark', 'navigation']]
+};
+var _default = docIndexRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docIntroductionRole.js":
+/*!******************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docIntroductionRole.js ***!
+  \******************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docIntroductionRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'introduction [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docIntroductionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docNoterefRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docNoterefRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docNoterefRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'noteref [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'command', 'link']]
+};
+var _default = docNoterefRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docNoticeRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docNoticeRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docNoticeRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'notice [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'note']]
+};
+var _default = docNoticeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPagebreakRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPagebreakRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docPagebreakRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'pagebreak [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'separator']]
+};
+var _default = docPagebreakRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPagelistRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPagelistRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docPagelistRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'page-list [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark', 'navigation']]
+};
+var _default = docPagelistRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPartRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPartRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docPartRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'part [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docPartRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPrefaceRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPrefaceRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docPrefaceRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'preface [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docPrefaceRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPrologueRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPrologueRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docPrologueRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'prologue [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = docPrologueRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPullquoteRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docPullquoteRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docPullquoteRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'pullquote [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['none']]
+};
+var _default = docPullquoteRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docQnaRole.js":
+/*!*********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docQnaRole.js ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docQnaRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'qna [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = docQnaRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docSubtitleRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docSubtitleRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docSubtitleRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'subtitle [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'sectionhead']]
+};
+var _default = docSubtitleRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docTipRole.js":
+/*!*********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docTipRole.js ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docTipRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'help [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'note']]
+};
+var _default = docTipRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docTocRole.js":
+/*!*********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/dpub/docTocRole.js ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var docTocRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'toc [EPUB-SSV]'
+    },
+    module: 'EPUB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark', 'navigation']]
+};
+var _default = docTocRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/alertRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/alertRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var alertRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-atomic': 'true',
+    'aria-live': 'assertive'
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'alert'
+    },
+    module: 'XForms'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = alertRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/alertdialogRole.js":
+/*!*****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/alertdialogRole.js ***!
+  \*****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var alertdialogRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'alert'
+    },
+    module: 'XForms'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'alert'], ['roletype', 'window', 'dialog']]
+};
+var _default = alertdialogRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/applicationRole.js":
+/*!*****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/applicationRole.js ***!
+  \*****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var applicationRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-activedescendant': null,
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'Device Independence Delivery Unit'
+    }
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = applicationRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/articleRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/articleRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var articleRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-posinset': null,
+    'aria-setsize': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'article'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'document']]
+};
+var _default = articleRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/bannerRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/bannerRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var bannerRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      constraints: ['direct descendant of document'],
+      name: 'header'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = bannerRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/blockquoteRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/blockquoteRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var blockquoteRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = blockquoteRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/buttonRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/buttonRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var buttonRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-pressed': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'aria-pressed'
+      }, {
+        name: 'type',
+        value: 'checkbox'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'aria-expanded',
+        value: 'false'
+      }],
+      name: 'summary'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'aria-expanded',
+        value: 'true'
+      }],
+      constraints: ['direct descendant of details element with the open attribute defined'],
+      name: 'summary'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'button'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'image'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'reset'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'submit'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'button'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'trigger'
+    },
+    module: 'XForms'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'command']]
+};
+var _default = buttonRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/captionRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/captionRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var captionRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: ['figure', 'grid', 'table'],
+  requiredContextRole: ['figure', 'grid', 'table'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = captionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/cellRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/cellRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var cellRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-colindex': null,
+    'aria-colspan': null,
+    'aria-rowindex': null,
+    'aria-rowspan': null
+  },
+  relatedConcepts: [{
+    concept: {
+      constraints: ['descendant of table'],
+      name: 'td'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: ['row'],
+  requiredContextRole: ['row'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = cellRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/checkboxRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/checkboxRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var checkboxRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-checked': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-invalid': null,
+    'aria-readonly': null,
+    'aria-required': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'checkbox'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'option'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-checked': null
+  },
+  superClass: [['roletype', 'widget', 'input']]
+};
+var _default = checkboxRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/codeRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/codeRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var codeRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = codeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/columnheaderRole.js":
+/*!******************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/columnheaderRole.js ***!
+  \******************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var columnheaderRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-sort': null
+  },
+  relatedConcepts: [{
+    attributes: [{
+      name: 'scope',
+      value: 'col'
+    }],
+    concept: {
+      name: 'th'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: ['row'],
+  requiredContextRole: ['row'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'cell'], ['roletype', 'structure', 'section', 'cell', 'gridcell'], ['roletype', 'widget', 'gridcell'], ['roletype', 'structure', 'sectionhead']]
+};
+var _default = columnheaderRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/comboboxRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/comboboxRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var comboboxRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-activedescendant': null,
+    'aria-autocomplete': null,
+    'aria-errormessage': null,
+    'aria-invalid': null,
+    'aria-readonly': null,
+    'aria-required': null,
+    'aria-expanded': 'false',
+    'aria-haspopup': 'listbox'
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'email'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'search'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'tel'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'text'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'url'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'url'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'multiple'
+      }, {
+        constraints: ['undefined'],
+        name: 'size'
+      }],
+      name: 'select'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'multiple'
+      }, {
+        name: 'size',
+        value: 1
+      }],
+      name: 'select'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'select'
+    },
+    module: 'XForms'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-controls': null,
+    'aria-expanded': 'false'
+  },
+  superClass: [['roletype', 'widget', 'input']]
+};
+var _default = comboboxRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/complementaryRole.js":
+/*!*******************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/complementaryRole.js ***!
+  \*******************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var complementaryRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'aside'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = complementaryRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/contentinfoRole.js":
+/*!*****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/contentinfoRole.js ***!
+  \*****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var contentinfoRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      constraints: ['direct descendant of document'],
+      name: 'footer'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = contentinfoRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/definitionRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/definitionRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var definitionRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'dd'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = definitionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/deletionRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/deletionRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var deletionRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = deletionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/dialogRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/dialogRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var dialogRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'dialog'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'window']]
+};
+var _default = dialogRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/directoryRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/directoryRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var directoryRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    module: 'DAISY Guide'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'list']]
+};
+var _default = directoryRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/documentRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/documentRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var documentRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'Device Independence Delivery Unit'
+    }
+  }, {
+    concept: {
+      name: 'body'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = documentRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/emphasisRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/emphasisRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var emphasisRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = emphasisRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/feedRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/feedRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var feedRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['article']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'list']]
+};
+var _default = feedRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/figureRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/figureRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var figureRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'figure'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = figureRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/formRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/formRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var formRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'aria-label'
+      }],
+      name: 'form'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'aria-labelledby'
+      }],
+      name: 'form'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'name'
+      }],
+      name: 'form'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = formRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/genericRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/genericRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var genericRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'span'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'div'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = genericRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/gridRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/gridRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var gridRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-multiselectable': null,
+    'aria-readonly': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'role',
+        value: 'grid'
+      }],
+      name: 'table'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['row'], ['row', 'rowgroup']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite'], ['roletype', 'structure', 'section', 'table']]
+};
+var _default = gridRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/gridcellRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/gridcellRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var gridcellRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-invalid': null,
+    'aria-readonly': null,
+    'aria-required': null,
+    'aria-selected': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'role',
+        value: 'gridcell'
+      }],
+      name: 'td'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: ['row'],
+  requiredContextRole: ['row'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'cell'], ['roletype', 'widget']]
+};
+var _default = gridcellRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/groupRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/groupRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var groupRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-activedescendant': null,
+    'aria-disabled': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'details'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'fieldset'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'optgroup'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = groupRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/headingRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/headingRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var headingRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-level': '2'
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'h1'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'h2'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'h3'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'h4'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'h5'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'h6'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-level': '2'
+  },
+  superClass: [['roletype', 'structure', 'sectionhead']]
+};
+var _default = headingRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/imgRole.js":
+/*!*********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/imgRole.js ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var imgRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'alt'
+      }],
+      name: 'img'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'alt'
+      }],
+      name: 'img'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'imggroup'
+    },
+    module: 'DTB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = imgRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/insertionRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/insertionRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var insertionRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = insertionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/linkRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/linkRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var linkRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-expanded': null,
+    'aria-haspopup': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'href'
+      }],
+      name: 'a'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'href'
+      }],
+      name: 'area'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'href'
+      }],
+      name: 'link'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'command']]
+};
+var _default = linkRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var listRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'menu'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'ol'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'ul'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['listitem']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = listRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listboxRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listboxRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var listboxRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-expanded': null,
+    'aria-invalid': null,
+    'aria-multiselectable': null,
+    'aria-readonly': null,
+    'aria-required': null,
+    'aria-orientation': 'vertical'
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['>1'],
+        name: 'size'
+      }, {
+        name: 'multiple'
+      }],
+      name: 'select'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['>1'],
+        name: 'size'
+      }],
+      name: 'select'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        name: 'multiple'
+      }],
+      name: 'select'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'datalist'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'list'
+    },
+    module: 'ARIA'
+  }, {
+    concept: {
+      name: 'select'
+    },
+    module: 'XForms'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['option', 'group'], ['option']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite', 'select'], ['roletype', 'structure', 'section', 'group', 'select']]
+};
+var _default = listboxRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listitemRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/listitemRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var listitemRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-level': null,
+    'aria-posinset': null,
+    'aria-setsize': null
+  },
+  relatedConcepts: [{
+    concept: {
+      constraints: ['direct descendant of ol, ul or menu'],
+      name: 'li'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'item'
+    },
+    module: 'XForms'
+  }],
+  requireContextRole: ['directory', 'list'],
+  requiredContextRole: ['directory', 'list'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = listitemRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/logRole.js":
+/*!*********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/logRole.js ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var logRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-live': 'polite'
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = logRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/mainRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/mainRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var mainRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'main'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = mainRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/marqueeRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/marqueeRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var marqueeRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = marqueeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/mathRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/mathRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var mathRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'math'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = mathRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var menuRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-orientation': 'vertical'
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'MENU'
+    },
+    module: 'JAPI'
+  }, {
+    concept: {
+      name: 'list'
+    },
+    module: 'ARIA'
+  }, {
+    concept: {
+      name: 'select'
+    },
+    module: 'XForms'
+  }, {
+    concept: {
+      name: 'sidebar'
+    },
+    module: 'DTB'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['menuitem', 'group'], ['menuitemradio', 'group'], ['menuitemcheckbox', 'group'], ['menuitem'], ['menuitemcheckbox'], ['menuitemradio']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite', 'select'], ['roletype', 'structure', 'section', 'group', 'select']]
+};
+var _default = menuRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menubarRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menubarRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var menubarRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-orientation': 'horizontal'
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'toolbar'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['menuitem', 'group'], ['menuitemradio', 'group'], ['menuitemcheckbox', 'group'], ['menuitem'], ['menuitemcheckbox'], ['menuitemradio']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite', 'select', 'menu'], ['roletype', 'structure', 'section', 'group', 'select', 'menu']]
+};
+var _default = menubarRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var menuitemRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-posinset': null,
+    'aria-setsize': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'MENU_ITEM'
+    },
+    module: 'JAPI'
+  }, {
+    concept: {
+      name: 'listitem'
+    },
+    module: 'ARIA'
+  }, {
+    concept: {
+      name: 'menuitem'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'option'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: ['group', 'menu', 'menubar'],
+  requiredContextRole: ['group', 'menu', 'menubar'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'command']]
+};
+var _default = menuitemRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemcheckboxRole.js":
+/*!**********************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemcheckboxRole.js ***!
+  \**********************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var menuitemcheckboxRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'menuitem'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: ['group', 'menu', 'menubar'],
+  requiredContextRole: ['group', 'menu', 'menubar'],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-checked': null
+  },
+  superClass: [['roletype', 'widget', 'input', 'checkbox'], ['roletype', 'widget', 'command', 'menuitem']]
+};
+var _default = menuitemcheckboxRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemradioRole.js":
+/*!*******************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/menuitemradioRole.js ***!
+  \*******************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var menuitemradioRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'menuitem'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: ['group', 'menu', 'menubar'],
+  requiredContextRole: ['group', 'menu', 'menubar'],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-checked': null
+  },
+  superClass: [['roletype', 'widget', 'input', 'checkbox', 'menuitemcheckbox'], ['roletype', 'widget', 'command', 'menuitem', 'menuitemcheckbox'], ['roletype', 'widget', 'input', 'radio']]
+};
+var _default = menuitemradioRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/meterRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/meterRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var meterRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-valuetext': null,
+    'aria-valuemax': '100',
+    'aria-valuemin': '0'
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-valuenow': null
+  },
+  superClass: [['roletype', 'structure', 'range']]
+};
+var _default = meterRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/navigationRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/navigationRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var navigationRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'nav'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = navigationRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/noneRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/noneRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var noneRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: [],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: []
+};
+var _default = noneRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/noteRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/noteRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var noteRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = noteRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/optionRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/optionRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var optionRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-checked': null,
+    'aria-posinset': null,
+    'aria-setsize': null,
+    'aria-selected': 'false'
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'item'
+    },
+    module: 'XForms'
+  }, {
+    concept: {
+      name: 'listitem'
+    },
+    module: 'ARIA'
+  }, {
+    concept: {
+      name: 'option'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-selected': 'false'
+  },
+  superClass: [['roletype', 'widget', 'input']]
+};
+var _default = optionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/paragraphRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/paragraphRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var paragraphRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = paragraphRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/presentationRole.js":
+/*!******************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/presentationRole.js ***!
+  \******************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var presentationRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = presentationRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/progressbarRole.js":
+/*!*****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/progressbarRole.js ***!
+  \*****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var progressbarRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-valuetext': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'progress'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'status'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'range'], ['roletype', 'widget']]
+};
+var _default = progressbarRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/radioRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/radioRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var radioRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-checked': null,
+    'aria-posinset': null,
+    'aria-setsize': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'radio'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-checked': null
+  },
+  superClass: [['roletype', 'widget', 'input']]
+};
+var _default = radioRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/radiogroupRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/radiogroupRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var radiogroupRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-invalid': null,
+    'aria-readonly': null,
+    'aria-required': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'list'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['radio']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite', 'select'], ['roletype', 'structure', 'section', 'group', 'select']]
+};
+var _default = radiogroupRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/regionRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/regionRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var regionRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'aria-label'
+      }],
+      name: 'section'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['set'],
+        name: 'aria-labelledby'
+      }],
+      name: 'section'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'Device Independence Glossart perceivable unit'
+    }
+  }, {
+    concept: {
+      name: 'frame'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = regionRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowRole.js":
+/*!*********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowRole.js ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var rowRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-colindex': null,
+    'aria-expanded': null,
+    'aria-level': null,
+    'aria-posinset': null,
+    'aria-rowindex': null,
+    'aria-selected': null,
+    'aria-setsize': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'tr'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: ['grid', 'rowgroup', 'table', 'treegrid'],
+  requiredContextRole: ['grid', 'rowgroup', 'table', 'treegrid'],
+  requiredOwnedElements: [['cell'], ['columnheader'], ['gridcell'], ['rowheader']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'group'], ['roletype', 'widget']]
+};
+var _default = rowRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowgroupRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowgroupRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var rowgroupRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'tbody'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'tfoot'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'thead'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: ['grid', 'table', 'treegrid'],
+  requiredContextRole: ['grid', 'table', 'treegrid'],
+  requiredOwnedElements: [['row']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = rowgroupRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowheaderRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/rowheaderRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var rowheaderRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-sort': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'scope',
+        value: 'row'
+      }],
+      name: 'th'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: ['row'],
+  requiredContextRole: ['row'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'cell'], ['roletype', 'structure', 'section', 'cell', 'gridcell'], ['roletype', 'widget', 'gridcell'], ['roletype', 'structure', 'sectionhead']]
+};
+var _default = rowheaderRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/scrollbarRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/scrollbarRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var scrollbarRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-valuetext': null,
+    'aria-orientation': 'vertical',
+    'aria-valuemax': '100',
+    'aria-valuemin': '0'
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-controls': null,
+    'aria-valuenow': null
+  },
+  superClass: [['roletype', 'structure', 'range'], ['roletype', 'widget']]
+};
+var _default = scrollbarRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/searchRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/searchRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var searchRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'landmark']]
+};
+var _default = searchRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/searchboxRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/searchboxRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var searchboxRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'search'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'input', 'textbox']]
+};
+var _default = searchboxRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/separatorRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/separatorRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var separatorRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-orientation': 'horizontal',
+    'aria-valuemax': '100',
+    'aria-valuemin': '0',
+    'aria-valuenow': null,
+    'aria-valuetext': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'hr'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure']]
+};
+var _default = separatorRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/sliderRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/sliderRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var sliderRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-haspopup': null,
+    'aria-invalid': null,
+    'aria-readonly': null,
+    'aria-valuetext': null,
+    'aria-orientation': 'horizontal',
+    'aria-valuemax': '100',
+    'aria-valuemin': '0'
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'range'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-valuenow': null
+  },
+  superClass: [['roletype', 'widget', 'input'], ['roletype', 'structure', 'range']]
+};
+var _default = sliderRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/spinbuttonRole.js":
+/*!****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/spinbuttonRole.js ***!
+  \****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var spinbuttonRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-invalid': null,
+    'aria-readonly': null,
+    'aria-required': null,
+    'aria-valuetext': null,
+    'aria-valuenow': '0'
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        name: 'type',
+        value: 'number'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite'], ['roletype', 'widget', 'input'], ['roletype', 'structure', 'range']]
+};
+var _default = spinbuttonRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/statusRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/statusRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var statusRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-atomic': 'true',
+    'aria-live': 'polite'
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'output'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = statusRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/strongRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/strongRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var strongRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = strongRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/subscriptRole.js":
+/*!***************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/subscriptRole.js ***!
+  \***************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var subscriptRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = subscriptRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/superscriptRole.js":
+/*!*****************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/superscriptRole.js ***!
+  \*****************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var superscriptRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['prohibited'],
+  prohibitedProps: ['aria-label', 'aria-labelledby'],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = superscriptRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/switchRole.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/switchRole.js ***!
+  \************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var switchRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'button'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-checked': null
+  },
+  superClass: [['roletype', 'widget', 'input', 'checkbox']]
+};
+var _default = switchRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tabRole.js":
+/*!*********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tabRole.js ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var tabRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: true,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-disabled': null,
+    'aria-expanded': null,
+    'aria-haspopup': null,
+    'aria-posinset': null,
+    'aria-setsize': null,
+    'aria-selected': 'false'
+  },
+  relatedConcepts: [],
+  requireContextRole: ['tablist'],
+  requiredContextRole: ['tablist'],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'sectionhead'], ['roletype', 'widget']]
+};
+var _default = tabRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tableRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tableRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var tableRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-colcount': null,
+    'aria-rowcount': null
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'table'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['row'], ['row', 'rowgroup']],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = tableRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tablistRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tablistRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var tablistRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-level': null,
+    'aria-multiselectable': null,
+    'aria-orientation': 'horizontal'
+  },
+  relatedConcepts: [{
+    module: 'DAISY',
+    concept: {
+      name: 'guide'
+    }
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['tab']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite']]
+};
+var _default = tablistRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tabpanelRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tabpanelRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var tabpanelRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = tabpanelRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/termRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/termRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var termRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [{
+    concept: {
+      name: 'dfn'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'dt'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = termRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/textboxRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/textboxRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var textboxRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-activedescendant': null,
+    'aria-autocomplete': null,
+    'aria-errormessage': null,
+    'aria-haspopup': null,
+    'aria-invalid': null,
+    'aria-multiline': null,
+    'aria-placeholder': null,
+    'aria-readonly': null,
+    'aria-required': null
+  },
+  relatedConcepts: [{
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'type'
+      }, {
+        constraints: ['undefined'],
+        name: 'list'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'email'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'tel'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'text'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      attributes: [{
+        constraints: ['undefined'],
+        name: 'list'
+      }, {
+        name: 'type',
+        value: 'url'
+      }],
+      name: 'input'
+    },
+    module: 'HTML'
+  }, {
+    concept: {
+      name: 'input'
+    },
+    module: 'XForms'
+  }, {
+    concept: {
+      name: 'textarea'
+    },
+    module: 'HTML'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'input']]
+};
+var _default = textboxRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/timeRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/timeRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var timeRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = timeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/timerRole.js":
+/*!***********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/timerRole.js ***!
+  \***********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var timerRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'status']]
+};
+var _default = timerRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/toolbarRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/toolbarRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var toolbarRole = {
+  abstract: false,
+  accessibleNameRequired: false,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-orientation': 'horizontal'
+  },
+  relatedConcepts: [{
+    concept: {
+      name: 'menubar'
+    },
+    module: 'ARIA'
+  }],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section', 'group']]
+};
+var _default = toolbarRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tooltipRole.js":
+/*!*************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/tooltipRole.js ***!
+  \*************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var tooltipRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [],
+  requiredProps: {},
+  superClass: [['roletype', 'structure', 'section']]
+};
+var _default = tooltipRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treeRole.js":
+/*!**********************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treeRole.js ***!
+  \**********************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var treeRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {
+    'aria-errormessage': null,
+    'aria-invalid': null,
+    'aria-multiselectable': null,
+    'aria-required': null,
+    'aria-orientation': 'vertical'
+  },
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['treeitem', 'group'], ['treeitem']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite', 'select'], ['roletype', 'structure', 'section', 'group', 'select']]
+};
+var _default = treeRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treegridRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treegridRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var treegridRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author'],
+  prohibitedProps: [],
+  props: {},
+  relatedConcepts: [],
+  requireContextRole: [],
+  requiredContextRole: [],
+  requiredOwnedElements: [['row'], ['row', 'rowgroup']],
+  requiredProps: {},
+  superClass: [['roletype', 'widget', 'composite', 'grid'], ['roletype', 'structure', 'section', 'table', 'grid'], ['roletype', 'widget', 'composite', 'select', 'tree'], ['roletype', 'structure', 'section', 'group', 'select', 'tree']]
+};
+var _default = treegridRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treeitemRole.js":
+/*!**************************************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/literal/treeitemRole.js ***!
+  \**************************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var treeitemRole = {
+  abstract: false,
+  accessibleNameRequired: true,
+  baseConcepts: [],
+  childrenPresentational: false,
+  nameFrom: ['author', 'contents'],
+  prohibitedProps: [],
+  props: {
+    'aria-expanded': null,
+    'aria-haspopup': null
+  },
+  relatedConcepts: [],
+  requireContextRole: ['group', 'tree'],
+  requiredContextRole: ['group', 'tree'],
+  requiredOwnedElements: [],
+  requiredProps: {
+    'aria-selected': null
+  },
+  superClass: [['roletype', 'structure', 'section', 'listitem'], ['roletype', 'widget', 'input', 'option']]
+};
+var _default = treeitemRole;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/index.js":
+/*!*************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/index.js ***!
+  \*************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.roleElements = exports.elementRoles = exports.roles = exports.dom = exports.aria = void 0;
+
+var _ariaPropsMap = _interopRequireDefault(__webpack_require__(/*! ./ariaPropsMap */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/ariaPropsMap.js"));
+
+var _domMap = _interopRequireDefault(__webpack_require__(/*! ./domMap */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/domMap.js"));
+
+var _rolesMap = _interopRequireDefault(__webpack_require__(/*! ./rolesMap */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/rolesMap.js"));
+
+var _elementRoleMap = _interopRequireDefault(__webpack_require__(/*! ./elementRoleMap */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/elementRoleMap.js"));
+
+var _roleElementMap = _interopRequireDefault(__webpack_require__(/*! ./roleElementMap */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/roleElementMap.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var aria = _ariaPropsMap.default;
+exports.aria = aria;
+var dom = _domMap.default;
+exports.dom = dom;
+var roles = _rolesMap.default;
+exports.roles = roles;
+var elementRoles = _elementRoleMap.default;
+exports.elementRoles = elementRoles;
+var roleElements = _roleElementMap.default;
+exports.roleElements = roleElements;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/roleElementMap.js":
+/*!**********************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/roleElementMap.js ***!
+  \**********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rolesMap = _interopRequireDefault(__webpack_require__(/*! ./rolesMap */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/rolesMap.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+var roleElement = [];
+
+var keys = _rolesMap.default.keys();
+
+var _loop = function _loop(i) {
+  var key = keys[i];
+
+  var role = _rolesMap.default.get(key);
+
+  if (role) {
+    var concepts = [].concat(role.baseConcepts, role.relatedConcepts);
+
+    for (var k = 0; k < concepts.length; k++) {
+      var relation = concepts[k];
+
+      if (relation.module === 'HTML') {
+        var concept = relation.concept;
+
+        if (concept) {
+          var roleElementRelation = roleElement.find(function (item) {
+            return item[0] === key;
+          });
+          var relationConcepts = void 0;
+
+          if (roleElementRelation) {
+            relationConcepts = roleElementRelation[1];
+          } else {
+            relationConcepts = [];
+          }
+
+          relationConcepts.push(concept);
+          roleElement.push([key, relationConcepts]);
+        }
+      }
+    }
+  }
+};
+
+for (var i = 0; i < keys.length; i++) {
+  _loop(i);
+}
+
+var roleElementMap = {
+  entries: function entries() {
+    return roleElement;
+  },
+  get: function get(key) {
+    var item = roleElement.find(function (tuple) {
+      return tuple[0] === key ? true : false;
+    });
+    return item && item[1];
+  },
+  has: function has(key) {
+    return !!this.get(key);
+  },
+  keys: function keys() {
+    return roleElement.map(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 1),
+          key = _ref2[0];
+
+      return key;
+    });
+  },
+  values: function values() {
+    return roleElement.map(function (_ref3) {
+      var _ref4 = _slicedToArray(_ref3, 2),
+          values = _ref4[1];
+
+      return values;
+    });
+  }
+};
+var _default = roleElementMap;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/rolesMap.js":
+/*!****************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/rolesMap.js ***!
+  \****************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _ariaAbstractRoles = _interopRequireDefault(__webpack_require__(/*! ./etc/roles/ariaAbstractRoles */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaAbstractRoles.js"));
+
+var _ariaLiteralRoles = _interopRequireDefault(__webpack_require__(/*! ./etc/roles/ariaLiteralRoles */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaLiteralRoles.js"));
+
+var _ariaDpubRoles = _interopRequireDefault(__webpack_require__(/*! ./etc/roles/ariaDpubRoles */ "./node_modules/@testing-library/jest-dom/node_modules/aria-query/lib/etc/roles/ariaDpubRoles.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+var roles = [].concat(_ariaAbstractRoles.default, _ariaLiteralRoles.default, _ariaDpubRoles.default);
+roles.forEach(function (_ref) {
+  var _ref2 = _slicedToArray(_ref, 2),
+      roleDefinition = _ref2[1];
+
+  // Conglomerate the properties
+  var _iterator = _createForOfIteratorHelper(roleDefinition.superClass),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var superClassIter = _step.value;
+
+      var _iterator2 = _createForOfIteratorHelper(superClassIter),
+          _step2;
+
+      try {
+        var _loop = function _loop() {
+          var superClassName = _step2.value;
+          var superClassRoleTuple = roles.find(function (_ref3) {
+            var _ref4 = _slicedToArray(_ref3, 1),
+                name = _ref4[0];
+
+            return name === superClassName;
+          });
+
+          if (superClassRoleTuple) {
+            var superClassDefinition = superClassRoleTuple[1];
+
+            for (var _i2 = 0, _Object$keys = Object.keys(superClassDefinition.props); _i2 < _Object$keys.length; _i2++) {
+              var prop = _Object$keys[_i2];
+
+              if ( // $FlowIssue Accessing the hasOwnProperty on the Object prototype is fine.
+              !Object.prototype.hasOwnProperty.call(roleDefinition.props, prop)) {
+                Object.assign(roleDefinition.props, _defineProperty({}, prop, superClassDefinition.props[prop]));
+              }
+            }
+          }
+        };
+
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          _loop();
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+});
+var rolesMap = {
+  entries: function entries() {
+    return roles;
+  },
+  get: function get(key) {
+    var item = roles.find(function (tuple) {
+      return tuple[0] === key ? true : false;
+    });
+    return item && item[1];
+  },
+  has: function has(key) {
+    return !!this.get(key);
+  },
+  keys: function keys() {
+    return roles.map(function (_ref5) {
+      var _ref6 = _slicedToArray(_ref5, 1),
+          key = _ref6[0];
+
+      return key;
+    });
+  },
+  values: function values() {
+    return roles.map(function (_ref7) {
+      var _ref8 = _slicedToArray(_ref7, 2),
+          values = _ref8[1];
+
+      return values;
+    });
+  }
+};
+var _default = rolesMap;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/chalk/source/index.js":
+/*!***********************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/chalk/source/index.js ***!
+  \***********************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+const ansiStyles = __webpack_require__(/*! ansi-styles */ "./node_modules/@testing-library/jest-dom/node_modules/ansi-styles/index.js");
+const {stdout: stdoutColor, stderr: stderrColor} = __webpack_require__(/*! supports-color */ "./node_modules/@testing-library/jest-dom/node_modules/supports-color/browser.js");
+const {
+	stringReplaceAll,
+	stringEncaseCRLFWithFirstIndex
+} = __webpack_require__(/*! ./util */ "./node_modules/@testing-library/jest-dom/node_modules/chalk/source/util.js");
+
+// `supportsColor.level` → `ansiStyles.color[name]` mapping
+const levelMapping = [
+	'ansi',
+	'ansi',
+	'ansi256',
+	'ansi16m'
+];
+
+const styles = Object.create(null);
+
+const applyOptions = (object, options = {}) => {
+	if (options.level > 3 || options.level < 0) {
+		throw new Error('The `level` option should be an integer from 0 to 3');
+	}
+
+	// Detect level if not set manually
+	const colorLevel = stdoutColor ? stdoutColor.level : 0;
+	object.level = options.level === undefined ? colorLevel : options.level;
+};
+
+class ChalkClass {
+	constructor(options) {
+		return chalkFactory(options);
+	}
+}
+
+const chalkFactory = options => {
+	const chalk = {};
+	applyOptions(chalk, options);
+
+	chalk.template = (...arguments_) => chalkTag(chalk.template, ...arguments_);
+
+	Object.setPrototypeOf(chalk, Chalk.prototype);
+	Object.setPrototypeOf(chalk.template, chalk);
+
+	chalk.template.constructor = () => {
+		throw new Error('`chalk.constructor()` is deprecated. Use `new chalk.Instance()` instead.');
+	};
+
+	chalk.template.Instance = ChalkClass;
+
+	return chalk.template;
+};
+
+function Chalk(options) {
+	return chalkFactory(options);
+}
+
+for (const [styleName, style] of Object.entries(ansiStyles)) {
+	styles[styleName] = {
+		get() {
+			const builder = createBuilder(this, createStyler(style.open, style.close, this._styler), this._isEmpty);
+			Object.defineProperty(this, styleName, {value: builder});
+			return builder;
+		}
+	};
+}
+
+styles.visible = {
+	get() {
+		const builder = createBuilder(this, this._styler, true);
+		Object.defineProperty(this, 'visible', {value: builder});
+		return builder;
+	}
+};
+
+const usedModels = ['rgb', 'hex', 'keyword', 'hsl', 'hsv', 'hwb', 'ansi', 'ansi256'];
+
+for (const model of usedModels) {
+	styles[model] = {
+		get() {
+			const {level} = this;
+			return function (...arguments_) {
+				const styler = createStyler(ansiStyles.color[levelMapping[level]][model](...arguments_), ansiStyles.color.close, this._styler);
+				return createBuilder(this, styler, this._isEmpty);
+			};
+		}
+	};
+}
+
+for (const model of usedModels) {
+	const bgModel = 'bg' + model[0].toUpperCase() + model.slice(1);
+	styles[bgModel] = {
+		get() {
+			const {level} = this;
+			return function (...arguments_) {
+				const styler = createStyler(ansiStyles.bgColor[levelMapping[level]][model](...arguments_), ansiStyles.bgColor.close, this._styler);
+				return createBuilder(this, styler, this._isEmpty);
+			};
+		}
+	};
+}
+
+const proto = Object.defineProperties(() => {}, {
+	...styles,
+	level: {
+		enumerable: true,
+		get() {
+			return this._generator.level;
+		},
+		set(level) {
+			this._generator.level = level;
+		}
+	}
+});
+
+const createStyler = (open, close, parent) => {
+	let openAll;
+	let closeAll;
+	if (parent === undefined) {
+		openAll = open;
+		closeAll = close;
+	} else {
+		openAll = parent.openAll + open;
+		closeAll = close + parent.closeAll;
+	}
+
+	return {
+		open,
+		close,
+		openAll,
+		closeAll,
+		parent
+	};
+};
+
+const createBuilder = (self, _styler, _isEmpty) => {
+	const builder = (...arguments_) => {
+		// Single argument is hot path, implicit coercion is faster than anything
+		// eslint-disable-next-line no-implicit-coercion
+		return applyStyle(builder, (arguments_.length === 1) ? ('' + arguments_[0]) : arguments_.join(' '));
+	};
+
+	// `__proto__` is used because we must return a function, but there is
+	// no way to create a function with a different prototype
+	builder.__proto__ = proto; // eslint-disable-line no-proto
+
+	builder._generator = self;
+	builder._styler = _styler;
+	builder._isEmpty = _isEmpty;
+
+	return builder;
+};
+
+const applyStyle = (self, string) => {
+	if (self.level <= 0 || !string) {
+		return self._isEmpty ? '' : string;
+	}
+
+	let styler = self._styler;
+
+	if (styler === undefined) {
+		return string;
+	}
+
+	const {openAll, closeAll} = styler;
+	if (string.indexOf('\u001B') !== -1) {
+		while (styler !== undefined) {
+			// Replace any instances already present with a re-opening code
+			// otherwise only the part of the string until said closing code
+			// will be colored, and the rest will simply be 'plain'.
+			string = stringReplaceAll(string, styler.close, styler.open);
+
+			styler = styler.parent;
+		}
+	}
+
+	// We can move both next actions out of loop, because remaining actions in loop won't have
+	// any/visible effect on parts we add here. Close the styling before a linebreak and reopen
+	// after next line to fix a bleed issue on macOS: https://github.com/chalk/chalk/pull/92
+	const lfIndex = string.indexOf('\n');
+	if (lfIndex !== -1) {
+		string = stringEncaseCRLFWithFirstIndex(string, closeAll, openAll, lfIndex);
+	}
+
+	return openAll + string + closeAll;
+};
+
+let template;
+const chalkTag = (chalk, ...strings) => {
+	const [firstString] = strings;
+
+	if (!Array.isArray(firstString)) {
+		// If chalk() was called by itself or with a string,
+		// return the string itself as a string.
+		return strings.join(' ');
+	}
+
+	const arguments_ = strings.slice(1);
+	const parts = [firstString.raw[0]];
+
+	for (let i = 1; i < firstString.length; i++) {
+		parts.push(
+			String(arguments_[i - 1]).replace(/[{}\\]/g, '\\$&'),
+			String(firstString.raw[i])
+		);
+	}
+
+	if (template === undefined) {
+		template = __webpack_require__(/*! ./templates */ "./node_modules/@testing-library/jest-dom/node_modules/chalk/source/templates.js");
+	}
+
+	return template(chalk, parts.join(''));
+};
+
+Object.defineProperties(Chalk.prototype, styles);
+
+const chalk = Chalk(); // eslint-disable-line new-cap
+chalk.supportsColor = stdoutColor;
+chalk.stderr = Chalk({level: stderrColor ? stderrColor.level : 0}); // eslint-disable-line new-cap
+chalk.stderr.supportsColor = stderrColor;
+
+// For TypeScript
+chalk.Level = {
+	None: 0,
+	Basic: 1,
+	Ansi256: 2,
+	TrueColor: 3,
+	0: 'None',
+	1: 'Basic',
+	2: 'Ansi256',
+	3: 'TrueColor'
+};
+
+module.exports = chalk;
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/chalk/source/templates.js":
+/*!***************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/chalk/source/templates.js ***!
+  \***************************************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+const TEMPLATE_REGEX = /(?:\\(u(?:[a-f\d]{4}|\{[a-f\d]{1,6}\})|x[a-f\d]{2}|.))|(?:\{(~)?(\w+(?:\([^)]*\))?(?:\.\w+(?:\([^)]*\))?)*)(?:[ \t]|(?=\r?\n)))|(\})|((?:.|[\r\n\f])+?)/gi;
+const STYLE_REGEX = /(?:^|\.)(\w+)(?:\(([^)]*)\))?/g;
+const STRING_REGEX = /^(['"])((?:\\.|(?!\1)[^\\])*)\1$/;
+const ESCAPE_REGEX = /\\(u(?:[a-f\d]{4}|\{[a-f\d]{1,6}\})|x[a-f\d]{2}|.)|([^\\])/gi;
+
+const ESCAPES = new Map([
+	['n', '\n'],
+	['r', '\r'],
+	['t', '\t'],
+	['b', '\b'],
+	['f', '\f'],
+	['v', '\v'],
+	['0', '\0'],
+	['\\', '\\'],
+	['e', '\u001B'],
+	['a', '\u0007']
+]);
+
+function unescape(c) {
+	const u = c[0] === 'u';
+	const bracket = c[1] === '{';
+
+	if ((u && !bracket && c.length === 5) || (c[0] === 'x' && c.length === 3)) {
+		return String.fromCharCode(parseInt(c.slice(1), 16));
+	}
+
+	if (u && bracket) {
+		return String.fromCodePoint(parseInt(c.slice(2, -1), 16));
+	}
+
+	return ESCAPES.get(c) || c;
+}
+
+function parseArguments(name, arguments_) {
+	const results = [];
+	const chunks = arguments_.trim().split(/\s*,\s*/g);
+	let matches;
+
+	for (const chunk of chunks) {
+		const number = Number(chunk);
+		if (!Number.isNaN(number)) {
+			results.push(number);
+		} else if ((matches = chunk.match(STRING_REGEX))) {
+			results.push(matches[2].replace(ESCAPE_REGEX, (m, escape, character) => escape ? unescape(escape) : character));
+		} else {
+			throw new Error(`Invalid Chalk template style argument: ${chunk} (in style '${name}')`);
+		}
+	}
+
+	return results;
+}
+
+function parseStyle(style) {
+	STYLE_REGEX.lastIndex = 0;
+
+	const results = [];
+	let matches;
+
+	while ((matches = STYLE_REGEX.exec(style)) !== null) {
+		const name = matches[1];
+
+		if (matches[2]) {
+			const args = parseArguments(name, matches[2]);
+			results.push([name].concat(args));
+		} else {
+			results.push([name]);
+		}
+	}
+
+	return results;
+}
+
+function buildStyle(chalk, styles) {
+	const enabled = {};
+
+	for (const layer of styles) {
+		for (const style of layer.styles) {
+			enabled[style[0]] = layer.inverse ? null : style.slice(1);
+		}
+	}
+
+	let current = chalk;
+	for (const [styleName, styles] of Object.entries(enabled)) {
+		if (!Array.isArray(styles)) {
+			continue;
+		}
+
+		if (!(styleName in current)) {
+			throw new Error(`Unknown Chalk style: ${styleName}`);
+		}
+
+		current = styles.length > 0 ? current[styleName](...styles) : current[styleName];
+	}
+
+	return current;
+}
+
+module.exports = (chalk, temporary) => {
+	const styles = [];
+	const chunks = [];
+	let chunk = [];
+
+	// eslint-disable-next-line max-params
+	temporary.replace(TEMPLATE_REGEX, (m, escapeCharacter, inverse, style, close, character) => {
+		if (escapeCharacter) {
+			chunk.push(unescape(escapeCharacter));
+		} else if (style) {
+			const string = chunk.join('');
+			chunk = [];
+			chunks.push(styles.length === 0 ? string : buildStyle(chalk, styles)(string));
+			styles.push({inverse, styles: parseStyle(style)});
+		} else if (close) {
+			if (styles.length === 0) {
+				throw new Error('Found extraneous } in Chalk template literal');
+			}
+
+			chunks.push(buildStyle(chalk, styles)(chunk.join('')));
+			chunk = [];
+			styles.pop();
+		} else {
+			chunk.push(character);
+		}
+	});
+
+	chunks.push(chunk.join(''));
+
+	if (styles.length > 0) {
+		const errMsg = `Chalk template literal is missing ${styles.length} closing bracket${styles.length === 1 ? '' : 's'} (\`}\`)`;
+		throw new Error(errMsg);
+	}
+
+	return chunks.join('');
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/chalk/source/util.js":
+/*!**********************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/chalk/source/util.js ***!
+  \**********************************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+const stringReplaceAll = (string, substring, replacer) => {
+	let index = string.indexOf(substring);
+	if (index === -1) {
+		return string;
+	}
+
+	const substringLength = substring.length;
+	let endIndex = 0;
+	let returnValue = '';
+	do {
+		returnValue += string.substr(endIndex, index - endIndex) + substring + replacer;
+		endIndex = index + substringLength;
+		index = string.indexOf(substring, endIndex);
+	} while (index !== -1);
+
+	returnValue += string.substr(endIndex);
+	return returnValue;
+};
+
+const stringEncaseCRLFWithFirstIndex = (string, prefix, postfix, index) => {
+	let endIndex = 0;
+	let returnValue = '';
+	do {
+		const gotCR = string[index - 1] === '\r';
+		returnValue += string.substr(endIndex, (gotCR ? index - 1 : index) - endIndex) + prefix + (gotCR ? '\r\n' : '\n') + postfix;
+		endIndex = index + 1;
+		index = string.indexOf('\n', endIndex);
+	} while (index !== -1);
+
+	returnValue += string.substr(endIndex);
+	return returnValue;
+};
+
+module.exports = {
+	stringReplaceAll,
+	stringEncaseCRLFWithFirstIndex
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/color-convert/conversions.js":
+/*!******************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/color-convert/conversions.js ***!
+  \******************************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+/* MIT license */
+/* eslint-disable no-mixed-operators */
+const cssKeywords = __webpack_require__(/*! color-name */ "./node_modules/@testing-library/jest-dom/node_modules/color-name/index.js");
+
+// NOTE: conversions should only return primitive values (i.e. arrays, or
+//       values that give correct `typeof` results).
+//       do not use box values types (i.e. Number(), String(), etc.)
+
+const reverseKeywords = {};
+for (const key of Object.keys(cssKeywords)) {
+	reverseKeywords[cssKeywords[key]] = key;
+}
+
+const convert = {
+	rgb: {channels: 3, labels: 'rgb'},
+	hsl: {channels: 3, labels: 'hsl'},
+	hsv: {channels: 3, labels: 'hsv'},
+	hwb: {channels: 3, labels: 'hwb'},
+	cmyk: {channels: 4, labels: 'cmyk'},
+	xyz: {channels: 3, labels: 'xyz'},
+	lab: {channels: 3, labels: 'lab'},
+	lch: {channels: 3, labels: 'lch'},
+	hex: {channels: 1, labels: ['hex']},
+	keyword: {channels: 1, labels: ['keyword']},
+	ansi16: {channels: 1, labels: ['ansi16']},
+	ansi256: {channels: 1, labels: ['ansi256']},
+	hcg: {channels: 3, labels: ['h', 'c', 'g']},
+	apple: {channels: 3, labels: ['r16', 'g16', 'b16']},
+	gray: {channels: 1, labels: ['gray']}
+};
+
+module.exports = convert;
+
+// Hide .channels and .labels properties
+for (const model of Object.keys(convert)) {
+	if (!('channels' in convert[model])) {
+		throw new Error('missing channels property: ' + model);
+	}
+
+	if (!('labels' in convert[model])) {
+		throw new Error('missing channel labels property: ' + model);
+	}
+
+	if (convert[model].labels.length !== convert[model].channels) {
+		throw new Error('channel and label counts mismatch: ' + model);
+	}
+
+	const {channels, labels} = convert[model];
+	delete convert[model].channels;
+	delete convert[model].labels;
+	Object.defineProperty(convert[model], 'channels', {value: channels});
+	Object.defineProperty(convert[model], 'labels', {value: labels});
+}
+
+convert.rgb.hsl = function (rgb) {
+	const r = rgb[0] / 255;
+	const g = rgb[1] / 255;
+	const b = rgb[2] / 255;
+	const min = Math.min(r, g, b);
+	const max = Math.max(r, g, b);
+	const delta = max - min;
+	let h;
+	let s;
+
+	if (max === min) {
+		h = 0;
+	} else if (r === max) {
+		h = (g - b) / delta;
+	} else if (g === max) {
+		h = 2 + (b - r) / delta;
+	} else if (b === max) {
+		h = 4 + (r - g) / delta;
+	}
+
+	h = Math.min(h * 60, 360);
+
+	if (h < 0) {
+		h += 360;
+	}
+
+	const l = (min + max) / 2;
+
+	if (max === min) {
+		s = 0;
+	} else if (l <= 0.5) {
+		s = delta / (max + min);
+	} else {
+		s = delta / (2 - max - min);
+	}
+
+	return [h, s * 100, l * 100];
+};
+
+convert.rgb.hsv = function (rgb) {
+	let rdif;
+	let gdif;
+	let bdif;
+	let h;
+	let s;
+
+	const r = rgb[0] / 255;
+	const g = rgb[1] / 255;
+	const b = rgb[2] / 255;
+	const v = Math.max(r, g, b);
+	const diff = v - Math.min(r, g, b);
+	const diffc = function (c) {
+		return (v - c) / 6 / diff + 1 / 2;
+	};
+
+	if (diff === 0) {
+		h = 0;
+		s = 0;
+	} else {
+		s = diff / v;
+		rdif = diffc(r);
+		gdif = diffc(g);
+		bdif = diffc(b);
+
+		if (r === v) {
+			h = bdif - gdif;
+		} else if (g === v) {
+			h = (1 / 3) + rdif - bdif;
+		} else if (b === v) {
+			h = (2 / 3) + gdif - rdif;
+		}
+
+		if (h < 0) {
+			h += 1;
+		} else if (h > 1) {
+			h -= 1;
+		}
+	}
+
+	return [
+		h * 360,
+		s * 100,
+		v * 100
+	];
+};
+
+convert.rgb.hwb = function (rgb) {
+	const r = rgb[0];
+	const g = rgb[1];
+	let b = rgb[2];
+	const h = convert.rgb.hsl(rgb)[0];
+	const w = 1 / 255 * Math.min(r, Math.min(g, b));
+
+	b = 1 - 1 / 255 * Math.max(r, Math.max(g, b));
+
+	return [h, w * 100, b * 100];
+};
+
+convert.rgb.cmyk = function (rgb) {
+	const r = rgb[0] / 255;
+	const g = rgb[1] / 255;
+	const b = rgb[2] / 255;
+
+	const k = Math.min(1 - r, 1 - g, 1 - b);
+	const c = (1 - r - k) / (1 - k) || 0;
+	const m = (1 - g - k) / (1 - k) || 0;
+	const y = (1 - b - k) / (1 - k) || 0;
+
+	return [c * 100, m * 100, y * 100, k * 100];
+};
+
+function comparativeDistance(x, y) {
+	/*
+		See https://en.m.wikipedia.org/wiki/Euclidean_distance#Squared_Euclidean_distance
+	*/
+	return (
+		((x[0] - y[0]) ** 2) +
+		((x[1] - y[1]) ** 2) +
+		((x[2] - y[2]) ** 2)
+	);
+}
+
+convert.rgb.keyword = function (rgb) {
+	const reversed = reverseKeywords[rgb];
+	if (reversed) {
+		return reversed;
+	}
+
+	let currentClosestDistance = Infinity;
+	let currentClosestKeyword;
+
+	for (const keyword of Object.keys(cssKeywords)) {
+		const value = cssKeywords[keyword];
+
+		// Compute comparative distance
+		const distance = comparativeDistance(rgb, value);
+
+		// Check if its less, if so set as closest
+		if (distance < currentClosestDistance) {
+			currentClosestDistance = distance;
+			currentClosestKeyword = keyword;
+		}
+	}
+
+	return currentClosestKeyword;
+};
+
+convert.keyword.rgb = function (keyword) {
+	return cssKeywords[keyword];
+};
+
+convert.rgb.xyz = function (rgb) {
+	let r = rgb[0] / 255;
+	let g = rgb[1] / 255;
+	let b = rgb[2] / 255;
+
+	// Assume sRGB
+	r = r > 0.04045 ? (((r + 0.055) / 1.055) ** 2.4) : (r / 12.92);
+	g = g > 0.04045 ? (((g + 0.055) / 1.055) ** 2.4) : (g / 12.92);
+	b = b > 0.04045 ? (((b + 0.055) / 1.055) ** 2.4) : (b / 12.92);
+
+	const x = (r * 0.4124) + (g * 0.3576) + (b * 0.1805);
+	const y = (r * 0.2126) + (g * 0.7152) + (b * 0.0722);
+	const z = (r * 0.0193) + (g * 0.1192) + (b * 0.9505);
+
+	return [x * 100, y * 100, z * 100];
+};
+
+convert.rgb.lab = function (rgb) {
+	const xyz = convert.rgb.xyz(rgb);
+	let x = xyz[0];
+	let y = xyz[1];
+	let z = xyz[2];
+
+	x /= 95.047;
+	y /= 100;
+	z /= 108.883;
+
+	x = x > 0.008856 ? (x ** (1 / 3)) : (7.787 * x) + (16 / 116);
+	y = y > 0.008856 ? (y ** (1 / 3)) : (7.787 * y) + (16 / 116);
+	z = z > 0.008856 ? (z ** (1 / 3)) : (7.787 * z) + (16 / 116);
+
+	const l = (116 * y) - 16;
+	const a = 500 * (x - y);
+	const b = 200 * (y - z);
+
+	return [l, a, b];
+};
+
+convert.hsl.rgb = function (hsl) {
+	const h = hsl[0] / 360;
+	const s = hsl[1] / 100;
+	const l = hsl[2] / 100;
+	let t2;
+	let t3;
+	let val;
+
+	if (s === 0) {
+		val = l * 255;
+		return [val, val, val];
+	}
+
+	if (l < 0.5) {
+		t2 = l * (1 + s);
+	} else {
+		t2 = l + s - l * s;
+	}
+
+	const t1 = 2 * l - t2;
+
+	const rgb = [0, 0, 0];
+	for (let i = 0; i < 3; i++) {
+		t3 = h + 1 / 3 * -(i - 1);
+		if (t3 < 0) {
+			t3++;
+		}
+
+		if (t3 > 1) {
+			t3--;
+		}
+
+		if (6 * t3 < 1) {
+			val = t1 + (t2 - t1) * 6 * t3;
+		} else if (2 * t3 < 1) {
+			val = t2;
+		} else if (3 * t3 < 2) {
+			val = t1 + (t2 - t1) * (2 / 3 - t3) * 6;
+		} else {
+			val = t1;
+		}
+
+		rgb[i] = val * 255;
+	}
+
+	return rgb;
+};
+
+convert.hsl.hsv = function (hsl) {
+	const h = hsl[0];
+	let s = hsl[1] / 100;
+	let l = hsl[2] / 100;
+	let smin = s;
+	const lmin = Math.max(l, 0.01);
+
+	l *= 2;
+	s *= (l <= 1) ? l : 2 - l;
+	smin *= lmin <= 1 ? lmin : 2 - lmin;
+	const v = (l + s) / 2;
+	const sv = l === 0 ? (2 * smin) / (lmin + smin) : (2 * s) / (l + s);
+
+	return [h, sv * 100, v * 100];
+};
+
+convert.hsv.rgb = function (hsv) {
+	const h = hsv[0] / 60;
+	const s = hsv[1] / 100;
+	let v = hsv[2] / 100;
+	const hi = Math.floor(h) % 6;
+
+	const f = h - Math.floor(h);
+	const p = 255 * v * (1 - s);
+	const q = 255 * v * (1 - (s * f));
+	const t = 255 * v * (1 - (s * (1 - f)));
+	v *= 255;
+
+	switch (hi) {
+		case 0:
+			return [v, t, p];
+		case 1:
+			return [q, v, p];
+		case 2:
+			return [p, v, t];
+		case 3:
+			return [p, q, v];
+		case 4:
+			return [t, p, v];
+		case 5:
+			return [v, p, q];
+	}
+};
+
+convert.hsv.hsl = function (hsv) {
+	const h = hsv[0];
+	const s = hsv[1] / 100;
+	const v = hsv[2] / 100;
+	const vmin = Math.max(v, 0.01);
+	let sl;
+	let l;
+
+	l = (2 - s) * v;
+	const lmin = (2 - s) * vmin;
+	sl = s * vmin;
+	sl /= (lmin <= 1) ? lmin : 2 - lmin;
+	sl = sl || 0;
+	l /= 2;
+
+	return [h, sl * 100, l * 100];
+};
+
+// http://dev.w3.org/csswg/css-color/#hwb-to-rgb
+convert.hwb.rgb = function (hwb) {
+	const h = hwb[0] / 360;
+	let wh = hwb[1] / 100;
+	let bl = hwb[2] / 100;
+	const ratio = wh + bl;
+	let f;
+
+	// Wh + bl cant be > 1
+	if (ratio > 1) {
+		wh /= ratio;
+		bl /= ratio;
+	}
+
+	const i = Math.floor(6 * h);
+	const v = 1 - bl;
+	f = 6 * h - i;
+
+	if ((i & 0x01) !== 0) {
+		f = 1 - f;
+	}
+
+	const n = wh + f * (v - wh); // Linear interpolation
+
+	let r;
+	let g;
+	let b;
+	/* eslint-disable max-statements-per-line,no-multi-spaces */
+	switch (i) {
+		default:
+		case 6:
+		case 0: r = v;  g = n;  b = wh; break;
+		case 1: r = n;  g = v;  b = wh; break;
+		case 2: r = wh; g = v;  b = n; break;
+		case 3: r = wh; g = n;  b = v; break;
+		case 4: r = n;  g = wh; b = v; break;
+		case 5: r = v;  g = wh; b = n; break;
+	}
+	/* eslint-enable max-statements-per-line,no-multi-spaces */
+
+	return [r * 255, g * 255, b * 255];
+};
+
+convert.cmyk.rgb = function (cmyk) {
+	const c = cmyk[0] / 100;
+	const m = cmyk[1] / 100;
+	const y = cmyk[2] / 100;
+	const k = cmyk[3] / 100;
+
+	const r = 1 - Math.min(1, c * (1 - k) + k);
+	const g = 1 - Math.min(1, m * (1 - k) + k);
+	const b = 1 - Math.min(1, y * (1 - k) + k);
+
+	return [r * 255, g * 255, b * 255];
+};
+
+convert.xyz.rgb = function (xyz) {
+	const x = xyz[0] / 100;
+	const y = xyz[1] / 100;
+	const z = xyz[2] / 100;
+	let r;
+	let g;
+	let b;
+
+	r = (x * 3.2406) + (y * -1.5372) + (z * -0.4986);
+	g = (x * -0.9689) + (y * 1.8758) + (z * 0.0415);
+	b = (x * 0.0557) + (y * -0.2040) + (z * 1.0570);
+
+	// Assume sRGB
+	r = r > 0.0031308
+		? ((1.055 * (r ** (1.0 / 2.4))) - 0.055)
+		: r * 12.92;
+
+	g = g > 0.0031308
+		? ((1.055 * (g ** (1.0 / 2.4))) - 0.055)
+		: g * 12.92;
+
+	b = b > 0.0031308
+		? ((1.055 * (b ** (1.0 / 2.4))) - 0.055)
+		: b * 12.92;
+
+	r = Math.min(Math.max(0, r), 1);
+	g = Math.min(Math.max(0, g), 1);
+	b = Math.min(Math.max(0, b), 1);
+
+	return [r * 255, g * 255, b * 255];
+};
+
+convert.xyz.lab = function (xyz) {
+	let x = xyz[0];
+	let y = xyz[1];
+	let z = xyz[2];
+
+	x /= 95.047;
+	y /= 100;
+	z /= 108.883;
+
+	x = x > 0.008856 ? (x ** (1 / 3)) : (7.787 * x) + (16 / 116);
+	y = y > 0.008856 ? (y ** (1 / 3)) : (7.787 * y) + (16 / 116);
+	z = z > 0.008856 ? (z ** (1 / 3)) : (7.787 * z) + (16 / 116);
+
+	const l = (116 * y) - 16;
+	const a = 500 * (x - y);
+	const b = 200 * (y - z);
+
+	return [l, a, b];
+};
+
+convert.lab.xyz = function (lab) {
+	const l = lab[0];
+	const a = lab[1];
+	const b = lab[2];
+	let x;
+	let y;
+	let z;
+
+	y = (l + 16) / 116;
+	x = a / 500 + y;
+	z = y - b / 200;
+
+	const y2 = y ** 3;
+	const x2 = x ** 3;
+	const z2 = z ** 3;
+	y = y2 > 0.008856 ? y2 : (y - 16 / 116) / 7.787;
+	x = x2 > 0.008856 ? x2 : (x - 16 / 116) / 7.787;
+	z = z2 > 0.008856 ? z2 : (z - 16 / 116) / 7.787;
+
+	x *= 95.047;
+	y *= 100;
+	z *= 108.883;
+
+	return [x, y, z];
+};
+
+convert.lab.lch = function (lab) {
+	const l = lab[0];
+	const a = lab[1];
+	const b = lab[2];
+	let h;
+
+	const hr = Math.atan2(b, a);
+	h = hr * 360 / 2 / Math.PI;
+
+	if (h < 0) {
+		h += 360;
+	}
+
+	const c = Math.sqrt(a * a + b * b);
+
+	return [l, c, h];
+};
+
+convert.lch.lab = function (lch) {
+	const l = lch[0];
+	const c = lch[1];
+	const h = lch[2];
+
+	const hr = h / 360 * 2 * Math.PI;
+	const a = c * Math.cos(hr);
+	const b = c * Math.sin(hr);
+
+	return [l, a, b];
+};
+
+convert.rgb.ansi16 = function (args, saturation = null) {
+	const [r, g, b] = args;
+	let value = saturation === null ? convert.rgb.hsv(args)[2] : saturation; // Hsv -> ansi16 optimization
+
+	value = Math.round(value / 50);
+
+	if (value === 0) {
+		return 30;
+	}
+
+	let ansi = 30
+		+ ((Math.round(b / 255) << 2)
+		| (Math.round(g / 255) << 1)
+		| Math.round(r / 255));
+
+	if (value === 2) {
+		ansi += 60;
+	}
+
+	return ansi;
+};
+
+convert.hsv.ansi16 = function (args) {
+	// Optimization here; we already know the value and don't need to get
+	// it converted for us.
+	return convert.rgb.ansi16(convert.hsv.rgb(args), args[2]);
+};
+
+convert.rgb.ansi256 = function (args) {
+	const r = args[0];
+	const g = args[1];
+	const b = args[2];
+
+	// We use the extended greyscale palette here, with the exception of
+	// black and white. normal palette only has 4 greyscale shades.
+	if (r === g && g === b) {
+		if (r < 8) {
+			return 16;
+		}
+
+		if (r > 248) {
+			return 231;
+		}
+
+		return Math.round(((r - 8) / 247) * 24) + 232;
+	}
+
+	const ansi = 16
+		+ (36 * Math.round(r / 255 * 5))
+		+ (6 * Math.round(g / 255 * 5))
+		+ Math.round(b / 255 * 5);
+
+	return ansi;
+};
+
+convert.ansi16.rgb = function (args) {
+	let color = args % 10;
+
+	// Handle greyscale
+	if (color === 0 || color === 7) {
+		if (args > 50) {
+			color += 3.5;
+		}
+
+		color = color / 10.5 * 255;
+
+		return [color, color, color];
+	}
+
+	const mult = (~~(args > 50) + 1) * 0.5;
+	const r = ((color & 1) * mult) * 255;
+	const g = (((color >> 1) & 1) * mult) * 255;
+	const b = (((color >> 2) & 1) * mult) * 255;
+
+	return [r, g, b];
+};
+
+convert.ansi256.rgb = function (args) {
+	// Handle greyscale
+	if (args >= 232) {
+		const c = (args - 232) * 10 + 8;
+		return [c, c, c];
+	}
+
+	args -= 16;
+
+	let rem;
+	const r = Math.floor(args / 36) / 5 * 255;
+	const g = Math.floor((rem = args % 36) / 6) / 5 * 255;
+	const b = (rem % 6) / 5 * 255;
+
+	return [r, g, b];
+};
+
+convert.rgb.hex = function (args) {
+	const integer = ((Math.round(args[0]) & 0xFF) << 16)
+		+ ((Math.round(args[1]) & 0xFF) << 8)
+		+ (Math.round(args[2]) & 0xFF);
+
+	const string = integer.toString(16).toUpperCase();
+	return '000000'.substring(string.length) + string;
+};
+
+convert.hex.rgb = function (args) {
+	const match = args.toString(16).match(/[a-f0-9]{6}|[a-f0-9]{3}/i);
+	if (!match) {
+		return [0, 0, 0];
+	}
+
+	let colorString = match[0];
+
+	if (match[0].length === 3) {
+		colorString = colorString.split('').map(char => {
+			return char + char;
+		}).join('');
+	}
+
+	const integer = parseInt(colorString, 16);
+	const r = (integer >> 16) & 0xFF;
+	const g = (integer >> 8) & 0xFF;
+	const b = integer & 0xFF;
+
+	return [r, g, b];
+};
+
+convert.rgb.hcg = function (rgb) {
+	const r = rgb[0] / 255;
+	const g = rgb[1] / 255;
+	const b = rgb[2] / 255;
+	const max = Math.max(Math.max(r, g), b);
+	const min = Math.min(Math.min(r, g), b);
+	const chroma = (max - min);
+	let grayscale;
+	let hue;
+
+	if (chroma < 1) {
+		grayscale = min / (1 - chroma);
+	} else {
+		grayscale = 0;
+	}
+
+	if (chroma <= 0) {
+		hue = 0;
+	} else
+	if (max === r) {
+		hue = ((g - b) / chroma) % 6;
+	} else
+	if (max === g) {
+		hue = 2 + (b - r) / chroma;
+	} else {
+		hue = 4 + (r - g) / chroma;
+	}
+
+	hue /= 6;
+	hue %= 1;
+
+	return [hue * 360, chroma * 100, grayscale * 100];
+};
+
+convert.hsl.hcg = function (hsl) {
+	const s = hsl[1] / 100;
+	const l = hsl[2] / 100;
+
+	const c = l < 0.5 ? (2.0 * s * l) : (2.0 * s * (1.0 - l));
+
+	let f = 0;
+	if (c < 1.0) {
+		f = (l - 0.5 * c) / (1.0 - c);
+	}
+
+	return [hsl[0], c * 100, f * 100];
+};
+
+convert.hsv.hcg = function (hsv) {
+	const s = hsv[1] / 100;
+	const v = hsv[2] / 100;
+
+	const c = s * v;
+	let f = 0;
+
+	if (c < 1.0) {
+		f = (v - c) / (1 - c);
+	}
+
+	return [hsv[0], c * 100, f * 100];
+};
+
+convert.hcg.rgb = function (hcg) {
+	const h = hcg[0] / 360;
+	const c = hcg[1] / 100;
+	const g = hcg[2] / 100;
+
+	if (c === 0.0) {
+		return [g * 255, g * 255, g * 255];
+	}
+
+	const pure = [0, 0, 0];
+	const hi = (h % 1) * 6;
+	const v = hi % 1;
+	const w = 1 - v;
+	let mg = 0;
+
+	/* eslint-disable max-statements-per-line */
+	switch (Math.floor(hi)) {
+		case 0:
+			pure[0] = 1; pure[1] = v; pure[2] = 0; break;
+		case 1:
+			pure[0] = w; pure[1] = 1; pure[2] = 0; break;
+		case 2:
+			pure[0] = 0; pure[1] = 1; pure[2] = v; break;
+		case 3:
+			pure[0] = 0; pure[1] = w; pure[2] = 1; break;
+		case 4:
+			pure[0] = v; pure[1] = 0; pure[2] = 1; break;
+		default:
+			pure[0] = 1; pure[1] = 0; pure[2] = w;
+	}
+	/* eslint-enable max-statements-per-line */
+
+	mg = (1.0 - c) * g;
+
+	return [
+		(c * pure[0] + mg) * 255,
+		(c * pure[1] + mg) * 255,
+		(c * pure[2] + mg) * 255
+	];
+};
+
+convert.hcg.hsv = function (hcg) {
+	const c = hcg[1] / 100;
+	const g = hcg[2] / 100;
+
+	const v = c + g * (1.0 - c);
+	let f = 0;
+
+	if (v > 0.0) {
+		f = c / v;
+	}
+
+	return [hcg[0], f * 100, v * 100];
+};
+
+convert.hcg.hsl = function (hcg) {
+	const c = hcg[1] / 100;
+	const g = hcg[2] / 100;
+
+	const l = g * (1.0 - c) + 0.5 * c;
+	let s = 0;
+
+	if (l > 0.0 && l < 0.5) {
+		s = c / (2 * l);
+	} else
+	if (l >= 0.5 && l < 1.0) {
+		s = c / (2 * (1 - l));
+	}
+
+	return [hcg[0], s * 100, l * 100];
+};
+
+convert.hcg.hwb = function (hcg) {
+	const c = hcg[1] / 100;
+	const g = hcg[2] / 100;
+	const v = c + g * (1.0 - c);
+	return [hcg[0], (v - c) * 100, (1 - v) * 100];
+};
+
+convert.hwb.hcg = function (hwb) {
+	const w = hwb[1] / 100;
+	const b = hwb[2] / 100;
+	const v = 1 - b;
+	const c = v - w;
+	let g = 0;
+
+	if (c < 1) {
+		g = (v - c) / (1 - c);
+	}
+
+	return [hwb[0], c * 100, g * 100];
+};
+
+convert.apple.rgb = function (apple) {
+	return [(apple[0] / 65535) * 255, (apple[1] / 65535) * 255, (apple[2] / 65535) * 255];
+};
+
+convert.rgb.apple = function (rgb) {
+	return [(rgb[0] / 255) * 65535, (rgb[1] / 255) * 65535, (rgb[2] / 255) * 65535];
+};
+
+convert.gray.rgb = function (args) {
+	return [args[0] / 100 * 255, args[0] / 100 * 255, args[0] / 100 * 255];
+};
+
+convert.gray.hsl = function (args) {
+	return [0, 0, args[0]];
+};
+
+convert.gray.hsv = convert.gray.hsl;
+
+convert.gray.hwb = function (gray) {
+	return [0, 100, gray[0]];
+};
+
+convert.gray.cmyk = function (gray) {
+	return [0, 0, 0, gray[0]];
+};
+
+convert.gray.lab = function (gray) {
+	return [gray[0], 0, 0];
+};
+
+convert.gray.hex = function (gray) {
+	const val = Math.round(gray[0] / 100 * 255) & 0xFF;
+	const integer = (val << 16) + (val << 8) + val;
+
+	const string = integer.toString(16).toUpperCase();
+	return '000000'.substring(string.length) + string;
+};
+
+convert.rgb.gray = function (rgb) {
+	const val = (rgb[0] + rgb[1] + rgb[2]) / 3;
+	return [val / 255 * 100];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/color-convert/index.js":
+/*!************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/color-convert/index.js ***!
+  \************************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const conversions = __webpack_require__(/*! ./conversions */ "./node_modules/@testing-library/jest-dom/node_modules/color-convert/conversions.js");
+const route = __webpack_require__(/*! ./route */ "./node_modules/@testing-library/jest-dom/node_modules/color-convert/route.js");
+
+const convert = {};
+
+const models = Object.keys(conversions);
+
+function wrapRaw(fn) {
+	const wrappedFn = function (...args) {
+		const arg0 = args[0];
+		if (arg0 === undefined || arg0 === null) {
+			return arg0;
+		}
+
+		if (arg0.length > 1) {
+			args = arg0;
+		}
+
+		return fn(args);
+	};
+
+	// Preserve .conversion property if there is one
+	if ('conversion' in fn) {
+		wrappedFn.conversion = fn.conversion;
+	}
+
+	return wrappedFn;
+}
+
+function wrapRounded(fn) {
+	const wrappedFn = function (...args) {
+		const arg0 = args[0];
+
+		if (arg0 === undefined || arg0 === null) {
+			return arg0;
+		}
+
+		if (arg0.length > 1) {
+			args = arg0;
+		}
+
+		const result = fn(args);
+
+		// We're assuming the result is an array here.
+		// see notice in conversions.js; don't use box types
+		// in conversion functions.
+		if (typeof result === 'object') {
+			for (let len = result.length, i = 0; i < len; i++) {
+				result[i] = Math.round(result[i]);
+			}
+		}
+
+		return result;
+	};
+
+	// Preserve .conversion property if there is one
+	if ('conversion' in fn) {
+		wrappedFn.conversion = fn.conversion;
+	}
+
+	return wrappedFn;
+}
+
+models.forEach(fromModel => {
+	convert[fromModel] = {};
+
+	Object.defineProperty(convert[fromModel], 'channels', {value: conversions[fromModel].channels});
+	Object.defineProperty(convert[fromModel], 'labels', {value: conversions[fromModel].labels});
+
+	const routes = route(fromModel);
+	const routeModels = Object.keys(routes);
+
+	routeModels.forEach(toModel => {
+		const fn = routes[toModel];
+
+		convert[fromModel][toModel] = wrapRounded(fn);
+		convert[fromModel][toModel].raw = wrapRaw(fn);
+	});
+});
+
+module.exports = convert;
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/color-convert/route.js":
+/*!************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/color-convert/route.js ***!
+  \************************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const conversions = __webpack_require__(/*! ./conversions */ "./node_modules/@testing-library/jest-dom/node_modules/color-convert/conversions.js");
+
+/*
+	This function routes a model to all other models.
+
+	all functions that are routed have a property `.conversion` attached
+	to the returned synthetic function. This property is an array
+	of strings, each with the steps in between the 'from' and 'to'
+	color models (inclusive).
+
+	conversions that are not possible simply are not included.
+*/
+
+function buildGraph() {
+	const graph = {};
+	// https://jsperf.com/object-keys-vs-for-in-with-closure/3
+	const models = Object.keys(conversions);
+
+	for (let len = models.length, i = 0; i < len; i++) {
+		graph[models[i]] = {
+			// http://jsperf.com/1-vs-infinity
+			// micro-opt, but this is simple.
+			distance: -1,
+			parent: null
+		};
+	}
+
+	return graph;
+}
+
+// https://en.wikipedia.org/wiki/Breadth-first_search
+function deriveBFS(fromModel) {
+	const graph = buildGraph();
+	const queue = [fromModel]; // Unshift -> queue -> pop
+
+	graph[fromModel].distance = 0;
+
+	while (queue.length) {
+		const current = queue.pop();
+		const adjacents = Object.keys(conversions[current]);
+
+		for (let len = adjacents.length, i = 0; i < len; i++) {
+			const adjacent = adjacents[i];
+			const node = graph[adjacent];
+
+			if (node.distance === -1) {
+				node.distance = graph[current].distance + 1;
+				node.parent = current;
+				queue.unshift(adjacent);
+			}
+		}
+	}
+
+	return graph;
+}
+
+function link(from, to) {
+	return function (args) {
+		return to(from(args));
+	};
+}
+
+function wrapConversion(toModel, graph) {
+	const path = [graph[toModel].parent, toModel];
+	let fn = conversions[graph[toModel].parent][toModel];
+
+	let cur = graph[toModel].parent;
+	while (graph[cur].parent) {
+		path.unshift(graph[cur].parent);
+		fn = link(conversions[graph[cur].parent][cur], fn);
+		cur = graph[cur].parent;
+	}
+
+	fn.conversion = path;
+	return fn;
+}
+
+module.exports = function (fromModel) {
+	const graph = deriveBFS(fromModel);
+	const conversion = {};
+
+	const models = Object.keys(graph);
+	for (let len = models.length, i = 0; i < len; i++) {
+		const toModel = models[i];
+		const node = graph[toModel];
+
+		if (node.parent === null) {
+			// No possible conversion, or this node is the source model.
+			continue;
+		}
+
+		conversion[toModel] = wrapConversion(toModel, graph);
+	}
+
+	return conversion;
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/color-name/index.js":
+/*!*********************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/color-name/index.js ***!
+  \*********************************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = {
+	"aliceblue": [240, 248, 255],
+	"antiquewhite": [250, 235, 215],
+	"aqua": [0, 255, 255],
+	"aquamarine": [127, 255, 212],
+	"azure": [240, 255, 255],
+	"beige": [245, 245, 220],
+	"bisque": [255, 228, 196],
+	"black": [0, 0, 0],
+	"blanchedalmond": [255, 235, 205],
+	"blue": [0, 0, 255],
+	"blueviolet": [138, 43, 226],
+	"brown": [165, 42, 42],
+	"burlywood": [222, 184, 135],
+	"cadetblue": [95, 158, 160],
+	"chartreuse": [127, 255, 0],
+	"chocolate": [210, 105, 30],
+	"coral": [255, 127, 80],
+	"cornflowerblue": [100, 149, 237],
+	"cornsilk": [255, 248, 220],
+	"crimson": [220, 20, 60],
+	"cyan": [0, 255, 255],
+	"darkblue": [0, 0, 139],
+	"darkcyan": [0, 139, 139],
+	"darkgoldenrod": [184, 134, 11],
+	"darkgray": [169, 169, 169],
+	"darkgreen": [0, 100, 0],
+	"darkgrey": [169, 169, 169],
+	"darkkhaki": [189, 183, 107],
+	"darkmagenta": [139, 0, 139],
+	"darkolivegreen": [85, 107, 47],
+	"darkorange": [255, 140, 0],
+	"darkorchid": [153, 50, 204],
+	"darkred": [139, 0, 0],
+	"darksalmon": [233, 150, 122],
+	"darkseagreen": [143, 188, 143],
+	"darkslateblue": [72, 61, 139],
+	"darkslategray": [47, 79, 79],
+	"darkslategrey": [47, 79, 79],
+	"darkturquoise": [0, 206, 209],
+	"darkviolet": [148, 0, 211],
+	"deeppink": [255, 20, 147],
+	"deepskyblue": [0, 191, 255],
+	"dimgray": [105, 105, 105],
+	"dimgrey": [105, 105, 105],
+	"dodgerblue": [30, 144, 255],
+	"firebrick": [178, 34, 34],
+	"floralwhite": [255, 250, 240],
+	"forestgreen": [34, 139, 34],
+	"fuchsia": [255, 0, 255],
+	"gainsboro": [220, 220, 220],
+	"ghostwhite": [248, 248, 255],
+	"gold": [255, 215, 0],
+	"goldenrod": [218, 165, 32],
+	"gray": [128, 128, 128],
+	"green": [0, 128, 0],
+	"greenyellow": [173, 255, 47],
+	"grey": [128, 128, 128],
+	"honeydew": [240, 255, 240],
+	"hotpink": [255, 105, 180],
+	"indianred": [205, 92, 92],
+	"indigo": [75, 0, 130],
+	"ivory": [255, 255, 240],
+	"khaki": [240, 230, 140],
+	"lavender": [230, 230, 250],
+	"lavenderblush": [255, 240, 245],
+	"lawngreen": [124, 252, 0],
+	"lemonchiffon": [255, 250, 205],
+	"lightblue": [173, 216, 230],
+	"lightcoral": [240, 128, 128],
+	"lightcyan": [224, 255, 255],
+	"lightgoldenrodyellow": [250, 250, 210],
+	"lightgray": [211, 211, 211],
+	"lightgreen": [144, 238, 144],
+	"lightgrey": [211, 211, 211],
+	"lightpink": [255, 182, 193],
+	"lightsalmon": [255, 160, 122],
+	"lightseagreen": [32, 178, 170],
+	"lightskyblue": [135, 206, 250],
+	"lightslategray": [119, 136, 153],
+	"lightslategrey": [119, 136, 153],
+	"lightsteelblue": [176, 196, 222],
+	"lightyellow": [255, 255, 224],
+	"lime": [0, 255, 0],
+	"limegreen": [50, 205, 50],
+	"linen": [250, 240, 230],
+	"magenta": [255, 0, 255],
+	"maroon": [128, 0, 0],
+	"mediumaquamarine": [102, 205, 170],
+	"mediumblue": [0, 0, 205],
+	"mediumorchid": [186, 85, 211],
+	"mediumpurple": [147, 112, 219],
+	"mediumseagreen": [60, 179, 113],
+	"mediumslateblue": [123, 104, 238],
+	"mediumspringgreen": [0, 250, 154],
+	"mediumturquoise": [72, 209, 204],
+	"mediumvioletred": [199, 21, 133],
+	"midnightblue": [25, 25, 112],
+	"mintcream": [245, 255, 250],
+	"mistyrose": [255, 228, 225],
+	"moccasin": [255, 228, 181],
+	"navajowhite": [255, 222, 173],
+	"navy": [0, 0, 128],
+	"oldlace": [253, 245, 230],
+	"olive": [128, 128, 0],
+	"olivedrab": [107, 142, 35],
+	"orange": [255, 165, 0],
+	"orangered": [255, 69, 0],
+	"orchid": [218, 112, 214],
+	"palegoldenrod": [238, 232, 170],
+	"palegreen": [152, 251, 152],
+	"paleturquoise": [175, 238, 238],
+	"palevioletred": [219, 112, 147],
+	"papayawhip": [255, 239, 213],
+	"peachpuff": [255, 218, 185],
+	"peru": [205, 133, 63],
+	"pink": [255, 192, 203],
+	"plum": [221, 160, 221],
+	"powderblue": [176, 224, 230],
+	"purple": [128, 0, 128],
+	"rebeccapurple": [102, 51, 153],
+	"red": [255, 0, 0],
+	"rosybrown": [188, 143, 143],
+	"royalblue": [65, 105, 225],
+	"saddlebrown": [139, 69, 19],
+	"salmon": [250, 128, 114],
+	"sandybrown": [244, 164, 96],
+	"seagreen": [46, 139, 87],
+	"seashell": [255, 245, 238],
+	"sienna": [160, 82, 45],
+	"silver": [192, 192, 192],
+	"skyblue": [135, 206, 235],
+	"slateblue": [106, 90, 205],
+	"slategray": [112, 128, 144],
+	"slategrey": [112, 128, 144],
+	"snow": [255, 250, 250],
+	"springgreen": [0, 255, 127],
+	"steelblue": [70, 130, 180],
+	"tan": [210, 180, 140],
+	"teal": [0, 128, 128],
+	"thistle": [216, 191, 216],
+	"tomato": [255, 99, 71],
+	"turquoise": [64, 224, 208],
+	"violet": [238, 130, 238],
+	"wheat": [245, 222, 179],
+	"white": [255, 255, 255],
+	"whitesmoke": [245, 245, 245],
+	"yellow": [255, 255, 0],
+	"yellowgreen": [154, 205, 50]
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/@testing-library/jest-dom/node_modules/supports-color/browser.js":
+/*!***************************************************************************************!*\
+  !*** ./node_modules/@testing-library/jest-dom/node_modules/supports-color/browser.js ***!
+  \***************************************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+module.exports = {
+	stdout: false,
+	stderr: false
+};
+
+
+/***/ }),
+
+/***/ "./src/main/webapp/LoginPage.js":
+/*!**************************************!*\
+  !*** ./src/main/webapp/LoginPage.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ LoginPage)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _StockDetailManager__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./StockDetailManager */ "./src/main/webapp/StockDetailManager.js");
+/* harmony import */ var _LoginComponent_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./LoginComponent.css */ "./src/main/webapp/LoginComponent.css");
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+
+
+
+
+var LoginPage = /*#__PURE__*/function (_Component) {
+  _inherits(LoginPage, _Component);
+
+  var _super = _createSuper(LoginPage);
+
+  function LoginPage(props) {
+    var _this;
+
+    _classCallCheck(this, LoginPage);
+
+    _this = _super.call(this, props);
+    _this.state = {
+      username: '',
+      password: '',
+      showSuccessMessage: false,
+      hasLoginFailed: false
+    };
+    _this.handleChange = _this.handleChange.bind(_assertThisInitialized(_this));
+    _this.loginClick = _this.loginClick.bind(_assertThisInitialized(_this));
+    return _this;
+  }
+
+  _createClass(LoginPage, [{
+    key: "handleChange",
+    value: function handleChange(event) {
+      this.setState(_defineProperty({}, event.target.name, event.target.value));
+    }
+  }, {
+    key: "loginClick",
+    value: function loginClick() {
+      var _this$state = this.state,
+          username = _this$state.username,
+          password = _this$state.password;
+      var payload = {
+        username: username,
+        password: password
+      };
+      this.setState({
+        hasLoginFailed: false,
+        showSuccessMessage: true,
+        message: "Success"
+      }); //    fetch('/stocks/login', 
+      //    {
+      //      method: "POST", 
+      //      headers: {
+      //          'Content-type': 'application/json'
+      //      },
+      //      body:  JSON.stringify(payload)
+      //      })
+      //      .then(res => {
+      //        if (res.ok) { console.log("HTTP request successful") }
+      //        else { console.log("HTTP request unsuccessful") }
+      //        return res
+      //      })
+      //      .then(res => res.json())
+      //      .then( data => this.setState({
+      //         hasLoginFailed: false,
+      //         showSuccessMessage: true,
+      //         message: data,
+      //      })) // the data
+      //      .catch(error =>    this.setState({
+      //         hasLoginFailed: true,
+      //         showSuccessMessage: false,
+      //         message: error,
+      //     }));
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, !this.state.showSuccessMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "login-form"
+      }, this.state.hasLoginFailed && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "alert alert-warning"
+      }, "Invalid Credentials"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("form", {
+        action: "#"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", {
+        className: "text-center"
+      }, "Log in"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "form-group"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+        type: "text",
+        name: "username",
+        className: "form-control",
+        value: this.state.username,
+        onChange: this.handleChange
+      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "form-group"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+        type: "password",
+        name: "password",
+        className: "form-control",
+        value: this.state.password,
+        onChange: this.handleChange
+      }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "form-group"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+        className: "btn btn-primary btn-block",
+        onClick: this.loginClick
+      }, "Login"))), this.state.showSuccessMessage && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_StockDetailManager__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        title: "Stocks Manager"
+      }));
+    }
+  }]);
+
+  return LoginPage;
+}(react__WEBPACK_IMPORTED_MODULE_0__.Component);
+
+
+
+/***/ }),
 
 /***/ "./src/main/webapp/StockDetailManager.js":
 /*!***********************************************!*\
@@ -8,14 +12640,32 @@
   \***********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ StockDetailManager)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _App_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./App.css */ "./src/main/webapp/App.css");
+/* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
+/* harmony import */ var _tickers_json__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./tickers.json */ "./src/main/webapp/tickers.json");
+/* harmony import */ var _StockDetailManager_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./StockDetailManager.css */ "./src/main/webapp/StockDetailManager.css");
+/* harmony import */ var _testing_library_jest_dom_dist_matchers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @testing-library/jest-dom/dist/matchers */ "./node_modules/@testing-library/jest-dom/dist/matchers.js");
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
+function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -42,6 +12692,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
+
+
 var StockDetailManager = /*#__PURE__*/function (_Component) {
   _inherits(StockDetailManager, _Component);
 
@@ -62,47 +12715,50 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
 
     _defineProperty(_assertThisInitialized(_this), "handleAddTicker", function () {
       var _this$state = _this.state,
-          ticker = _this$state.ticker,
-          tickers = _this$state.tickers;
-      tickers.push(ticker);
+          selectedOption = _this$state.selectedOption,
+          tickerList = _this$state.tickerList;
+
+      if (typeof selectedOption === 'undefined') {
+        return;
+      }
+
+      var index = tickerList.findIndex(function (ticker) {
+        return ticker.ticker === selectedOption.value;
+      });
+
+      var tickerListUpdate = _toConsumableArray(tickerList);
+
+      if (index >= 0) {
+        tickerListUpdate[index].displayText = selectedOption ? selectedOption.value + " (" + selectedOption.label + ")" : '';
+
+        _this.setState({
+          message: 'the selected ticker is already in the list',
+          tickerList: tickerListUpdate
+        });
+
+        return;
+      }
+
+      tickerList.push({
+        ticker: selectedOption ? selectedOption.value : '',
+        displayText: selectedOption ? selectedOption.value + " (" + selectedOption.label + ")" : ''
+      });
 
       _this.setState({
-        tickers: tickers
+        tickerList: tickerList,
+        message: ''
       });
     });
 
-    _defineProperty(_assertThisInitialized(_this), "saveTicker", function () {
+    _defineProperty(_assertThisInitialized(_this), "getDetails", function () {
       var tickers = _this.state.tickers;
-      fetch('stocks/newstocks', {
+      fetch('stocks/timeseries', {
         method: "POST",
         headers: {
           'Content-type': 'application/json'
         },
         body: JSON.stringify(tickers)
       }).then(function (res) {
-        if (res.ok) {
-          console.log("HTTP request successful");
-        } else {
-          console.log("HTTP request unsuccessful");
-        }
-
-        return res;
-      }).then(function (res) {
-        return res.json();
-      }).then(function (data) {
-        return _this.setState({
-          message: "success"
-        });
-      })["catch"](function (error) {
-        return _this.setState({
-          message: error
-        });
-      });
-    });
-
-    _defineProperty(_assertThisInitialized(_this), "getDetails", function () {
-      var tickers = _this.state.tickers;
-      fetch('timeseries/alltimeseries').then(function (res) {
         /* IF statement checks server response: .catch() does not do this! */
         if (res.ok) {
           console.log("HTTP request successful");
@@ -123,11 +12779,85 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
       });
     });
 
+    _defineProperty(_assertThisInitialized(_this), "handleOptionChange", function (selectedOption) {
+      _this.setState({
+        selectedOption: selectedOption
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleCheckboxChange", function (e) {
+      var _e$target = e.target,
+          id = _e$target.id,
+          checked = _e$target.checked;
+      var tickers = _this.state.tickers;
+
+      if (checked) {
+        tickers.push(id);
+      } else {
+        tickers.filter(function (ticker) {
+          return ticker !== id;
+        }), _readOnlyError("tickers");
+      }
+
+      _this.setState({
+        tickers: tickers
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "removeTicker", function () {
+      var _this$state2 = _this.state,
+          tickers = _this$state2.tickers,
+          tickerList = _this$state2.tickerList;
+      fetch('stocks/timeseries', {
+        method: "DELETE",
+        headers: {
+          'Content-type': 'application/json'
+        },
+        body: JSON.stringify(tickers)
+      }).then(function (res) {
+        /* IF statement checks server response: .catch() does not do this! */
+        if (res.ok) {
+          console.log("HTTP request successful");
+        } else {
+          console.log("HTTP request unsuccessful");
+        }
+
+        return res;
+      }).then(function (res) {
+        return res.json();
+      }).then(function (data) {
+        return _this.setState({
+          stockDetail: data,
+          tickerList: _this.extractSelection(tickerList, tickers),
+          tickers: []
+        });
+      }) // the data
+      ["catch"](function (error) {
+        return console.log(error);
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "extractSelection", function (completeArray, arrayToRemove) {
+      if (completeArray.length === 0 || arrayToRemove.length === 0) {
+        return completeArray;
+      }
+
+      return completeArray.filter(function (arrayItem) {
+        return !arrayToRemove.some(function (removeItem) {
+          return removeItem === arrayItem.ticker;
+        });
+      });
+    });
+
     _this.state = {
       stockDetail: [],
       ticker: '',
       tickers: [],
-      message: ''
+      availableTickers: _tickers_json__WEBPACK_IMPORTED_MODULE_1__,
+      selectedTicker: null,
+      tickerList: [],
+      message: '',
+      companyData: {}
     };
     return _this;
   }
@@ -148,63 +12878,86 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
   }, {
     key: "render",
     value: function render() {
+      var _this3 = this;
+
       var title = this.props.title;
-      var _this$state2 = this.state,
-          ticker = _this$state2.ticker,
-          tickers = _this$state2.tickers,
-          stockDetail = _this$state2.stockDetail,
-          message = _this$state2.message;
+      var _this$state3 = this.state,
+          ticker = _this$state3.ticker,
+          tickers = _this$state3.tickers,
+          stockDetail = _this$state3.stockDetail,
+          message = _this$state3.message,
+          selectedOption = _this$state3.selectedOption,
+          availableTickers = _this$state3.availableTickers,
+          tickerList = _this$state3.tickerList;
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-        className: "App"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("header", {
-        className: "App-header"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-        type: "text",
-        onChange: this.handleTickerInput,
-        value: ticker,
-        placeholder: "add ticker here"
+        className: "flex-container"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "flex-left"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "select a company"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_select__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        onChange: this.handleOptionChange,
+        value: selectedOption //components = {{singleValue}} 
+        ,
+        options: availableTickers
       }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
         type: "button",
         onClick: this.handleAddTicker
-      }, " Add Ticker ")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "Ticker")), tickers && tickers.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tbody", null, tickers.map(function (ticker) {
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, ticker));
-      }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-        type: "button",
-        onClick: this.saveTicker
-      }, " Save "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      }, " Add to Stock List "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
         type: "button",
         onClick: this.getDetails
-      }, " Get Details ")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "Ticker"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "Date/Time"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "Open Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "Close Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "Highest Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "Lowest Price")), stockDetail && stockDetail.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tbody", null, stockDetail.map(function (stock) {
+      }, " Get Details "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "My Stock List"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "inbox"
+      }, tickerList.map(function (ticker) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+          className: "list-item"
+        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+          type: "checkbox",
+          id: ticker.ticker,
+          onClick: _this3.handleCheckboxChange
+        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, ticker.displayText));
+      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+        type: "button",
+        onClick: this.removeTicker
+      }, " Remove from List")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+        className: "flex-right"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", {
+        "class": "tsTableElements",
+        id: "tsTable"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
+        "class": "tsTableElements"
+      }, "Ticker"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
+        "class": "tsTableElements"
+      }, "Date/Time"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
+        "class": "tsTableElements"
+      }, "Open Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
+        "class": "tsTableElements"
+      }, "Close Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
+        "class": "tsTableElements"
+      }, "Highest Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
+        "class": "tsTableElements"
+      }, "Lowest Price")), stockDetail && stockDetail.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tbody", null, stockDetail.map(function (stock) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", {
           key: stock.id
-        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, stock.ticker), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, stock.date), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, stock.open), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, stock.close), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, stock.high), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, stock.low));
-      }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, message)));
+        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+          "class": "tsTableElements"
+        }, stock.ticker), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+          "class": "tsTableElements"
+        }, stock.date), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+          "class": "tsTableElements"
+        }, "$", stock.open), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+          "class": "tsTableElements"
+        }, "$", stock.close), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+          "class": "tsTableElements"
+        }, "$", stock.high), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+          "class": "tsTableElements"
+        }, "$", stock.low));
+      }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
+        id: "message"
+      }, message)));
     }
   }]);
 
   return StockDetailManager;
-}(react__WEBPACK_IMPORTED_MODULE_0__.Component); // function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-// export default App;
-
+}(react__WEBPACK_IMPORTED_MODULE_0__.Component);
 
 
 
@@ -216,6 +12969,7 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
   \********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -241,12 +12995,13 @@ var reportWebVitals = function reportWebVitals(onPerfEntry) {
 
 /***/ }),
 
-/***/ "./node_modules/css-loader/dist/cjs.js!./src/main/webapp/App.css":
-/*!***********************************************************************!*\
-  !*** ./node_modules/css-loader/dist/cjs.js!./src/main/webapp/App.css ***!
-  \***********************************************************************/
+/***/ "./node_modules/css-loader/dist/cjs.js!./src/main/webapp/LoginComponent.css":
+/*!**********************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./src/main/webapp/LoginComponent.css ***!
+  \**********************************************************************************/
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -260,7 +13015,34 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".App {\n  text-align: center;\n}\n\n.App-logo {\n  height: 40vmin;\n  pointer-events: none;\n}\n\n@media (prefers-reduced-motion: no-preference) {\n  .App-logo {\n    animation: App-logo-spin infinite 20s linear;\n  }\n}\n\n.App-header {\n  background-color: #282c34;\n  min-height: 100vh;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  font-size: calc(10px + 2vmin);\n  color: white;\n}\n\n.App-link {\n  color: #61dafb;\n}\n\n@keyframes App-logo-spin {\n  from {\n    transform: rotate(0deg);\n  }\n  to {\n    transform: rotate(360deg);\n  }\n}\n", "",{"version":3,"sources":["webpack://./src/main/webapp/App.css"],"names":[],"mappings":"AAAA;EACE,kBAAkB;AACpB;;AAEA;EACE,cAAc;EACd,oBAAoB;AACtB;;AAEA;EACE;IACE,4CAA4C;EAC9C;AACF;;AAEA;EACE,yBAAyB;EACzB,iBAAiB;EACjB,aAAa;EACb,sBAAsB;EACtB,mBAAmB;EACnB,uBAAuB;EACvB,6BAA6B;EAC7B,YAAY;AACd;;AAEA;EACE,cAAc;AAChB;;AAEA;EACE;IACE,uBAAuB;EACzB;EACA;IACE,yBAAyB;EAC3B;AACF","sourcesContent":[".App {\n  text-align: center;\n}\n\n.App-logo {\n  height: 40vmin;\n  pointer-events: none;\n}\n\n@media (prefers-reduced-motion: no-preference) {\n  .App-logo {\n    animation: App-logo-spin infinite 20s linear;\n  }\n}\n\n.App-header {\n  background-color: #282c34;\n  min-height: 100vh;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  font-size: calc(10px + 2vmin);\n  color: white;\n}\n\n.App-link {\n  color: #61dafb;\n}\n\n@keyframes App-logo-spin {\n  from {\n    transform: rotate(0deg);\n  }\n  to {\n    transform: rotate(360deg);\n  }\n}\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ".login-form {\r\n    width: 340px;\r\n    margin: 50px auto;\r\n}\r\n.login-form form {\r\n    margin-bottom: 15px;\r\n    background: #f7f7f7;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);\r\n    padding: 30px;\r\n}\r\n.login-form h2 {\r\n    margin: 0 0 15px;\r\n}\r\n.form-control, .btn {\r\n    min-height: 38px;\r\n    border-radius: 2px;\r\n}\r\n.btn {        \r\n    font-size: 15px;\r\n    font-weight: bold;\r\n}\r\n\r\ninput.ng-touched.ng-invalid:not(form) {\r\n    /* border-left: 5px solid red; */\r\n    border: 1px solid red;\r\n}", "",{"version":3,"sources":["webpack://./src/main/webapp/LoginComponent.css"],"names":[],"mappings":"AAAA;IACI,YAAY;IACZ,iBAAiB;AACrB;AACA;IACI,mBAAmB;IACnB,mBAAmB;IACnB,0CAA0C;IAC1C,aAAa;AACjB;AACA;IACI,gBAAgB;AACpB;AACA;IACI,gBAAgB;IAChB,kBAAkB;AACtB;AACA;IACI,eAAe;IACf,iBAAiB;AACrB;;AAEA;IACI,gCAAgC;IAChC,qBAAqB;AACzB","sourcesContent":[".login-form {\r\n    width: 340px;\r\n    margin: 50px auto;\r\n}\r\n.login-form form {\r\n    margin-bottom: 15px;\r\n    background: #f7f7f7;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);\r\n    padding: 30px;\r\n}\r\n.login-form h2 {\r\n    margin: 0 0 15px;\r\n}\r\n.form-control, .btn {\r\n    min-height: 38px;\r\n    border-radius: 2px;\r\n}\r\n.btn {        \r\n    font-size: 15px;\r\n    font-weight: bold;\r\n}\r\n\r\ninput.ng-touched.ng-invalid:not(form) {\r\n    /* border-left: 5px solid red; */\r\n    border: 1px solid red;\r\n}"],"sourceRoot":""}]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/cjs.js!./src/main/webapp/StockDetailManager.css":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./src/main/webapp/StockDetailManager.css ***!
+  \**************************************************************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../node_modules/css-loader/dist/runtime/cssWithMappingToString.js */ "./node_modules/css-loader/dist/runtime/cssWithMappingToString.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+// Imports
+
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, "html, body{\r\n    opacity: 100%;\r\n    font-family: 'Times New Roman', Times, serif;\r\n}\r\n\r\n.flex-container {\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n    height: max-content;\r\n}\r\n\r\n.flex-left{\r\n    padding: 100px 10px;\r\n    background: #f7f7f7;\r\n    flex: 30%;\r\n    height: 100vh;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0, 3);\r\n}\r\n\r\n.flex-right{\r\n    padding: 100px 20px 20px 20px;\r\n    flex: 70%;\r\n    height: 100%;\r\n    background: azure;\r\n}\r\n\r\n#tickerlist {\r\n\r\n    text-align: center;\r\n    top: 157px;\r\n    height: auto;\r\n    width: auto;\r\n  }\r\n  \r\n  .tsTableElements:nth-child(odd) {\r\n    background-color: lightgreen;\r\n  }\r\n  .tsTableElements:nth-child(even) {\r\n    background-color: lightcoral;\r\n  }\r\n  \r\n  .tsTableElements {\r\n    border: 1px solid;\r\n    border-collapse: collapse;\r\n    text-align: center;\r\n  }\r\n  \r\n  #tsTable{\r\n    width: 100%;\r\n    text-align: center;\r\n  }\r\n\r\n  .inbox {\r\n    \r\n    margin: 30px 15px;\r\n    background: white;\r\n    border-radius: 5px;\r\n    box-shadow: 10px 10px 0 rgba(0,0,0,0.1);\r\n  }\r\n\r\n  .list-item {\r\n    display: flex;\r\n    align-items: center;\r\n    border-bottom: 1px solid #F1F1F1;\r\n    \r\n  }\r\n\r\n  .list-item:last-child {\r\n    border-bottom: 0;\r\n  }\r\n\r\n  input:checked + p {\r\n    background: #F9F9F9;\r\n    /* text-decoration: line-through; */\r\n  }\r\n\r\n  input[type=\"checkbox\"] {\r\n    margin: 20px;\r\n  }\r\n  ", "",{"version":3,"sources":["webpack://./src/main/webapp/StockDetailManager.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,4CAA4C;AAChD;;AAEA;IACI,aAAa;IACb,eAAe;IACf,mBAAmB;AACvB;;AAEA;IACI,mBAAmB;IACnB,mBAAmB;IACnB,SAAS;IACT,aAAa;IACb,2CAA2C;AAC/C;;AAEA;IACI,6BAA6B;IAC7B,SAAS;IACT,YAAY;IACZ,iBAAiB;AACrB;;AAEA;;IAEI,kBAAkB;IAClB,UAAU;IACV,YAAY;IACZ,WAAW;EACb;;EAEA;IACE,4BAA4B;EAC9B;EACA;IACE,4BAA4B;EAC9B;;EAEA;IACE,iBAAiB;IACjB,yBAAyB;IACzB,kBAAkB;EACpB;;EAEA;IACE,WAAW;IACX,kBAAkB;EACpB;;EAEA;;IAEE,iBAAiB;IACjB,iBAAiB;IACjB,kBAAkB;IAClB,uCAAuC;EACzC;;EAEA;IACE,aAAa;IACb,mBAAmB;IACnB,gCAAgC;;EAElC;;EAEA;IACE,gBAAgB;EAClB;;EAEA;IACE,mBAAmB;IACnB,mCAAmC;EACrC;;EAEA;IACE,YAAY;EACd","sourcesContent":["html, body{\r\n    opacity: 100%;\r\n    font-family: 'Times New Roman', Times, serif;\r\n}\r\n\r\n.flex-container {\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n    height: max-content;\r\n}\r\n\r\n.flex-left{\r\n    padding: 100px 10px;\r\n    background: #f7f7f7;\r\n    flex: 30%;\r\n    height: 100vh;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0, 3);\r\n}\r\n\r\n.flex-right{\r\n    padding: 100px 20px 20px 20px;\r\n    flex: 70%;\r\n    height: 100%;\r\n    background: azure;\r\n}\r\n\r\n#tickerlist {\r\n\r\n    text-align: center;\r\n    top: 157px;\r\n    height: auto;\r\n    width: auto;\r\n  }\r\n  \r\n  .tsTableElements:nth-child(odd) {\r\n    background-color: lightgreen;\r\n  }\r\n  .tsTableElements:nth-child(even) {\r\n    background-color: lightcoral;\r\n  }\r\n  \r\n  .tsTableElements {\r\n    border: 1px solid;\r\n    border-collapse: collapse;\r\n    text-align: center;\r\n  }\r\n  \r\n  #tsTable{\r\n    width: 100%;\r\n    text-align: center;\r\n  }\r\n\r\n  .inbox {\r\n    \r\n    margin: 30px 15px;\r\n    background: white;\r\n    border-radius: 5px;\r\n    box-shadow: 10px 10px 0 rgba(0,0,0,0.1);\r\n  }\r\n\r\n  .list-item {\r\n    display: flex;\r\n    align-items: center;\r\n    border-bottom: 1px solid #F1F1F1;\r\n    \r\n  }\r\n\r\n  .list-item:last-child {\r\n    border-bottom: 0;\r\n  }\r\n\r\n  input:checked + p {\r\n    background: #F9F9F9;\r\n    /* text-decoration: line-through; */\r\n  }\r\n\r\n  input[type=\"checkbox\"] {\r\n    margin: 20px;\r\n  }\r\n  "],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -273,6 +13055,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, ".App {\n  text-align: center;\n}\n\n.A
   \*************************************************************************/
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -299,6 +13082,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, "body {\n  margin: 0;\n  font-family: -
   \*****************************************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 /*
@@ -374,6 +13158,7 @@ module.exports = function (cssWithMappingToString) {
   \************************************************************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
@@ -413,12 +13198,4781 @@ module.exports = function cssWithMappingToString(item) {
 
 /***/ }),
 
+/***/ "./node_modules/css.escape/css.escape.js":
+/*!***********************************************!*\
+  !*** ./node_modules/css.escape/css.escape.js ***!
+  \***********************************************/
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/*! https://mths.be/cssescape v1.5.1 by @mathias | MIT license */
+;(function(root, factory) {
+	// https://github.com/umdjs/umd/blob/master/returnExports.js
+	if (true) {
+		// For Node.js.
+		module.exports = factory(root);
+	} else {}
+}(typeof __webpack_require__.g != 'undefined' ? __webpack_require__.g : this, function(root) {
+
+	if (root.CSS && root.CSS.escape) {
+		return root.CSS.escape;
+	}
+
+	// https://drafts.csswg.org/cssom/#serialize-an-identifier
+	var cssEscape = function(value) {
+		if (arguments.length == 0) {
+			throw new TypeError('`CSS.escape` requires an argument.');
+		}
+		var string = String(value);
+		var length = string.length;
+		var index = -1;
+		var codeUnit;
+		var result = '';
+		var firstCodeUnit = string.charCodeAt(0);
+		while (++index < length) {
+			codeUnit = string.charCodeAt(index);
+			// Note: there’s no need to special-case astral symbols, surrogate
+			// pairs, or lone surrogates.
+
+			// If the character is NULL (U+0000), then the REPLACEMENT CHARACTER
+			// (U+FFFD).
+			if (codeUnit == 0x0000) {
+				result += '\uFFFD';
+				continue;
+			}
+
+			if (
+				// If the character is in the range [\1-\1F] (U+0001 to U+001F) or is
+				// U+007F, […]
+				(codeUnit >= 0x0001 && codeUnit <= 0x001F) || codeUnit == 0x007F ||
+				// If the character is the first character and is in the range [0-9]
+				// (U+0030 to U+0039), […]
+				(index == 0 && codeUnit >= 0x0030 && codeUnit <= 0x0039) ||
+				// If the character is the second character and is in the range [0-9]
+				// (U+0030 to U+0039) and the first character is a `-` (U+002D), […]
+				(
+					index == 1 &&
+					codeUnit >= 0x0030 && codeUnit <= 0x0039 &&
+					firstCodeUnit == 0x002D
+				)
+			) {
+				// https://drafts.csswg.org/cssom/#escape-a-character-as-code-point
+				result += '\\' + codeUnit.toString(16) + ' ';
+				continue;
+			}
+
+			if (
+				// If the character is the first character and is a `-` (U+002D), and
+				// there is no second character, […]
+				index == 0 &&
+				length == 1 &&
+				codeUnit == 0x002D
+			) {
+				result += '\\' + string.charAt(index);
+				continue;
+			}
+
+			// If the character is not handled by one of the above rules and is
+			// greater than or equal to U+0080, is `-` (U+002D) or `_` (U+005F), or
+			// is in one of the ranges [0-9] (U+0030 to U+0039), [A-Z] (U+0041 to
+			// U+005A), or [a-z] (U+0061 to U+007A), […]
+			if (
+				codeUnit >= 0x0080 ||
+				codeUnit == 0x002D ||
+				codeUnit == 0x005F ||
+				codeUnit >= 0x0030 && codeUnit <= 0x0039 ||
+				codeUnit >= 0x0041 && codeUnit <= 0x005A ||
+				codeUnit >= 0x0061 && codeUnit <= 0x007A
+			) {
+				// the character itself
+				result += string.charAt(index);
+				continue;
+			}
+
+			// Otherwise, the escaped character.
+			// https://drafts.csswg.org/cssom/#escape-a-character
+			result += '\\' + string.charAt(index);
+
+		}
+		return result;
+	};
+
+	if (!root.CSS) {
+		root.CSS = {};
+	}
+
+	root.CSS.escape = cssEscape;
+	return cssEscape;
+
+}));
+
+
+/***/ }),
+
+/***/ "./node_modules/css/lib/parse/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/css/lib/parse/index.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+// http://www.w3.org/TR/CSS21/grammar.html
+// https://github.com/visionmedia/css-parse/pull/49#issuecomment-30088027
+var commentre = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g
+
+module.exports = function(css, options){
+  options = options || {};
+
+  /**
+   * Positional.
+   */
+
+  var lineno = 1;
+  var column = 1;
+
+  /**
+   * Update lineno and column based on `str`.
+   */
+
+  function updatePosition(str) {
+    var lines = str.match(/\n/g);
+    if (lines) lineno += lines.length;
+    var i = str.lastIndexOf('\n');
+    column = ~i ? str.length - i : column + str.length;
+  }
+
+  /**
+   * Mark position and patch `node.position`.
+   */
+
+  function position() {
+    var start = { line: lineno, column: column };
+    return function(node){
+      node.position = new Position(start);
+      whitespace();
+      return node;
+    };
+  }
+
+  /**
+   * Store position information for a node
+   */
+
+  function Position(start) {
+    this.start = start;
+    this.end = { line: lineno, column: column };
+    this.source = options.source;
+  }
+
+  /**
+   * Non-enumerable source string
+   */
+
+  Position.prototype.content = css;
+
+  /**
+   * Error `msg`.
+   */
+
+  var errorsList = [];
+
+  function error(msg) {
+    var err = new Error(options.source + ':' + lineno + ':' + column + ': ' + msg);
+    err.reason = msg;
+    err.filename = options.source;
+    err.line = lineno;
+    err.column = column;
+    err.source = css;
+
+    if (options.silent) {
+      errorsList.push(err);
+    } else {
+      throw err;
+    }
+  }
+
+  /**
+   * Parse stylesheet.
+   */
+
+  function stylesheet() {
+    var rulesList = rules();
+
+    return {
+      type: 'stylesheet',
+      stylesheet: {
+        source: options.source,
+        rules: rulesList,
+        parsingErrors: errorsList
+      }
+    };
+  }
+
+  /**
+   * Opening brace.
+   */
+
+  function open() {
+    return match(/^{\s*/);
+  }
+
+  /**
+   * Closing brace.
+   */
+
+  function close() {
+    return match(/^}/);
+  }
+
+  /**
+   * Parse ruleset.
+   */
+
+  function rules() {
+    var node;
+    var rules = [];
+    whitespace();
+    comments(rules);
+    while (css.length && css.charAt(0) != '}' && (node = atrule() || rule())) {
+      if (node !== false) {
+        rules.push(node);
+        comments(rules);
+      }
+    }
+    return rules;
+  }
+
+  /**
+   * Match `re` and return captures.
+   */
+
+  function match(re) {
+    var m = re.exec(css);
+    if (!m) return;
+    var str = m[0];
+    updatePosition(str);
+    css = css.slice(str.length);
+    return m;
+  }
+
+  /**
+   * Parse whitespace.
+   */
+
+  function whitespace() {
+    match(/^\s*/);
+  }
+
+  /**
+   * Parse comments;
+   */
+
+  function comments(rules) {
+    var c;
+    rules = rules || [];
+    while (c = comment()) {
+      if (c !== false) {
+        rules.push(c);
+      }
+    }
+    return rules;
+  }
+
+  /**
+   * Parse comment.
+   */
+
+  function comment() {
+    var pos = position();
+    if ('/' != css.charAt(0) || '*' != css.charAt(1)) return;
+
+    var i = 2;
+    while ("" != css.charAt(i) && ('*' != css.charAt(i) || '/' != css.charAt(i + 1))) ++i;
+    i += 2;
+
+    if ("" === css.charAt(i-1)) {
+      return error('End of comment missing');
+    }
+
+    var str = css.slice(2, i - 2);
+    column += 2;
+    updatePosition(str);
+    css = css.slice(i);
+    column += 2;
+
+    return pos({
+      type: 'comment',
+      comment: str
+    });
+  }
+
+  /**
+   * Parse selector.
+   */
+
+  function selector() {
+    var m = match(/^([^{]+)/);
+    if (!m) return;
+    /* @fix Remove all comments from selectors
+     * http://ostermiller.org/findcomment.html */
+    return trim(m[0])
+      .replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*\/+/g, '')
+      .replace(/"(?:\\"|[^"])*"|'(?:\\'|[^'])*'/g, function(m) {
+        return m.replace(/,/g, '\u200C');
+      })
+      .split(/\s*(?![^(]*\)),\s*/)
+      .map(function(s) {
+        return s.replace(/\u200C/g, ',');
+      });
+  }
+
+  /**
+   * Parse declaration.
+   */
+
+  function declaration() {
+    var pos = position();
+
+    // prop
+    var prop = match(/^(\*?[-#\/\*\\\w]+(\[[0-9a-z_-]+\])?)\s*/);
+    if (!prop) return;
+    prop = trim(prop[0]);
+
+    // :
+    if (!match(/^:\s*/)) return error("property missing ':'");
+
+    // val
+    var val = match(/^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^\)]*?\)|[^};])+)/);
+
+    var ret = pos({
+      type: 'declaration',
+      property: prop.replace(commentre, ''),
+      value: val ? trim(val[0]).replace(commentre, '') : ''
+    });
+
+    // ;
+    match(/^[;\s]*/);
+
+    return ret;
+  }
+
+  /**
+   * Parse declarations.
+   */
+
+  function declarations() {
+    var decls = [];
+
+    if (!open()) return error("missing '{'");
+    comments(decls);
+
+    // declarations
+    var decl;
+    while (decl = declaration()) {
+      if (decl !== false) {
+        decls.push(decl);
+        comments(decls);
+      }
+    }
+
+    if (!close()) return error("missing '}'");
+    return decls;
+  }
+
+  /**
+   * Parse keyframe.
+   */
+
+  function keyframe() {
+    var m;
+    var vals = [];
+    var pos = position();
+
+    while (m = match(/^((\d+\.\d+|\.\d+|\d+)%?|[a-z]+)\s*/)) {
+      vals.push(m[1]);
+      match(/^,\s*/);
+    }
+
+    if (!vals.length) return;
+
+    return pos({
+      type: 'keyframe',
+      values: vals,
+      declarations: declarations()
+    });
+  }
+
+  /**
+   * Parse keyframes.
+   */
+
+  function atkeyframes() {
+    var pos = position();
+    var m = match(/^@([-\w]+)?keyframes\s*/);
+
+    if (!m) return;
+    var vendor = m[1];
+
+    // identifier
+    var m = match(/^([-\w]+)\s*/);
+    if (!m) return error("@keyframes missing name");
+    var name = m[1];
+
+    if (!open()) return error("@keyframes missing '{'");
+
+    var frame;
+    var frames = comments();
+    while (frame = keyframe()) {
+      frames.push(frame);
+      frames = frames.concat(comments());
+    }
+
+    if (!close()) return error("@keyframes missing '}'");
+
+    return pos({
+      type: 'keyframes',
+      name: name,
+      vendor: vendor,
+      keyframes: frames
+    });
+  }
+
+  /**
+   * Parse supports.
+   */
+
+  function atsupports() {
+    var pos = position();
+    var m = match(/^@supports *([^{]+)/);
+
+    if (!m) return;
+    var supports = trim(m[1]);
+
+    if (!open()) return error("@supports missing '{'");
+
+    var style = comments().concat(rules());
+
+    if (!close()) return error("@supports missing '}'");
+
+    return pos({
+      type: 'supports',
+      supports: supports,
+      rules: style
+    });
+  }
+
+  /**
+   * Parse host.
+   */
+
+  function athost() {
+    var pos = position();
+    var m = match(/^@host\s*/);
+
+    if (!m) return;
+
+    if (!open()) return error("@host missing '{'");
+
+    var style = comments().concat(rules());
+
+    if (!close()) return error("@host missing '}'");
+
+    return pos({
+      type: 'host',
+      rules: style
+    });
+  }
+
+  /**
+   * Parse media.
+   */
+
+  function atmedia() {
+    var pos = position();
+    var m = match(/^@media *([^{]+)/);
+
+    if (!m) return;
+    var media = trim(m[1]);
+
+    if (!open()) return error("@media missing '{'");
+
+    var style = comments().concat(rules());
+
+    if (!close()) return error("@media missing '}'");
+
+    return pos({
+      type: 'media',
+      media: media,
+      rules: style
+    });
+  }
+
+
+  /**
+   * Parse custom-media.
+   */
+
+  function atcustommedia() {
+    var pos = position();
+    var m = match(/^@custom-media\s+(--[^\s]+)\s*([^{;]+);/);
+    if (!m) return;
+
+    return pos({
+      type: 'custom-media',
+      name: trim(m[1]),
+      media: trim(m[2])
+    });
+  }
+
+  /**
+   * Parse paged media.
+   */
+
+  function atpage() {
+    var pos = position();
+    var m = match(/^@page */);
+    if (!m) return;
+
+    var sel = selector() || [];
+
+    if (!open()) return error("@page missing '{'");
+    var decls = comments();
+
+    // declarations
+    var decl;
+    while (decl = declaration()) {
+      decls.push(decl);
+      decls = decls.concat(comments());
+    }
+
+    if (!close()) return error("@page missing '}'");
+
+    return pos({
+      type: 'page',
+      selectors: sel,
+      declarations: decls
+    });
+  }
+
+  /**
+   * Parse document.
+   */
+
+  function atdocument() {
+    var pos = position();
+    var m = match(/^@([-\w]+)?document *([^{]+)/);
+    if (!m) return;
+
+    var vendor = trim(m[1]);
+    var doc = trim(m[2]);
+
+    if (!open()) return error("@document missing '{'");
+
+    var style = comments().concat(rules());
+
+    if (!close()) return error("@document missing '}'");
+
+    return pos({
+      type: 'document',
+      document: doc,
+      vendor: vendor,
+      rules: style
+    });
+  }
+
+  /**
+   * Parse font-face.
+   */
+
+  function atfontface() {
+    var pos = position();
+    var m = match(/^@font-face\s*/);
+    if (!m) return;
+
+    if (!open()) return error("@font-face missing '{'");
+    var decls = comments();
+
+    // declarations
+    var decl;
+    while (decl = declaration()) {
+      decls.push(decl);
+      decls = decls.concat(comments());
+    }
+
+    if (!close()) return error("@font-face missing '}'");
+
+    return pos({
+      type: 'font-face',
+      declarations: decls
+    });
+  }
+
+  /**
+   * Parse import
+   */
+
+  var atimport = _compileAtrule('import');
+
+  /**
+   * Parse charset
+   */
+
+  var atcharset = _compileAtrule('charset');
+
+  /**
+   * Parse namespace
+   */
+
+  var atnamespace = _compileAtrule('namespace');
+
+  /**
+   * Parse non-block at-rules
+   */
+
+
+  function _compileAtrule(name) {
+    var re = new RegExp('^@' + name + '\\s*([^;]+);');
+    return function() {
+      var pos = position();
+      var m = match(re);
+      if (!m) return;
+      var ret = { type: name };
+      ret[name] = m[1].trim();
+      return pos(ret);
+    }
+  }
+
+  /**
+   * Parse at rule.
+   */
+
+  function atrule() {
+    if (css[0] != '@') return;
+
+    return atkeyframes()
+      || atmedia()
+      || atcustommedia()
+      || atsupports()
+      || atimport()
+      || atcharset()
+      || atnamespace()
+      || atdocument()
+      || atpage()
+      || athost()
+      || atfontface();
+  }
+
+  /**
+   * Parse rule.
+   */
+
+  function rule() {
+    var pos = position();
+    var sel = selector();
+
+    if (!sel) return error('selector missing');
+    comments();
+
+    return pos({
+      type: 'rule',
+      selectors: sel,
+      declarations: declarations()
+    });
+  }
+
+  return addParent(stylesheet());
+};
+
+/**
+ * Trim `str`.
+ */
+
+function trim(str) {
+  return str ? str.replace(/^\s+|\s+$/g, '') : '';
+}
+
+/**
+ * Adds non-enumerable parent node reference to each node.
+ */
+
+function addParent(obj, parent) {
+  var isNode = obj && typeof obj.type === 'string';
+  var childParent = isNode ? obj : parent;
+
+  for (var k in obj) {
+    var value = obj[k];
+    if (Array.isArray(value)) {
+      value.forEach(function(v) { addParent(v, childParent); });
+    } else if (value && typeof value === 'object') {
+      addParent(value, childParent);
+    }
+  }
+
+  if (isNode) {
+    Object.defineProperty(obj, 'parent', {
+      configurable: true,
+      writable: true,
+      enumerable: false,
+      value: parent || null
+    });
+  }
+
+  return obj;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/hoist-non-react-statics/dist/hoist-non-react-statics.cjs.js":
+/*!**********************************************************************************!*\
+  !*** ./node_modules/hoist-non-react-statics/dist/hoist-non-react-statics.cjs.js ***!
+  \**********************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var reactIs = __webpack_require__(/*! react-is */ "./node_modules/hoist-non-react-statics/node_modules/react-is/index.js");
+
+/**
+ * Copyright 2015, Yahoo! Inc.
+ * Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
+ */
+var REACT_STATICS = {
+  childContextTypes: true,
+  contextType: true,
+  contextTypes: true,
+  defaultProps: true,
+  displayName: true,
+  getDefaultProps: true,
+  getDerivedStateFromError: true,
+  getDerivedStateFromProps: true,
+  mixins: true,
+  propTypes: true,
+  type: true
+};
+var KNOWN_STATICS = {
+  name: true,
+  length: true,
+  prototype: true,
+  caller: true,
+  callee: true,
+  arguments: true,
+  arity: true
+};
+var FORWARD_REF_STATICS = {
+  '$$typeof': true,
+  render: true,
+  defaultProps: true,
+  displayName: true,
+  propTypes: true
+};
+var MEMO_STATICS = {
+  '$$typeof': true,
+  compare: true,
+  defaultProps: true,
+  displayName: true,
+  propTypes: true,
+  type: true
+};
+var TYPE_STATICS = {};
+TYPE_STATICS[reactIs.ForwardRef] = FORWARD_REF_STATICS;
+TYPE_STATICS[reactIs.Memo] = MEMO_STATICS;
+
+function getStatics(component) {
+  // React v16.11 and below
+  if (reactIs.isMemo(component)) {
+    return MEMO_STATICS;
+  } // React v16.12 and above
+
+
+  return TYPE_STATICS[component['$$typeof']] || REACT_STATICS;
+}
+
+var defineProperty = Object.defineProperty;
+var getOwnPropertyNames = Object.getOwnPropertyNames;
+var getOwnPropertySymbols = Object.getOwnPropertySymbols;
+var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+var getPrototypeOf = Object.getPrototypeOf;
+var objectPrototype = Object.prototype;
+function hoistNonReactStatics(targetComponent, sourceComponent, blacklist) {
+  if (typeof sourceComponent !== 'string') {
+    // don't hoist over string (html) components
+    if (objectPrototype) {
+      var inheritedComponent = getPrototypeOf(sourceComponent);
+
+      if (inheritedComponent && inheritedComponent !== objectPrototype) {
+        hoistNonReactStatics(targetComponent, inheritedComponent, blacklist);
+      }
+    }
+
+    var keys = getOwnPropertyNames(sourceComponent);
+
+    if (getOwnPropertySymbols) {
+      keys = keys.concat(getOwnPropertySymbols(sourceComponent));
+    }
+
+    var targetStatics = getStatics(targetComponent);
+    var sourceStatics = getStatics(sourceComponent);
+
+    for (var i = 0; i < keys.length; ++i) {
+      var key = keys[i];
+
+      if (!KNOWN_STATICS[key] && !(blacklist && blacklist[key]) && !(sourceStatics && sourceStatics[key]) && !(targetStatics && targetStatics[key])) {
+        var descriptor = getOwnPropertyDescriptor(sourceComponent, key);
+
+        try {
+          // Avoid failures from read-only properties
+          defineProperty(targetComponent, key, descriptor);
+        } catch (e) {}
+      }
+    }
+  }
+
+  return targetComponent;
+}
+
+module.exports = hoistNonReactStatics;
+
+
+/***/ }),
+
+/***/ "./node_modules/hoist-non-react-statics/node_modules/react-is/cjs/react-is.development.js":
+/*!************************************************************************************************!*\
+  !*** ./node_modules/hoist-non-react-statics/node_modules/react-is/cjs/react-is.development.js ***!
+  \************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+/** @license React v16.13.1
+ * react-is.development.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+
+
+
+if (true) {
+  (function() {
+'use strict';
+
+// The Symbol used to tag the ReactElement-like types. If there is no native Symbol
+// nor polyfill, then a plain number is used for performance.
+var hasSymbol = typeof Symbol === 'function' && Symbol.for;
+var REACT_ELEMENT_TYPE = hasSymbol ? Symbol.for('react.element') : 0xeac7;
+var REACT_PORTAL_TYPE = hasSymbol ? Symbol.for('react.portal') : 0xeaca;
+var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol.for('react.fragment') : 0xeacb;
+var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol.for('react.strict_mode') : 0xeacc;
+var REACT_PROFILER_TYPE = hasSymbol ? Symbol.for('react.profiler') : 0xead2;
+var REACT_PROVIDER_TYPE = hasSymbol ? Symbol.for('react.provider') : 0xeacd;
+var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace; // TODO: We don't use AsyncMode or ConcurrentMode anymore. They were temporary
+// (unstable) APIs that have been removed. Can we remove the symbols?
+
+var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol.for('react.async_mode') : 0xeacf;
+var REACT_CONCURRENT_MODE_TYPE = hasSymbol ? Symbol.for('react.concurrent_mode') : 0xeacf;
+var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
+var REACT_SUSPENSE_TYPE = hasSymbol ? Symbol.for('react.suspense') : 0xead1;
+var REACT_SUSPENSE_LIST_TYPE = hasSymbol ? Symbol.for('react.suspense_list') : 0xead8;
+var REACT_MEMO_TYPE = hasSymbol ? Symbol.for('react.memo') : 0xead3;
+var REACT_LAZY_TYPE = hasSymbol ? Symbol.for('react.lazy') : 0xead4;
+var REACT_BLOCK_TYPE = hasSymbol ? Symbol.for('react.block') : 0xead9;
+var REACT_FUNDAMENTAL_TYPE = hasSymbol ? Symbol.for('react.fundamental') : 0xead5;
+var REACT_RESPONDER_TYPE = hasSymbol ? Symbol.for('react.responder') : 0xead6;
+var REACT_SCOPE_TYPE = hasSymbol ? Symbol.for('react.scope') : 0xead7;
+
+function isValidElementType(type) {
+  return typeof type === 'string' || typeof type === 'function' || // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
+  type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || typeof type === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || type.$$typeof === REACT_FUNDAMENTAL_TYPE || type.$$typeof === REACT_RESPONDER_TYPE || type.$$typeof === REACT_SCOPE_TYPE || type.$$typeof === REACT_BLOCK_TYPE);
+}
+
+function typeOf(object) {
+  if (typeof object === 'object' && object !== null) {
+    var $$typeof = object.$$typeof;
+
+    switch ($$typeof) {
+      case REACT_ELEMENT_TYPE:
+        var type = object.type;
+
+        switch (type) {
+          case REACT_ASYNC_MODE_TYPE:
+          case REACT_CONCURRENT_MODE_TYPE:
+          case REACT_FRAGMENT_TYPE:
+          case REACT_PROFILER_TYPE:
+          case REACT_STRICT_MODE_TYPE:
+          case REACT_SUSPENSE_TYPE:
+            return type;
+
+          default:
+            var $$typeofType = type && type.$$typeof;
+
+            switch ($$typeofType) {
+              case REACT_CONTEXT_TYPE:
+              case REACT_FORWARD_REF_TYPE:
+              case REACT_LAZY_TYPE:
+              case REACT_MEMO_TYPE:
+              case REACT_PROVIDER_TYPE:
+                return $$typeofType;
+
+              default:
+                return $$typeof;
+            }
+
+        }
+
+      case REACT_PORTAL_TYPE:
+        return $$typeof;
+    }
+  }
+
+  return undefined;
+} // AsyncMode is deprecated along with isAsyncMode
+
+var AsyncMode = REACT_ASYNC_MODE_TYPE;
+var ConcurrentMode = REACT_CONCURRENT_MODE_TYPE;
+var ContextConsumer = REACT_CONTEXT_TYPE;
+var ContextProvider = REACT_PROVIDER_TYPE;
+var Element = REACT_ELEMENT_TYPE;
+var ForwardRef = REACT_FORWARD_REF_TYPE;
+var Fragment = REACT_FRAGMENT_TYPE;
+var Lazy = REACT_LAZY_TYPE;
+var Memo = REACT_MEMO_TYPE;
+var Portal = REACT_PORTAL_TYPE;
+var Profiler = REACT_PROFILER_TYPE;
+var StrictMode = REACT_STRICT_MODE_TYPE;
+var Suspense = REACT_SUSPENSE_TYPE;
+var hasWarnedAboutDeprecatedIsAsyncMode = false; // AsyncMode should be deprecated
+
+function isAsyncMode(object) {
+  {
+    if (!hasWarnedAboutDeprecatedIsAsyncMode) {
+      hasWarnedAboutDeprecatedIsAsyncMode = true; // Using console['warn'] to evade Babel and ESLint
+
+      console['warn']('The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
+    }
+  }
+
+  return isConcurrentMode(object) || typeOf(object) === REACT_ASYNC_MODE_TYPE;
+}
+function isConcurrentMode(object) {
+  return typeOf(object) === REACT_CONCURRENT_MODE_TYPE;
+}
+function isContextConsumer(object) {
+  return typeOf(object) === REACT_CONTEXT_TYPE;
+}
+function isContextProvider(object) {
+  return typeOf(object) === REACT_PROVIDER_TYPE;
+}
+function isElement(object) {
+  return typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
+}
+function isForwardRef(object) {
+  return typeOf(object) === REACT_FORWARD_REF_TYPE;
+}
+function isFragment(object) {
+  return typeOf(object) === REACT_FRAGMENT_TYPE;
+}
+function isLazy(object) {
+  return typeOf(object) === REACT_LAZY_TYPE;
+}
+function isMemo(object) {
+  return typeOf(object) === REACT_MEMO_TYPE;
+}
+function isPortal(object) {
+  return typeOf(object) === REACT_PORTAL_TYPE;
+}
+function isProfiler(object) {
+  return typeOf(object) === REACT_PROFILER_TYPE;
+}
+function isStrictMode(object) {
+  return typeOf(object) === REACT_STRICT_MODE_TYPE;
+}
+function isSuspense(object) {
+  return typeOf(object) === REACT_SUSPENSE_TYPE;
+}
+
+exports.AsyncMode = AsyncMode;
+exports.ConcurrentMode = ConcurrentMode;
+exports.ContextConsumer = ContextConsumer;
+exports.ContextProvider = ContextProvider;
+exports.Element = Element;
+exports.ForwardRef = ForwardRef;
+exports.Fragment = Fragment;
+exports.Lazy = Lazy;
+exports.Memo = Memo;
+exports.Portal = Portal;
+exports.Profiler = Profiler;
+exports.StrictMode = StrictMode;
+exports.Suspense = Suspense;
+exports.isAsyncMode = isAsyncMode;
+exports.isConcurrentMode = isConcurrentMode;
+exports.isContextConsumer = isContextConsumer;
+exports.isContextProvider = isContextProvider;
+exports.isElement = isElement;
+exports.isForwardRef = isForwardRef;
+exports.isFragment = isFragment;
+exports.isLazy = isLazy;
+exports.isMemo = isMemo;
+exports.isPortal = isPortal;
+exports.isProfiler = isProfiler;
+exports.isStrictMode = isStrictMode;
+exports.isSuspense = isSuspense;
+exports.isValidElementType = isValidElementType;
+exports.typeOf = typeOf;
+  })();
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/hoist-non-react-statics/node_modules/react-is/index.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/hoist-non-react-statics/node_modules/react-is/index.js ***!
+  \*****************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+if (false) {} else {
+  module.exports = __webpack_require__(/*! ./cjs/react-is.development.js */ "./node_modules/hoist-non-react-statics/node_modules/react-is/cjs/react-is.development.js");
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/indent-string/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/indent-string/index.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = (string, count = 1, options) => {
+	options = {
+		indent: ' ',
+		includeEmptyLines: false,
+		...options
+	};
+
+	if (typeof string !== 'string') {
+		throw new TypeError(
+			`Expected \`input\` to be a \`string\`, got \`${typeof string}\``
+		);
+	}
+
+	if (typeof count !== 'number') {
+		throw new TypeError(
+			`Expected \`count\` to be a \`number\`, got \`${typeof count}\``
+		);
+	}
+
+	if (typeof options.indent !== 'string') {
+		throw new TypeError(
+			`Expected \`options.indent\` to be a \`string\`, got \`${typeof options.indent}\``
+		);
+	}
+
+	if (count === 0) {
+		return string;
+	}
+
+	const regex = options.includeEmptyLines ? /^/gm : /^(?!\s*$)/gm;
+
+	return string.replace(regex, options.indent.repeat(count));
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_DataView.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_DataView.js ***!
+  \******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js"),
+    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/* Built-in method references that are verified to be native. */
+var DataView = getNative(root, 'DataView');
+
+module.exports = DataView;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_Hash.js":
+/*!**************************************!*\
+  !*** ./node_modules/lodash/_Hash.js ***!
+  \**************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var hashClear = __webpack_require__(/*! ./_hashClear */ "./node_modules/lodash/_hashClear.js"),
+    hashDelete = __webpack_require__(/*! ./_hashDelete */ "./node_modules/lodash/_hashDelete.js"),
+    hashGet = __webpack_require__(/*! ./_hashGet */ "./node_modules/lodash/_hashGet.js"),
+    hashHas = __webpack_require__(/*! ./_hashHas */ "./node_modules/lodash/_hashHas.js"),
+    hashSet = __webpack_require__(/*! ./_hashSet */ "./node_modules/lodash/_hashSet.js");
+
+/**
+ * Creates a hash object.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function Hash(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `Hash`.
+Hash.prototype.clear = hashClear;
+Hash.prototype['delete'] = hashDelete;
+Hash.prototype.get = hashGet;
+Hash.prototype.has = hashHas;
+Hash.prototype.set = hashSet;
+
+module.exports = Hash;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_ListCache.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_ListCache.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var listCacheClear = __webpack_require__(/*! ./_listCacheClear */ "./node_modules/lodash/_listCacheClear.js"),
+    listCacheDelete = __webpack_require__(/*! ./_listCacheDelete */ "./node_modules/lodash/_listCacheDelete.js"),
+    listCacheGet = __webpack_require__(/*! ./_listCacheGet */ "./node_modules/lodash/_listCacheGet.js"),
+    listCacheHas = __webpack_require__(/*! ./_listCacheHas */ "./node_modules/lodash/_listCacheHas.js"),
+    listCacheSet = __webpack_require__(/*! ./_listCacheSet */ "./node_modules/lodash/_listCacheSet.js");
+
+/**
+ * Creates an list cache object.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function ListCache(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `ListCache`.
+ListCache.prototype.clear = listCacheClear;
+ListCache.prototype['delete'] = listCacheDelete;
+ListCache.prototype.get = listCacheGet;
+ListCache.prototype.has = listCacheHas;
+ListCache.prototype.set = listCacheSet;
+
+module.exports = ListCache;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_Map.js":
+/*!*************************************!*\
+  !*** ./node_modules/lodash/_Map.js ***!
+  \*************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js"),
+    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/* Built-in method references that are verified to be native. */
+var Map = getNative(root, 'Map');
+
+module.exports = Map;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_MapCache.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_MapCache.js ***!
+  \******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var mapCacheClear = __webpack_require__(/*! ./_mapCacheClear */ "./node_modules/lodash/_mapCacheClear.js"),
+    mapCacheDelete = __webpack_require__(/*! ./_mapCacheDelete */ "./node_modules/lodash/_mapCacheDelete.js"),
+    mapCacheGet = __webpack_require__(/*! ./_mapCacheGet */ "./node_modules/lodash/_mapCacheGet.js"),
+    mapCacheHas = __webpack_require__(/*! ./_mapCacheHas */ "./node_modules/lodash/_mapCacheHas.js"),
+    mapCacheSet = __webpack_require__(/*! ./_mapCacheSet */ "./node_modules/lodash/_mapCacheSet.js");
+
+/**
+ * Creates a map cache object to store key-value pairs.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function MapCache(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `MapCache`.
+MapCache.prototype.clear = mapCacheClear;
+MapCache.prototype['delete'] = mapCacheDelete;
+MapCache.prototype.get = mapCacheGet;
+MapCache.prototype.has = mapCacheHas;
+MapCache.prototype.set = mapCacheSet;
+
+module.exports = MapCache;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_Promise.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/_Promise.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js"),
+    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/* Built-in method references that are verified to be native. */
+var Promise = getNative(root, 'Promise');
+
+module.exports = Promise;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_Set.js":
+/*!*************************************!*\
+  !*** ./node_modules/lodash/_Set.js ***!
+  \*************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js"),
+    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/* Built-in method references that are verified to be native. */
+var Set = getNative(root, 'Set');
+
+module.exports = Set;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_SetCache.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_SetCache.js ***!
+  \******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var MapCache = __webpack_require__(/*! ./_MapCache */ "./node_modules/lodash/_MapCache.js"),
+    setCacheAdd = __webpack_require__(/*! ./_setCacheAdd */ "./node_modules/lodash/_setCacheAdd.js"),
+    setCacheHas = __webpack_require__(/*! ./_setCacheHas */ "./node_modules/lodash/_setCacheHas.js");
+
+/**
+ *
+ * Creates an array cache object to store unique values.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [values] The values to cache.
+ */
+function SetCache(values) {
+  var index = -1,
+      length = values == null ? 0 : values.length;
+
+  this.__data__ = new MapCache;
+  while (++index < length) {
+    this.add(values[index]);
+  }
+}
+
+// Add methods to `SetCache`.
+SetCache.prototype.add = SetCache.prototype.push = setCacheAdd;
+SetCache.prototype.has = setCacheHas;
+
+module.exports = SetCache;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_Stack.js":
+/*!***************************************!*\
+  !*** ./node_modules/lodash/_Stack.js ***!
+  \***************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js"),
+    stackClear = __webpack_require__(/*! ./_stackClear */ "./node_modules/lodash/_stackClear.js"),
+    stackDelete = __webpack_require__(/*! ./_stackDelete */ "./node_modules/lodash/_stackDelete.js"),
+    stackGet = __webpack_require__(/*! ./_stackGet */ "./node_modules/lodash/_stackGet.js"),
+    stackHas = __webpack_require__(/*! ./_stackHas */ "./node_modules/lodash/_stackHas.js"),
+    stackSet = __webpack_require__(/*! ./_stackSet */ "./node_modules/lodash/_stackSet.js");
+
+/**
+ * Creates a stack cache object to store key-value pairs.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function Stack(entries) {
+  var data = this.__data__ = new ListCache(entries);
+  this.size = data.size;
+}
+
+// Add methods to `Stack`.
+Stack.prototype.clear = stackClear;
+Stack.prototype['delete'] = stackDelete;
+Stack.prototype.get = stackGet;
+Stack.prototype.has = stackHas;
+Stack.prototype.set = stackSet;
+
+module.exports = Stack;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_Symbol.js":
+/*!****************************************!*\
+  !*** ./node_modules/lodash/_Symbol.js ***!
+  \****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/** Built-in value references. */
+var Symbol = root.Symbol;
+
+module.exports = Symbol;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_Uint8Array.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_Uint8Array.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/** Built-in value references. */
+var Uint8Array = root.Uint8Array;
+
+module.exports = Uint8Array;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_WeakMap.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/_WeakMap.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js"),
+    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/* Built-in method references that are verified to be native. */
+var WeakMap = getNative(root, 'WeakMap');
+
+module.exports = WeakMap;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_arrayFilter.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_arrayFilter.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+/**
+ * A specialized version of `_.filter` for arrays without support for
+ * iteratee shorthands.
+ *
+ * @private
+ * @param {Array} [array] The array to iterate over.
+ * @param {Function} predicate The function invoked per iteration.
+ * @returns {Array} Returns the new filtered array.
+ */
+function arrayFilter(array, predicate) {
+  var index = -1,
+      length = array == null ? 0 : array.length,
+      resIndex = 0,
+      result = [];
+
+  while (++index < length) {
+    var value = array[index];
+    if (predicate(value, index, array)) {
+      result[resIndex++] = value;
+    }
+  }
+  return result;
+}
+
+module.exports = arrayFilter;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_arrayIncludes.js":
+/*!***********************************************!*\
+  !*** ./node_modules/lodash/_arrayIncludes.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseIndexOf = __webpack_require__(/*! ./_baseIndexOf */ "./node_modules/lodash/_baseIndexOf.js");
+
+/**
+ * A specialized version of `_.includes` for arrays without support for
+ * specifying an index to search from.
+ *
+ * @private
+ * @param {Array} [array] The array to inspect.
+ * @param {*} target The value to search for.
+ * @returns {boolean} Returns `true` if `target` is found, else `false`.
+ */
+function arrayIncludes(array, value) {
+  var length = array == null ? 0 : array.length;
+  return !!length && baseIndexOf(array, value, 0) > -1;
+}
+
+module.exports = arrayIncludes;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_arrayIncludesWith.js":
+/*!***************************************************!*\
+  !*** ./node_modules/lodash/_arrayIncludesWith.js ***!
+  \***************************************************/
+/***/ ((module) => {
+
+/**
+ * This function is like `arrayIncludes` except that it accepts a comparator.
+ *
+ * @private
+ * @param {Array} [array] The array to inspect.
+ * @param {*} target The value to search for.
+ * @param {Function} comparator The comparator invoked per element.
+ * @returns {boolean} Returns `true` if `target` is found, else `false`.
+ */
+function arrayIncludesWith(array, value, comparator) {
+  var index = -1,
+      length = array == null ? 0 : array.length;
+
+  while (++index < length) {
+    if (comparator(value, array[index])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+module.exports = arrayIncludesWith;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_arrayLikeKeys.js":
+/*!***********************************************!*\
+  !*** ./node_modules/lodash/_arrayLikeKeys.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseTimes = __webpack_require__(/*! ./_baseTimes */ "./node_modules/lodash/_baseTimes.js"),
+    isArguments = __webpack_require__(/*! ./isArguments */ "./node_modules/lodash/isArguments.js"),
+    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js"),
+    isBuffer = __webpack_require__(/*! ./isBuffer */ "./node_modules/lodash/isBuffer.js"),
+    isIndex = __webpack_require__(/*! ./_isIndex */ "./node_modules/lodash/_isIndex.js"),
+    isTypedArray = __webpack_require__(/*! ./isTypedArray */ "./node_modules/lodash/isTypedArray.js");
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Creates an array of the enumerable property names of the array-like `value`.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @param {boolean} inherited Specify returning inherited property names.
+ * @returns {Array} Returns the array of property names.
+ */
+function arrayLikeKeys(value, inherited) {
+  var isArr = isArray(value),
+      isArg = !isArr && isArguments(value),
+      isBuff = !isArr && !isArg && isBuffer(value),
+      isType = !isArr && !isArg && !isBuff && isTypedArray(value),
+      skipIndexes = isArr || isArg || isBuff || isType,
+      result = skipIndexes ? baseTimes(value.length, String) : [],
+      length = result.length;
+
+  for (var key in value) {
+    if ((inherited || hasOwnProperty.call(value, key)) &&
+        !(skipIndexes && (
+           // Safari 9 has enumerable `arguments.length` in strict mode.
+           key == 'length' ||
+           // Node.js 0.10 has enumerable non-index properties on buffers.
+           (isBuff && (key == 'offset' || key == 'parent')) ||
+           // PhantomJS 2 has enumerable non-index properties on typed arrays.
+           (isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset')) ||
+           // Skip index properties.
+           isIndex(key, length)
+        ))) {
+      result.push(key);
+    }
+  }
+  return result;
+}
+
+module.exports = arrayLikeKeys;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_arrayPush.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_arrayPush.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+/**
+ * Appends the elements of `values` to `array`.
+ *
+ * @private
+ * @param {Array} array The array to modify.
+ * @param {Array} values The values to append.
+ * @returns {Array} Returns `array`.
+ */
+function arrayPush(array, values) {
+  var index = -1,
+      length = values.length,
+      offset = array.length;
+
+  while (++index < length) {
+    array[offset + index] = values[index];
+  }
+  return array;
+}
+
+module.exports = arrayPush;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_arraySome.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_arraySome.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+/**
+ * A specialized version of `_.some` for arrays without support for iteratee
+ * shorthands.
+ *
+ * @private
+ * @param {Array} [array] The array to iterate over.
+ * @param {Function} predicate The function invoked per iteration.
+ * @returns {boolean} Returns `true` if any element passes the predicate check,
+ *  else `false`.
+ */
+function arraySome(array, predicate) {
+  var index = -1,
+      length = array == null ? 0 : array.length;
+
+  while (++index < length) {
+    if (predicate(array[index], index, array)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+module.exports = arraySome;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_assocIndexOf.js":
+/*!**********************************************!*\
+  !*** ./node_modules/lodash/_assocIndexOf.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var eq = __webpack_require__(/*! ./eq */ "./node_modules/lodash/eq.js");
+
+/**
+ * Gets the index at which the `key` is found in `array` of key-value pairs.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {*} key The key to search for.
+ * @returns {number} Returns the index of the matched value, else `-1`.
+ */
+function assocIndexOf(array, key) {
+  var length = array.length;
+  while (length--) {
+    if (eq(array[length][0], key)) {
+      return length;
+    }
+  }
+  return -1;
+}
+
+module.exports = assocIndexOf;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseFindIndex.js":
+/*!***********************************************!*\
+  !*** ./node_modules/lodash/_baseFindIndex.js ***!
+  \***********************************************/
+/***/ ((module) => {
+
+/**
+ * The base implementation of `_.findIndex` and `_.findLastIndex` without
+ * support for iteratee shorthands.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {Function} predicate The function invoked per iteration.
+ * @param {number} fromIndex The index to search from.
+ * @param {boolean} [fromRight] Specify iterating from right to left.
+ * @returns {number} Returns the index of the matched value, else `-1`.
+ */
+function baseFindIndex(array, predicate, fromIndex, fromRight) {
+  var length = array.length,
+      index = fromIndex + (fromRight ? 1 : -1);
+
+  while ((fromRight ? index-- : ++index < length)) {
+    if (predicate(array[index], index, array)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+module.exports = baseFindIndex;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseGetAllKeys.js":
+/*!************************************************!*\
+  !*** ./node_modules/lodash/_baseGetAllKeys.js ***!
+  \************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayPush = __webpack_require__(/*! ./_arrayPush */ "./node_modules/lodash/_arrayPush.js"),
+    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js");
+
+/**
+ * The base implementation of `getAllKeys` and `getAllKeysIn` which uses
+ * `keysFunc` and `symbolsFunc` to get the enumerable property names and
+ * symbols of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {Function} keysFunc The function to get the keys of `object`.
+ * @param {Function} symbolsFunc The function to get the symbols of `object`.
+ * @returns {Array} Returns the array of property names and symbols.
+ */
+function baseGetAllKeys(object, keysFunc, symbolsFunc) {
+  var result = keysFunc(object);
+  return isArray(object) ? result : arrayPush(result, symbolsFunc(object));
+}
+
+module.exports = baseGetAllKeys;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseGetTag.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_baseGetTag.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var Symbol = __webpack_require__(/*! ./_Symbol */ "./node_modules/lodash/_Symbol.js"),
+    getRawTag = __webpack_require__(/*! ./_getRawTag */ "./node_modules/lodash/_getRawTag.js"),
+    objectToString = __webpack_require__(/*! ./_objectToString */ "./node_modules/lodash/_objectToString.js");
+
+/** `Object#toString` result references. */
+var nullTag = '[object Null]',
+    undefinedTag = '[object Undefined]';
+
+/** Built-in value references. */
+var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
+
+/**
+ * The base implementation of `getTag` without fallbacks for buggy environments.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the `toStringTag`.
+ */
+function baseGetTag(value) {
+  if (value == null) {
+    return value === undefined ? undefinedTag : nullTag;
+  }
+  return (symToStringTag && symToStringTag in Object(value))
+    ? getRawTag(value)
+    : objectToString(value);
+}
+
+module.exports = baseGetTag;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseIndexOf.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_baseIndexOf.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseFindIndex = __webpack_require__(/*! ./_baseFindIndex */ "./node_modules/lodash/_baseFindIndex.js"),
+    baseIsNaN = __webpack_require__(/*! ./_baseIsNaN */ "./node_modules/lodash/_baseIsNaN.js"),
+    strictIndexOf = __webpack_require__(/*! ./_strictIndexOf */ "./node_modules/lodash/_strictIndexOf.js");
+
+/**
+ * The base implementation of `_.indexOf` without `fromIndex` bounds checks.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {*} value The value to search for.
+ * @param {number} fromIndex The index to search from.
+ * @returns {number} Returns the index of the matched value, else `-1`.
+ */
+function baseIndexOf(array, value, fromIndex) {
+  return value === value
+    ? strictIndexOf(array, value, fromIndex)
+    : baseFindIndex(array, baseIsNaN, fromIndex);
+}
+
+module.exports = baseIndexOf;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseIsArguments.js":
+/*!*************************************************!*\
+  !*** ./node_modules/lodash/_baseIsArguments.js ***!
+  \*************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
+    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]';
+
+/**
+ * The base implementation of `_.isArguments`.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+ */
+function baseIsArguments(value) {
+  return isObjectLike(value) && baseGetTag(value) == argsTag;
+}
+
+module.exports = baseIsArguments;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseIsEqual.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_baseIsEqual.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseIsEqualDeep = __webpack_require__(/*! ./_baseIsEqualDeep */ "./node_modules/lodash/_baseIsEqualDeep.js"),
+    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
+
+/**
+ * The base implementation of `_.isEqual` which supports partial comparisons
+ * and tracks traversed objects.
+ *
+ * @private
+ * @param {*} value The value to compare.
+ * @param {*} other The other value to compare.
+ * @param {boolean} bitmask The bitmask flags.
+ *  1 - Unordered comparison
+ *  2 - Partial comparison
+ * @param {Function} [customizer] The function to customize comparisons.
+ * @param {Object} [stack] Tracks traversed `value` and `other` objects.
+ * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+ */
+function baseIsEqual(value, other, bitmask, customizer, stack) {
+  if (value === other) {
+    return true;
+  }
+  if (value == null || other == null || (!isObjectLike(value) && !isObjectLike(other))) {
+    return value !== value && other !== other;
+  }
+  return baseIsEqualDeep(value, other, bitmask, customizer, baseIsEqual, stack);
+}
+
+module.exports = baseIsEqual;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseIsEqualDeep.js":
+/*!*************************************************!*\
+  !*** ./node_modules/lodash/_baseIsEqualDeep.js ***!
+  \*************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var Stack = __webpack_require__(/*! ./_Stack */ "./node_modules/lodash/_Stack.js"),
+    equalArrays = __webpack_require__(/*! ./_equalArrays */ "./node_modules/lodash/_equalArrays.js"),
+    equalByTag = __webpack_require__(/*! ./_equalByTag */ "./node_modules/lodash/_equalByTag.js"),
+    equalObjects = __webpack_require__(/*! ./_equalObjects */ "./node_modules/lodash/_equalObjects.js"),
+    getTag = __webpack_require__(/*! ./_getTag */ "./node_modules/lodash/_getTag.js"),
+    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js"),
+    isBuffer = __webpack_require__(/*! ./isBuffer */ "./node_modules/lodash/isBuffer.js"),
+    isTypedArray = __webpack_require__(/*! ./isTypedArray */ "./node_modules/lodash/isTypedArray.js");
+
+/** Used to compose bitmasks for value comparisons. */
+var COMPARE_PARTIAL_FLAG = 1;
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]',
+    arrayTag = '[object Array]',
+    objectTag = '[object Object]';
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * A specialized version of `baseIsEqual` for arrays and objects which performs
+ * deep comparisons and tracks traversed objects enabling objects with circular
+ * references to be compared.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} [stack] Tracks traversed `object` and `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function baseIsEqualDeep(object, other, bitmask, customizer, equalFunc, stack) {
+  var objIsArr = isArray(object),
+      othIsArr = isArray(other),
+      objTag = objIsArr ? arrayTag : getTag(object),
+      othTag = othIsArr ? arrayTag : getTag(other);
+
+  objTag = objTag == argsTag ? objectTag : objTag;
+  othTag = othTag == argsTag ? objectTag : othTag;
+
+  var objIsObj = objTag == objectTag,
+      othIsObj = othTag == objectTag,
+      isSameTag = objTag == othTag;
+
+  if (isSameTag && isBuffer(object)) {
+    if (!isBuffer(other)) {
+      return false;
+    }
+    objIsArr = true;
+    objIsObj = false;
+  }
+  if (isSameTag && !objIsObj) {
+    stack || (stack = new Stack);
+    return (objIsArr || isTypedArray(object))
+      ? equalArrays(object, other, bitmask, customizer, equalFunc, stack)
+      : equalByTag(object, other, objTag, bitmask, customizer, equalFunc, stack);
+  }
+  if (!(bitmask & COMPARE_PARTIAL_FLAG)) {
+    var objIsWrapped = objIsObj && hasOwnProperty.call(object, '__wrapped__'),
+        othIsWrapped = othIsObj && hasOwnProperty.call(other, '__wrapped__');
+
+    if (objIsWrapped || othIsWrapped) {
+      var objUnwrapped = objIsWrapped ? object.value() : object,
+          othUnwrapped = othIsWrapped ? other.value() : other;
+
+      stack || (stack = new Stack);
+      return equalFunc(objUnwrapped, othUnwrapped, bitmask, customizer, stack);
+    }
+  }
+  if (!isSameTag) {
+    return false;
+  }
+  stack || (stack = new Stack);
+  return equalObjects(object, other, bitmask, customizer, equalFunc, stack);
+}
+
+module.exports = baseIsEqualDeep;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseIsNaN.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_baseIsNaN.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+/**
+ * The base implementation of `_.isNaN` without support for number objects.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is `NaN`, else `false`.
+ */
+function baseIsNaN(value) {
+  return value !== value;
+}
+
+module.exports = baseIsNaN;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseIsNative.js":
+/*!**********************************************!*\
+  !*** ./node_modules/lodash/_baseIsNative.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isFunction = __webpack_require__(/*! ./isFunction */ "./node_modules/lodash/isFunction.js"),
+    isMasked = __webpack_require__(/*! ./_isMasked */ "./node_modules/lodash/_isMasked.js"),
+    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
+    toSource = __webpack_require__(/*! ./_toSource */ "./node_modules/lodash/_toSource.js");
+
+/**
+ * Used to match `RegExp`
+ * [syntax characters](http://ecma-international.org/ecma-262/7.0/#sec-patterns).
+ */
+var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+
+/** Used to detect host constructors (Safari). */
+var reIsHostCtor = /^\[object .+?Constructor\]$/;
+
+/** Used for built-in method references. */
+var funcProto = Function.prototype,
+    objectProto = Object.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString = funcProto.toString;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Used to detect if a method is native. */
+var reIsNative = RegExp('^' +
+  funcToString.call(hasOwnProperty).replace(reRegExpChar, '\\$&')
+  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
+);
+
+/**
+ * The base implementation of `_.isNative` without bad shim checks.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a native function,
+ *  else `false`.
+ */
+function baseIsNative(value) {
+  if (!isObject(value) || isMasked(value)) {
+    return false;
+  }
+  var pattern = isFunction(value) ? reIsNative : reIsHostCtor;
+  return pattern.test(toSource(value));
+}
+
+module.exports = baseIsNative;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseIsTypedArray.js":
+/*!**************************************************!*\
+  !*** ./node_modules/lodash/_baseIsTypedArray.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
+    isLength = __webpack_require__(/*! ./isLength */ "./node_modules/lodash/isLength.js"),
+    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]',
+    arrayTag = '[object Array]',
+    boolTag = '[object Boolean]',
+    dateTag = '[object Date]',
+    errorTag = '[object Error]',
+    funcTag = '[object Function]',
+    mapTag = '[object Map]',
+    numberTag = '[object Number]',
+    objectTag = '[object Object]',
+    regexpTag = '[object RegExp]',
+    setTag = '[object Set]',
+    stringTag = '[object String]',
+    weakMapTag = '[object WeakMap]';
+
+var arrayBufferTag = '[object ArrayBuffer]',
+    dataViewTag = '[object DataView]',
+    float32Tag = '[object Float32Array]',
+    float64Tag = '[object Float64Array]',
+    int8Tag = '[object Int8Array]',
+    int16Tag = '[object Int16Array]',
+    int32Tag = '[object Int32Array]',
+    uint8Tag = '[object Uint8Array]',
+    uint8ClampedTag = '[object Uint8ClampedArray]',
+    uint16Tag = '[object Uint16Array]',
+    uint32Tag = '[object Uint32Array]';
+
+/** Used to identify `toStringTag` values of typed arrays. */
+var typedArrayTags = {};
+typedArrayTags[float32Tag] = typedArrayTags[float64Tag] =
+typedArrayTags[int8Tag] = typedArrayTags[int16Tag] =
+typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] =
+typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] =
+typedArrayTags[uint32Tag] = true;
+typedArrayTags[argsTag] = typedArrayTags[arrayTag] =
+typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] =
+typedArrayTags[dataViewTag] = typedArrayTags[dateTag] =
+typedArrayTags[errorTag] = typedArrayTags[funcTag] =
+typedArrayTags[mapTag] = typedArrayTags[numberTag] =
+typedArrayTags[objectTag] = typedArrayTags[regexpTag] =
+typedArrayTags[setTag] = typedArrayTags[stringTag] =
+typedArrayTags[weakMapTag] = false;
+
+/**
+ * The base implementation of `_.isTypedArray` without Node.js optimizations.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
+ */
+function baseIsTypedArray(value) {
+  return isObjectLike(value) &&
+    isLength(value.length) && !!typedArrayTags[baseGetTag(value)];
+}
+
+module.exports = baseIsTypedArray;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseKeys.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_baseKeys.js ***!
+  \******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isPrototype = __webpack_require__(/*! ./_isPrototype */ "./node_modules/lodash/_isPrototype.js"),
+    nativeKeys = __webpack_require__(/*! ./_nativeKeys */ "./node_modules/lodash/_nativeKeys.js");
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * The base implementation of `_.keys` which doesn't treat sparse arrays as dense.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ */
+function baseKeys(object) {
+  if (!isPrototype(object)) {
+    return nativeKeys(object);
+  }
+  var result = [];
+  for (var key in Object(object)) {
+    if (hasOwnProperty.call(object, key) && key != 'constructor') {
+      result.push(key);
+    }
+  }
+  return result;
+}
+
+module.exports = baseKeys;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseTimes.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_baseTimes.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+/**
+ * The base implementation of `_.times` without support for iteratee shorthands
+ * or max array length checks.
+ *
+ * @private
+ * @param {number} n The number of times to invoke `iteratee`.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns the array of results.
+ */
+function baseTimes(n, iteratee) {
+  var index = -1,
+      result = Array(n);
+
+  while (++index < n) {
+    result[index] = iteratee(index);
+  }
+  return result;
+}
+
+module.exports = baseTimes;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseUnary.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_baseUnary.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+/**
+ * The base implementation of `_.unary` without support for storing metadata.
+ *
+ * @private
+ * @param {Function} func The function to cap arguments for.
+ * @returns {Function} Returns the new capped function.
+ */
+function baseUnary(func) {
+  return function(value) {
+    return func(value);
+  };
+}
+
+module.exports = baseUnary;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_baseUniq.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_baseUniq.js ***!
+  \******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var SetCache = __webpack_require__(/*! ./_SetCache */ "./node_modules/lodash/_SetCache.js"),
+    arrayIncludes = __webpack_require__(/*! ./_arrayIncludes */ "./node_modules/lodash/_arrayIncludes.js"),
+    arrayIncludesWith = __webpack_require__(/*! ./_arrayIncludesWith */ "./node_modules/lodash/_arrayIncludesWith.js"),
+    cacheHas = __webpack_require__(/*! ./_cacheHas */ "./node_modules/lodash/_cacheHas.js"),
+    createSet = __webpack_require__(/*! ./_createSet */ "./node_modules/lodash/_createSet.js"),
+    setToArray = __webpack_require__(/*! ./_setToArray */ "./node_modules/lodash/_setToArray.js");
+
+/** Used as the size to enable large array optimizations. */
+var LARGE_ARRAY_SIZE = 200;
+
+/**
+ * The base implementation of `_.uniqBy` without support for iteratee shorthands.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {Function} [iteratee] The iteratee invoked per element.
+ * @param {Function} [comparator] The comparator invoked per element.
+ * @returns {Array} Returns the new duplicate free array.
+ */
+function baseUniq(array, iteratee, comparator) {
+  var index = -1,
+      includes = arrayIncludes,
+      length = array.length,
+      isCommon = true,
+      result = [],
+      seen = result;
+
+  if (comparator) {
+    isCommon = false;
+    includes = arrayIncludesWith;
+  }
+  else if (length >= LARGE_ARRAY_SIZE) {
+    var set = iteratee ? null : createSet(array);
+    if (set) {
+      return setToArray(set);
+    }
+    isCommon = false;
+    includes = cacheHas;
+    seen = new SetCache;
+  }
+  else {
+    seen = iteratee ? [] : result;
+  }
+  outer:
+  while (++index < length) {
+    var value = array[index],
+        computed = iteratee ? iteratee(value) : value;
+
+    value = (comparator || value !== 0) ? value : 0;
+    if (isCommon && computed === computed) {
+      var seenIndex = seen.length;
+      while (seenIndex--) {
+        if (seen[seenIndex] === computed) {
+          continue outer;
+        }
+      }
+      if (iteratee) {
+        seen.push(computed);
+      }
+      result.push(value);
+    }
+    else if (!includes(seen, computed, comparator)) {
+      if (seen !== result) {
+        seen.push(computed);
+      }
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+module.exports = baseUniq;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_cacheHas.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_cacheHas.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+/**
+ * Checks if a `cache` value for `key` exists.
+ *
+ * @private
+ * @param {Object} cache The cache to query.
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function cacheHas(cache, key) {
+  return cache.has(key);
+}
+
+module.exports = cacheHas;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_coreJsData.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_coreJsData.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+
+/** Used to detect overreaching core-js shims. */
+var coreJsData = root['__core-js_shared__'];
+
+module.exports = coreJsData;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_createSet.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_createSet.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var Set = __webpack_require__(/*! ./_Set */ "./node_modules/lodash/_Set.js"),
+    noop = __webpack_require__(/*! ./noop */ "./node_modules/lodash/noop.js"),
+    setToArray = __webpack_require__(/*! ./_setToArray */ "./node_modules/lodash/_setToArray.js");
+
+/** Used as references for various `Number` constants. */
+var INFINITY = 1 / 0;
+
+/**
+ * Creates a set object of `values`.
+ *
+ * @private
+ * @param {Array} values The values to add to the set.
+ * @returns {Object} Returns the new set.
+ */
+var createSet = !(Set && (1 / setToArray(new Set([,-0]))[1]) == INFINITY) ? noop : function(values) {
+  return new Set(values);
+};
+
+module.exports = createSet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_equalArrays.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_equalArrays.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var SetCache = __webpack_require__(/*! ./_SetCache */ "./node_modules/lodash/_SetCache.js"),
+    arraySome = __webpack_require__(/*! ./_arraySome */ "./node_modules/lodash/_arraySome.js"),
+    cacheHas = __webpack_require__(/*! ./_cacheHas */ "./node_modules/lodash/_cacheHas.js");
+
+/** Used to compose bitmasks for value comparisons. */
+var COMPARE_PARTIAL_FLAG = 1,
+    COMPARE_UNORDERED_FLAG = 2;
+
+/**
+ * A specialized version of `baseIsEqualDeep` for arrays with support for
+ * partial deep comparisons.
+ *
+ * @private
+ * @param {Array} array The array to compare.
+ * @param {Array} other The other array to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} stack Tracks traversed `array` and `other` objects.
+ * @returns {boolean} Returns `true` if the arrays are equivalent, else `false`.
+ */
+function equalArrays(array, other, bitmask, customizer, equalFunc, stack) {
+  var isPartial = bitmask & COMPARE_PARTIAL_FLAG,
+      arrLength = array.length,
+      othLength = other.length;
+
+  if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
+    return false;
+  }
+  // Check that cyclic values are equal.
+  var arrStacked = stack.get(array);
+  var othStacked = stack.get(other);
+  if (arrStacked && othStacked) {
+    return arrStacked == other && othStacked == array;
+  }
+  var index = -1,
+      result = true,
+      seen = (bitmask & COMPARE_UNORDERED_FLAG) ? new SetCache : undefined;
+
+  stack.set(array, other);
+  stack.set(other, array);
+
+  // Ignore non-index properties.
+  while (++index < arrLength) {
+    var arrValue = array[index],
+        othValue = other[index];
+
+    if (customizer) {
+      var compared = isPartial
+        ? customizer(othValue, arrValue, index, other, array, stack)
+        : customizer(arrValue, othValue, index, array, other, stack);
+    }
+    if (compared !== undefined) {
+      if (compared) {
+        continue;
+      }
+      result = false;
+      break;
+    }
+    // Recursively compare arrays (susceptible to call stack limits).
+    if (seen) {
+      if (!arraySome(other, function(othValue, othIndex) {
+            if (!cacheHas(seen, othIndex) &&
+                (arrValue === othValue || equalFunc(arrValue, othValue, bitmask, customizer, stack))) {
+              return seen.push(othIndex);
+            }
+          })) {
+        result = false;
+        break;
+      }
+    } else if (!(
+          arrValue === othValue ||
+            equalFunc(arrValue, othValue, bitmask, customizer, stack)
+        )) {
+      result = false;
+      break;
+    }
+  }
+  stack['delete'](array);
+  stack['delete'](other);
+  return result;
+}
+
+module.exports = equalArrays;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_equalByTag.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_equalByTag.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var Symbol = __webpack_require__(/*! ./_Symbol */ "./node_modules/lodash/_Symbol.js"),
+    Uint8Array = __webpack_require__(/*! ./_Uint8Array */ "./node_modules/lodash/_Uint8Array.js"),
+    eq = __webpack_require__(/*! ./eq */ "./node_modules/lodash/eq.js"),
+    equalArrays = __webpack_require__(/*! ./_equalArrays */ "./node_modules/lodash/_equalArrays.js"),
+    mapToArray = __webpack_require__(/*! ./_mapToArray */ "./node_modules/lodash/_mapToArray.js"),
+    setToArray = __webpack_require__(/*! ./_setToArray */ "./node_modules/lodash/_setToArray.js");
+
+/** Used to compose bitmasks for value comparisons. */
+var COMPARE_PARTIAL_FLAG = 1,
+    COMPARE_UNORDERED_FLAG = 2;
+
+/** `Object#toString` result references. */
+var boolTag = '[object Boolean]',
+    dateTag = '[object Date]',
+    errorTag = '[object Error]',
+    mapTag = '[object Map]',
+    numberTag = '[object Number]',
+    regexpTag = '[object RegExp]',
+    setTag = '[object Set]',
+    stringTag = '[object String]',
+    symbolTag = '[object Symbol]';
+
+var arrayBufferTag = '[object ArrayBuffer]',
+    dataViewTag = '[object DataView]';
+
+/** Used to convert symbols to primitives and strings. */
+var symbolProto = Symbol ? Symbol.prototype : undefined,
+    symbolValueOf = symbolProto ? symbolProto.valueOf : undefined;
+
+/**
+ * A specialized version of `baseIsEqualDeep` for comparing objects of
+ * the same `toStringTag`.
+ *
+ * **Note:** This function only supports comparing values with tags of
+ * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {string} tag The `toStringTag` of the objects to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} stack Tracks traversed `object` and `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function equalByTag(object, other, tag, bitmask, customizer, equalFunc, stack) {
+  switch (tag) {
+    case dataViewTag:
+      if ((object.byteLength != other.byteLength) ||
+          (object.byteOffset != other.byteOffset)) {
+        return false;
+      }
+      object = object.buffer;
+      other = other.buffer;
+
+    case arrayBufferTag:
+      if ((object.byteLength != other.byteLength) ||
+          !equalFunc(new Uint8Array(object), new Uint8Array(other))) {
+        return false;
+      }
+      return true;
+
+    case boolTag:
+    case dateTag:
+    case numberTag:
+      // Coerce booleans to `1` or `0` and dates to milliseconds.
+      // Invalid dates are coerced to `NaN`.
+      return eq(+object, +other);
+
+    case errorTag:
+      return object.name == other.name && object.message == other.message;
+
+    case regexpTag:
+    case stringTag:
+      // Coerce regexes to strings and treat strings, primitives and objects,
+      // as equal. See http://www.ecma-international.org/ecma-262/7.0/#sec-regexp.prototype.tostring
+      // for more details.
+      return object == (other + '');
+
+    case mapTag:
+      var convert = mapToArray;
+
+    case setTag:
+      var isPartial = bitmask & COMPARE_PARTIAL_FLAG;
+      convert || (convert = setToArray);
+
+      if (object.size != other.size && !isPartial) {
+        return false;
+      }
+      // Assume cyclic values are equal.
+      var stacked = stack.get(object);
+      if (stacked) {
+        return stacked == other;
+      }
+      bitmask |= COMPARE_UNORDERED_FLAG;
+
+      // Recursively compare objects (susceptible to call stack limits).
+      stack.set(object, other);
+      var result = equalArrays(convert(object), convert(other), bitmask, customizer, equalFunc, stack);
+      stack['delete'](object);
+      return result;
+
+    case symbolTag:
+      if (symbolValueOf) {
+        return symbolValueOf.call(object) == symbolValueOf.call(other);
+      }
+  }
+  return false;
+}
+
+module.exports = equalByTag;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_equalObjects.js":
+/*!**********************************************!*\
+  !*** ./node_modules/lodash/_equalObjects.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getAllKeys = __webpack_require__(/*! ./_getAllKeys */ "./node_modules/lodash/_getAllKeys.js");
+
+/** Used to compose bitmasks for value comparisons. */
+var COMPARE_PARTIAL_FLAG = 1;
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * A specialized version of `baseIsEqualDeep` for objects with support for
+ * partial deep comparisons.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} stack Tracks traversed `object` and `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function equalObjects(object, other, bitmask, customizer, equalFunc, stack) {
+  var isPartial = bitmask & COMPARE_PARTIAL_FLAG,
+      objProps = getAllKeys(object),
+      objLength = objProps.length,
+      othProps = getAllKeys(other),
+      othLength = othProps.length;
+
+  if (objLength != othLength && !isPartial) {
+    return false;
+  }
+  var index = objLength;
+  while (index--) {
+    var key = objProps[index];
+    if (!(isPartial ? key in other : hasOwnProperty.call(other, key))) {
+      return false;
+    }
+  }
+  // Check that cyclic values are equal.
+  var objStacked = stack.get(object);
+  var othStacked = stack.get(other);
+  if (objStacked && othStacked) {
+    return objStacked == other && othStacked == object;
+  }
+  var result = true;
+  stack.set(object, other);
+  stack.set(other, object);
+
+  var skipCtor = isPartial;
+  while (++index < objLength) {
+    key = objProps[index];
+    var objValue = object[key],
+        othValue = other[key];
+
+    if (customizer) {
+      var compared = isPartial
+        ? customizer(othValue, objValue, key, other, object, stack)
+        : customizer(objValue, othValue, key, object, other, stack);
+    }
+    // Recursively compare objects (susceptible to call stack limits).
+    if (!(compared === undefined
+          ? (objValue === othValue || equalFunc(objValue, othValue, bitmask, customizer, stack))
+          : compared
+        )) {
+      result = false;
+      break;
+    }
+    skipCtor || (skipCtor = key == 'constructor');
+  }
+  if (result && !skipCtor) {
+    var objCtor = object.constructor,
+        othCtor = other.constructor;
+
+    // Non `Object` object instances with different constructors are not equal.
+    if (objCtor != othCtor &&
+        ('constructor' in object && 'constructor' in other) &&
+        !(typeof objCtor == 'function' && objCtor instanceof objCtor &&
+          typeof othCtor == 'function' && othCtor instanceof othCtor)) {
+      result = false;
+    }
+  }
+  stack['delete'](object);
+  stack['delete'](other);
+  return result;
+}
+
+module.exports = equalObjects;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_freeGlobal.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_freeGlobal.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+/** Detect free variable `global` from Node.js. */
+var freeGlobal = typeof __webpack_require__.g == 'object' && __webpack_require__.g && __webpack_require__.g.Object === Object && __webpack_require__.g;
+
+module.exports = freeGlobal;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_getAllKeys.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_getAllKeys.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetAllKeys = __webpack_require__(/*! ./_baseGetAllKeys */ "./node_modules/lodash/_baseGetAllKeys.js"),
+    getSymbols = __webpack_require__(/*! ./_getSymbols */ "./node_modules/lodash/_getSymbols.js"),
+    keys = __webpack_require__(/*! ./keys */ "./node_modules/lodash/keys.js");
+
+/**
+ * Creates an array of own enumerable property names and symbols of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names and symbols.
+ */
+function getAllKeys(object) {
+  return baseGetAllKeys(object, keys, getSymbols);
+}
+
+module.exports = getAllKeys;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_getMapData.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_getMapData.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isKeyable = __webpack_require__(/*! ./_isKeyable */ "./node_modules/lodash/_isKeyable.js");
+
+/**
+ * Gets the data for `map`.
+ *
+ * @private
+ * @param {Object} map The map to query.
+ * @param {string} key The reference key.
+ * @returns {*} Returns the map data.
+ */
+function getMapData(map, key) {
+  var data = map.__data__;
+  return isKeyable(key)
+    ? data[typeof key == 'string' ? 'string' : 'hash']
+    : data.map;
+}
+
+module.exports = getMapData;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_getNative.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_getNative.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseIsNative = __webpack_require__(/*! ./_baseIsNative */ "./node_modules/lodash/_baseIsNative.js"),
+    getValue = __webpack_require__(/*! ./_getValue */ "./node_modules/lodash/_getValue.js");
+
+/**
+ * Gets the native function at `key` of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {string} key The key of the method to get.
+ * @returns {*} Returns the function if it's native, else `undefined`.
+ */
+function getNative(object, key) {
+  var value = getValue(object, key);
+  return baseIsNative(value) ? value : undefined;
+}
+
+module.exports = getNative;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_getRawTag.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_getRawTag.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var Symbol = __webpack_require__(/*! ./_Symbol */ "./node_modules/lodash/_Symbol.js");
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var nativeObjectToString = objectProto.toString;
+
+/** Built-in value references. */
+var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
+
+/**
+ * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the raw `toStringTag`.
+ */
+function getRawTag(value) {
+  var isOwn = hasOwnProperty.call(value, symToStringTag),
+      tag = value[symToStringTag];
+
+  try {
+    value[symToStringTag] = undefined;
+    var unmasked = true;
+  } catch (e) {}
+
+  var result = nativeObjectToString.call(value);
+  if (unmasked) {
+    if (isOwn) {
+      value[symToStringTag] = tag;
+    } else {
+      delete value[symToStringTag];
+    }
+  }
+  return result;
+}
+
+module.exports = getRawTag;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_getSymbols.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_getSymbols.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayFilter = __webpack_require__(/*! ./_arrayFilter */ "./node_modules/lodash/_arrayFilter.js"),
+    stubArray = __webpack_require__(/*! ./stubArray */ "./node_modules/lodash/stubArray.js");
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Built-in value references. */
+var propertyIsEnumerable = objectProto.propertyIsEnumerable;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeGetSymbols = Object.getOwnPropertySymbols;
+
+/**
+ * Creates an array of the own enumerable symbols of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of symbols.
+ */
+var getSymbols = !nativeGetSymbols ? stubArray : function(object) {
+  if (object == null) {
+    return [];
+  }
+  object = Object(object);
+  return arrayFilter(nativeGetSymbols(object), function(symbol) {
+    return propertyIsEnumerable.call(object, symbol);
+  });
+};
+
+module.exports = getSymbols;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_getTag.js":
+/*!****************************************!*\
+  !*** ./node_modules/lodash/_getTag.js ***!
+  \****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var DataView = __webpack_require__(/*! ./_DataView */ "./node_modules/lodash/_DataView.js"),
+    Map = __webpack_require__(/*! ./_Map */ "./node_modules/lodash/_Map.js"),
+    Promise = __webpack_require__(/*! ./_Promise */ "./node_modules/lodash/_Promise.js"),
+    Set = __webpack_require__(/*! ./_Set */ "./node_modules/lodash/_Set.js"),
+    WeakMap = __webpack_require__(/*! ./_WeakMap */ "./node_modules/lodash/_WeakMap.js"),
+    baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
+    toSource = __webpack_require__(/*! ./_toSource */ "./node_modules/lodash/_toSource.js");
+
+/** `Object#toString` result references. */
+var mapTag = '[object Map]',
+    objectTag = '[object Object]',
+    promiseTag = '[object Promise]',
+    setTag = '[object Set]',
+    weakMapTag = '[object WeakMap]';
+
+var dataViewTag = '[object DataView]';
+
+/** Used to detect maps, sets, and weakmaps. */
+var dataViewCtorString = toSource(DataView),
+    mapCtorString = toSource(Map),
+    promiseCtorString = toSource(Promise),
+    setCtorString = toSource(Set),
+    weakMapCtorString = toSource(WeakMap);
+
+/**
+ * Gets the `toStringTag` of `value`.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the `toStringTag`.
+ */
+var getTag = baseGetTag;
+
+// Fallback for data views, maps, sets, and weak maps in IE 11 and promises in Node.js < 6.
+if ((DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag) ||
+    (Map && getTag(new Map) != mapTag) ||
+    (Promise && getTag(Promise.resolve()) != promiseTag) ||
+    (Set && getTag(new Set) != setTag) ||
+    (WeakMap && getTag(new WeakMap) != weakMapTag)) {
+  getTag = function(value) {
+    var result = baseGetTag(value),
+        Ctor = result == objectTag ? value.constructor : undefined,
+        ctorString = Ctor ? toSource(Ctor) : '';
+
+    if (ctorString) {
+      switch (ctorString) {
+        case dataViewCtorString: return dataViewTag;
+        case mapCtorString: return mapTag;
+        case promiseCtorString: return promiseTag;
+        case setCtorString: return setTag;
+        case weakMapCtorString: return weakMapTag;
+      }
+    }
+    return result;
+  };
+}
+
+module.exports = getTag;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_getValue.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_getValue.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+/**
+ * Gets the value at `key` of `object`.
+ *
+ * @private
+ * @param {Object} [object] The object to query.
+ * @param {string} key The key of the property to get.
+ * @returns {*} Returns the property value.
+ */
+function getValue(object, key) {
+  return object == null ? undefined : object[key];
+}
+
+module.exports = getValue;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_hashClear.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_hashClear.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
+
+/**
+ * Removes all key-value entries from the hash.
+ *
+ * @private
+ * @name clear
+ * @memberOf Hash
+ */
+function hashClear() {
+  this.__data__ = nativeCreate ? nativeCreate(null) : {};
+  this.size = 0;
+}
+
+module.exports = hashClear;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_hashDelete.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_hashDelete.js ***!
+  \********************************************/
+/***/ ((module) => {
+
+/**
+ * Removes `key` and its value from the hash.
+ *
+ * @private
+ * @name delete
+ * @memberOf Hash
+ * @param {Object} hash The hash to modify.
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function hashDelete(key) {
+  var result = this.has(key) && delete this.__data__[key];
+  this.size -= result ? 1 : 0;
+  return result;
+}
+
+module.exports = hashDelete;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_hashGet.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/_hashGet.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
+
+/** Used to stand-in for `undefined` hash values. */
+var HASH_UNDEFINED = '__lodash_hash_undefined__';
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Gets the hash value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf Hash
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function hashGet(key) {
+  var data = this.__data__;
+  if (nativeCreate) {
+    var result = data[key];
+    return result === HASH_UNDEFINED ? undefined : result;
+  }
+  return hasOwnProperty.call(data, key) ? data[key] : undefined;
+}
+
+module.exports = hashGet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_hashHas.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/_hashHas.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Checks if a hash value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf Hash
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function hashHas(key) {
+  var data = this.__data__;
+  return nativeCreate ? (data[key] !== undefined) : hasOwnProperty.call(data, key);
+}
+
+module.exports = hashHas;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_hashSet.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/_hashSet.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
+
+/** Used to stand-in for `undefined` hash values. */
+var HASH_UNDEFINED = '__lodash_hash_undefined__';
+
+/**
+ * Sets the hash `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf Hash
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the hash instance.
+ */
+function hashSet(key, value) {
+  var data = this.__data__;
+  this.size += this.has(key) ? 0 : 1;
+  data[key] = (nativeCreate && value === undefined) ? HASH_UNDEFINED : value;
+  return this;
+}
+
+module.exports = hashSet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_isIndex.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/_isIndex.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
+/** Used as references for various `Number` constants. */
+var MAX_SAFE_INTEGER = 9007199254740991;
+
+/** Used to detect unsigned integer values. */
+var reIsUint = /^(?:0|[1-9]\d*)$/;
+
+/**
+ * Checks if `value` is a valid array-like index.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @param {number} [length=MAX_SAFE_INTEGER] The upper bounds of a valid index.
+ * @returns {boolean} Returns `true` if `value` is a valid index, else `false`.
+ */
+function isIndex(value, length) {
+  var type = typeof value;
+  length = length == null ? MAX_SAFE_INTEGER : length;
+
+  return !!length &&
+    (type == 'number' ||
+      (type != 'symbol' && reIsUint.test(value))) &&
+        (value > -1 && value % 1 == 0 && value < length);
+}
+
+module.exports = isIndex;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_isKeyable.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/_isKeyable.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+/**
+ * Checks if `value` is suitable for use as unique object key.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is suitable, else `false`.
+ */
+function isKeyable(value) {
+  var type = typeof value;
+  return (type == 'string' || type == 'number' || type == 'symbol' || type == 'boolean')
+    ? (value !== '__proto__')
+    : (value === null);
+}
+
+module.exports = isKeyable;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_isMasked.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_isMasked.js ***!
+  \******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var coreJsData = __webpack_require__(/*! ./_coreJsData */ "./node_modules/lodash/_coreJsData.js");
+
+/** Used to detect methods masquerading as native. */
+var maskSrcKey = (function() {
+  var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || '');
+  return uid ? ('Symbol(src)_1.' + uid) : '';
+}());
+
+/**
+ * Checks if `func` has its source masked.
+ *
+ * @private
+ * @param {Function} func The function to check.
+ * @returns {boolean} Returns `true` if `func` is masked, else `false`.
+ */
+function isMasked(func) {
+  return !!maskSrcKey && (maskSrcKey in func);
+}
+
+module.exports = isMasked;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_isPrototype.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_isPrototype.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Checks if `value` is likely a prototype object.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a prototype, else `false`.
+ */
+function isPrototype(value) {
+  var Ctor = value && value.constructor,
+      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto;
+
+  return value === proto;
+}
+
+module.exports = isPrototype;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_listCacheClear.js":
+/*!************************************************!*\
+  !*** ./node_modules/lodash/_listCacheClear.js ***!
+  \************************************************/
+/***/ ((module) => {
+
+/**
+ * Removes all key-value entries from the list cache.
+ *
+ * @private
+ * @name clear
+ * @memberOf ListCache
+ */
+function listCacheClear() {
+  this.__data__ = [];
+  this.size = 0;
+}
+
+module.exports = listCacheClear;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_listCacheDelete.js":
+/*!*************************************************!*\
+  !*** ./node_modules/lodash/_listCacheDelete.js ***!
+  \*************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
+
+/** Used for built-in method references. */
+var arrayProto = Array.prototype;
+
+/** Built-in value references. */
+var splice = arrayProto.splice;
+
+/**
+ * Removes `key` and its value from the list cache.
+ *
+ * @private
+ * @name delete
+ * @memberOf ListCache
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function listCacheDelete(key) {
+  var data = this.__data__,
+      index = assocIndexOf(data, key);
+
+  if (index < 0) {
+    return false;
+  }
+  var lastIndex = data.length - 1;
+  if (index == lastIndex) {
+    data.pop();
+  } else {
+    splice.call(data, index, 1);
+  }
+  --this.size;
+  return true;
+}
+
+module.exports = listCacheDelete;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_listCacheGet.js":
+/*!**********************************************!*\
+  !*** ./node_modules/lodash/_listCacheGet.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
+
+/**
+ * Gets the list cache value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf ListCache
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function listCacheGet(key) {
+  var data = this.__data__,
+      index = assocIndexOf(data, key);
+
+  return index < 0 ? undefined : data[index][1];
+}
+
+module.exports = listCacheGet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_listCacheHas.js":
+/*!**********************************************!*\
+  !*** ./node_modules/lodash/_listCacheHas.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
+
+/**
+ * Checks if a list cache value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf ListCache
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function listCacheHas(key) {
+  return assocIndexOf(this.__data__, key) > -1;
+}
+
+module.exports = listCacheHas;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_listCacheSet.js":
+/*!**********************************************!*\
+  !*** ./node_modules/lodash/_listCacheSet.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
+
+/**
+ * Sets the list cache `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf ListCache
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the list cache instance.
+ */
+function listCacheSet(key, value) {
+  var data = this.__data__,
+      index = assocIndexOf(data, key);
+
+  if (index < 0) {
+    ++this.size;
+    data.push([key, value]);
+  } else {
+    data[index][1] = value;
+  }
+  return this;
+}
+
+module.exports = listCacheSet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_mapCacheClear.js":
+/*!***********************************************!*\
+  !*** ./node_modules/lodash/_mapCacheClear.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var Hash = __webpack_require__(/*! ./_Hash */ "./node_modules/lodash/_Hash.js"),
+    ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js"),
+    Map = __webpack_require__(/*! ./_Map */ "./node_modules/lodash/_Map.js");
+
+/**
+ * Removes all key-value entries from the map.
+ *
+ * @private
+ * @name clear
+ * @memberOf MapCache
+ */
+function mapCacheClear() {
+  this.size = 0;
+  this.__data__ = {
+    'hash': new Hash,
+    'map': new (Map || ListCache),
+    'string': new Hash
+  };
+}
+
+module.exports = mapCacheClear;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_mapCacheDelete.js":
+/*!************************************************!*\
+  !*** ./node_modules/lodash/_mapCacheDelete.js ***!
+  \************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
+
+/**
+ * Removes `key` and its value from the map.
+ *
+ * @private
+ * @name delete
+ * @memberOf MapCache
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function mapCacheDelete(key) {
+  var result = getMapData(this, key)['delete'](key);
+  this.size -= result ? 1 : 0;
+  return result;
+}
+
+module.exports = mapCacheDelete;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_mapCacheGet.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_mapCacheGet.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
+
+/**
+ * Gets the map value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf MapCache
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function mapCacheGet(key) {
+  return getMapData(this, key).get(key);
+}
+
+module.exports = mapCacheGet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_mapCacheHas.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_mapCacheHas.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
+
+/**
+ * Checks if a map value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf MapCache
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function mapCacheHas(key) {
+  return getMapData(this, key).has(key);
+}
+
+module.exports = mapCacheHas;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_mapCacheSet.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_mapCacheSet.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
+
+/**
+ * Sets the map `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf MapCache
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the map cache instance.
+ */
+function mapCacheSet(key, value) {
+  var data = getMapData(this, key),
+      size = data.size;
+
+  data.set(key, value);
+  this.size += data.size == size ? 0 : 1;
+  return this;
+}
+
+module.exports = mapCacheSet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_mapToArray.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_mapToArray.js ***!
+  \********************************************/
+/***/ ((module) => {
+
+/**
+ * Converts `map` to its key-value pairs.
+ *
+ * @private
+ * @param {Object} map The map to convert.
+ * @returns {Array} Returns the key-value pairs.
+ */
+function mapToArray(map) {
+  var index = -1,
+      result = Array(map.size);
+
+  map.forEach(function(value, key) {
+    result[++index] = [key, value];
+  });
+  return result;
+}
+
+module.exports = mapToArray;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_nativeCreate.js":
+/*!**********************************************!*\
+  !*** ./node_modules/lodash/_nativeCreate.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js");
+
+/* Built-in method references that are verified to be native. */
+var nativeCreate = getNative(Object, 'create');
+
+module.exports = nativeCreate;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_nativeKeys.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_nativeKeys.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var overArg = __webpack_require__(/*! ./_overArg */ "./node_modules/lodash/_overArg.js");
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeKeys = overArg(Object.keys, Object);
+
+module.exports = nativeKeys;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_nodeUtil.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_nodeUtil.js ***!
+  \******************************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+/* module decorator */ module = __webpack_require__.nmd(module);
+var freeGlobal = __webpack_require__(/*! ./_freeGlobal */ "./node_modules/lodash/_freeGlobal.js");
+
+/** Detect free variable `exports`. */
+var freeExports =  true && exports && !exports.nodeType && exports;
+
+/** Detect free variable `module`. */
+var freeModule = freeExports && "object" == 'object' && module && !module.nodeType && module;
+
+/** Detect the popular CommonJS extension `module.exports`. */
+var moduleExports = freeModule && freeModule.exports === freeExports;
+
+/** Detect free variable `process` from Node.js. */
+var freeProcess = moduleExports && freeGlobal.process;
+
+/** Used to access faster Node.js helpers. */
+var nodeUtil = (function() {
+  try {
+    // Use `util.types` for Node.js 10+.
+    var types = freeModule && freeModule.require && freeModule.require('util').types;
+
+    if (types) {
+      return types;
+    }
+
+    // Legacy `process.binding('util')` for Node.js < 10.
+    return freeProcess && freeProcess.binding && freeProcess.binding('util');
+  } catch (e) {}
+}());
+
+module.exports = nodeUtil;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_objectToString.js":
+/*!************************************************!*\
+  !*** ./node_modules/lodash/_objectToString.js ***!
+  \************************************************/
+/***/ ((module) => {
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var nativeObjectToString = objectProto.toString;
+
+/**
+ * Converts `value` to a string using `Object.prototype.toString`.
+ *
+ * @private
+ * @param {*} value The value to convert.
+ * @returns {string} Returns the converted string.
+ */
+function objectToString(value) {
+  return nativeObjectToString.call(value);
+}
+
+module.exports = objectToString;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_overArg.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/_overArg.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
+/**
+ * Creates a unary function that invokes `func` with its argument transformed.
+ *
+ * @private
+ * @param {Function} func The function to wrap.
+ * @param {Function} transform The argument transform.
+ * @returns {Function} Returns the new function.
+ */
+function overArg(func, transform) {
+  return function(arg) {
+    return func(transform(arg));
+  };
+}
+
+module.exports = overArg;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_root.js":
+/*!**************************************!*\
+  !*** ./node_modules/lodash/_root.js ***!
+  \**************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var freeGlobal = __webpack_require__(/*! ./_freeGlobal */ "./node_modules/lodash/_freeGlobal.js");
+
+/** Detect free variable `self`. */
+var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+/** Used as a reference to the global object. */
+var root = freeGlobal || freeSelf || Function('return this')();
+
+module.exports = root;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_setCacheAdd.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_setCacheAdd.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+/** Used to stand-in for `undefined` hash values. */
+var HASH_UNDEFINED = '__lodash_hash_undefined__';
+
+/**
+ * Adds `value` to the array cache.
+ *
+ * @private
+ * @name add
+ * @memberOf SetCache
+ * @alias push
+ * @param {*} value The value to cache.
+ * @returns {Object} Returns the cache instance.
+ */
+function setCacheAdd(value) {
+  this.__data__.set(value, HASH_UNDEFINED);
+  return this;
+}
+
+module.exports = setCacheAdd;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_setCacheHas.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_setCacheHas.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+/**
+ * Checks if `value` is in the array cache.
+ *
+ * @private
+ * @name has
+ * @memberOf SetCache
+ * @param {*} value The value to search for.
+ * @returns {number} Returns `true` if `value` is found, else `false`.
+ */
+function setCacheHas(value) {
+  return this.__data__.has(value);
+}
+
+module.exports = setCacheHas;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_setToArray.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_setToArray.js ***!
+  \********************************************/
+/***/ ((module) => {
+
+/**
+ * Converts `set` to an array of its values.
+ *
+ * @private
+ * @param {Object} set The set to convert.
+ * @returns {Array} Returns the values.
+ */
+function setToArray(set) {
+  var index = -1,
+      result = Array(set.size);
+
+  set.forEach(function(value) {
+    result[++index] = value;
+  });
+  return result;
+}
+
+module.exports = setToArray;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_stackClear.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/_stackClear.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js");
+
+/**
+ * Removes all key-value entries from the stack.
+ *
+ * @private
+ * @name clear
+ * @memberOf Stack
+ */
+function stackClear() {
+  this.__data__ = new ListCache;
+  this.size = 0;
+}
+
+module.exports = stackClear;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_stackDelete.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/_stackDelete.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+/**
+ * Removes `key` and its value from the stack.
+ *
+ * @private
+ * @name delete
+ * @memberOf Stack
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function stackDelete(key) {
+  var data = this.__data__,
+      result = data['delete'](key);
+
+  this.size = data.size;
+  return result;
+}
+
+module.exports = stackDelete;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_stackGet.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_stackGet.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+/**
+ * Gets the stack value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf Stack
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function stackGet(key) {
+  return this.__data__.get(key);
+}
+
+module.exports = stackGet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_stackHas.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_stackHas.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+/**
+ * Checks if a stack value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf Stack
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function stackHas(key) {
+  return this.__data__.has(key);
+}
+
+module.exports = stackHas;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_stackSet.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_stackSet.js ***!
+  \******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js"),
+    Map = __webpack_require__(/*! ./_Map */ "./node_modules/lodash/_Map.js"),
+    MapCache = __webpack_require__(/*! ./_MapCache */ "./node_modules/lodash/_MapCache.js");
+
+/** Used as the size to enable large array optimizations. */
+var LARGE_ARRAY_SIZE = 200;
+
+/**
+ * Sets the stack `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf Stack
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the stack cache instance.
+ */
+function stackSet(key, value) {
+  var data = this.__data__;
+  if (data instanceof ListCache) {
+    var pairs = data.__data__;
+    if (!Map || (pairs.length < LARGE_ARRAY_SIZE - 1)) {
+      pairs.push([key, value]);
+      this.size = ++data.size;
+      return this;
+    }
+    data = this.__data__ = new MapCache(pairs);
+  }
+  data.set(key, value);
+  this.size = data.size;
+  return this;
+}
+
+module.exports = stackSet;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_strictIndexOf.js":
+/*!***********************************************!*\
+  !*** ./node_modules/lodash/_strictIndexOf.js ***!
+  \***********************************************/
+/***/ ((module) => {
+
+/**
+ * A specialized version of `_.indexOf` which performs strict equality
+ * comparisons of values, i.e. `===`.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {*} value The value to search for.
+ * @param {number} fromIndex The index to search from.
+ * @returns {number} Returns the index of the matched value, else `-1`.
+ */
+function strictIndexOf(array, value, fromIndex) {
+  var index = fromIndex - 1,
+      length = array.length;
+
+  while (++index < length) {
+    if (array[index] === value) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+module.exports = strictIndexOf;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/_toSource.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/_toSource.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+/** Used for built-in method references. */
+var funcProto = Function.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString = funcProto.toString;
+
+/**
+ * Converts `func` to its source code.
+ *
+ * @private
+ * @param {Function} func The function to convert.
+ * @returns {string} Returns the source code.
+ */
+function toSource(func) {
+  if (func != null) {
+    try {
+      return funcToString.call(func);
+    } catch (e) {}
+    try {
+      return (func + '');
+    } catch (e) {}
+  }
+  return '';
+}
+
+module.exports = toSource;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/eq.js":
+/*!***********************************!*\
+  !*** ./node_modules/lodash/eq.js ***!
+  \***********************************/
+/***/ ((module) => {
+
+/**
+ * Performs a
+ * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+ * comparison between two values to determine if they are equivalent.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to compare.
+ * @param {*} other The other value to compare.
+ * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+ * @example
+ *
+ * var object = { 'a': 1 };
+ * var other = { 'a': 1 };
+ *
+ * _.eq(object, object);
+ * // => true
+ *
+ * _.eq(object, other);
+ * // => false
+ *
+ * _.eq('a', 'a');
+ * // => true
+ *
+ * _.eq('a', Object('a'));
+ * // => false
+ *
+ * _.eq(NaN, NaN);
+ * // => true
+ */
+function eq(value, other) {
+  return value === other || (value !== value && other !== other);
+}
+
+module.exports = eq;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isArguments.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/isArguments.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseIsArguments = __webpack_require__(/*! ./_baseIsArguments */ "./node_modules/lodash/_baseIsArguments.js"),
+    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Built-in value references. */
+var propertyIsEnumerable = objectProto.propertyIsEnumerable;
+
+/**
+ * Checks if `value` is likely an `arguments` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+ *  else `false`.
+ * @example
+ *
+ * _.isArguments(function() { return arguments; }());
+ * // => true
+ *
+ * _.isArguments([1, 2, 3]);
+ * // => false
+ */
+var isArguments = baseIsArguments(function() { return arguments; }()) ? baseIsArguments : function(value) {
+  return isObjectLike(value) && hasOwnProperty.call(value, 'callee') &&
+    !propertyIsEnumerable.call(value, 'callee');
+};
+
+module.exports = isArguments;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isArray.js":
+/*!****************************************!*\
+  !*** ./node_modules/lodash/isArray.js ***!
+  \****************************************/
+/***/ ((module) => {
+
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(document.body.children);
+ * // => false
+ *
+ * _.isArray('abc');
+ * // => false
+ *
+ * _.isArray(_.noop);
+ * // => false
+ */
+var isArray = Array.isArray;
+
+module.exports = isArray;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isArrayLike.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/isArrayLike.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isFunction = __webpack_require__(/*! ./isFunction */ "./node_modules/lodash/isFunction.js"),
+    isLength = __webpack_require__(/*! ./isLength */ "./node_modules/lodash/isLength.js");
+
+/**
+ * Checks if `value` is array-like. A value is considered array-like if it's
+ * not a function and has a `value.length` that's an integer greater than or
+ * equal to `0` and less than or equal to `Number.MAX_SAFE_INTEGER`.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
+ * @example
+ *
+ * _.isArrayLike([1, 2, 3]);
+ * // => true
+ *
+ * _.isArrayLike(document.body.children);
+ * // => true
+ *
+ * _.isArrayLike('abc');
+ * // => true
+ *
+ * _.isArrayLike(_.noop);
+ * // => false
+ */
+function isArrayLike(value) {
+  return value != null && isLength(value.length) && !isFunction(value);
+}
+
+module.exports = isArrayLike;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isBuffer.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/isBuffer.js ***!
+  \*****************************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+/* module decorator */ module = __webpack_require__.nmd(module);
+var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js"),
+    stubFalse = __webpack_require__(/*! ./stubFalse */ "./node_modules/lodash/stubFalse.js");
+
+/** Detect free variable `exports`. */
+var freeExports =  true && exports && !exports.nodeType && exports;
+
+/** Detect free variable `module`. */
+var freeModule = freeExports && "object" == 'object' && module && !module.nodeType && module;
+
+/** Detect the popular CommonJS extension `module.exports`. */
+var moduleExports = freeModule && freeModule.exports === freeExports;
+
+/** Built-in value references. */
+var Buffer = moduleExports ? root.Buffer : undefined;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeIsBuffer = Buffer ? Buffer.isBuffer : undefined;
+
+/**
+ * Checks if `value` is a buffer.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.3.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a buffer, else `false`.
+ * @example
+ *
+ * _.isBuffer(new Buffer(2));
+ * // => true
+ *
+ * _.isBuffer(new Uint8Array(2));
+ * // => false
+ */
+var isBuffer = nativeIsBuffer || stubFalse;
+
+module.exports = isBuffer;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isEqual.js":
+/*!****************************************!*\
+  !*** ./node_modules/lodash/isEqual.js ***!
+  \****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseIsEqual = __webpack_require__(/*! ./_baseIsEqual */ "./node_modules/lodash/_baseIsEqual.js");
+
+/**
+ * Performs a deep comparison between two values to determine if they are
+ * equivalent.
+ *
+ * **Note:** This method supports comparing arrays, array buffers, booleans,
+ * date objects, error objects, maps, numbers, `Object` objects, regexes,
+ * sets, strings, symbols, and typed arrays. `Object` objects are compared
+ * by their own, not inherited, enumerable properties. Functions and DOM
+ * nodes are compared by strict equality, i.e. `===`.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to compare.
+ * @param {*} other The other value to compare.
+ * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+ * @example
+ *
+ * var object = { 'a': 1 };
+ * var other = { 'a': 1 };
+ *
+ * _.isEqual(object, other);
+ * // => true
+ *
+ * object === other;
+ * // => false
+ */
+function isEqual(value, other) {
+  return baseIsEqual(value, other);
+}
+
+module.exports = isEqual;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isEqualWith.js":
+/*!********************************************!*\
+  !*** ./node_modules/lodash/isEqualWith.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseIsEqual = __webpack_require__(/*! ./_baseIsEqual */ "./node_modules/lodash/_baseIsEqual.js");
+
+/**
+ * This method is like `_.isEqual` except that it accepts `customizer` which
+ * is invoked to compare values. If `customizer` returns `undefined`, comparisons
+ * are handled by the method instead. The `customizer` is invoked with up to
+ * six arguments: (objValue, othValue [, index|key, object, other, stack]).
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to compare.
+ * @param {*} other The other value to compare.
+ * @param {Function} [customizer] The function to customize comparisons.
+ * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+ * @example
+ *
+ * function isGreeting(value) {
+ *   return /^h(?:i|ello)$/.test(value);
+ * }
+ *
+ * function customizer(objValue, othValue) {
+ *   if (isGreeting(objValue) && isGreeting(othValue)) {
+ *     return true;
+ *   }
+ * }
+ *
+ * var array = ['hello', 'goodbye'];
+ * var other = ['hi', 'goodbye'];
+ *
+ * _.isEqualWith(array, other, customizer);
+ * // => true
+ */
+function isEqualWith(value, other, customizer) {
+  customizer = typeof customizer == 'function' ? customizer : undefined;
+  var result = customizer ? customizer(value, other) : undefined;
+  return result === undefined ? baseIsEqual(value, other, undefined, customizer) : !!result;
+}
+
+module.exports = isEqualWith;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isFunction.js":
+/*!*******************************************!*\
+  !*** ./node_modules/lodash/isFunction.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
+    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js");
+
+/** `Object#toString` result references. */
+var asyncTag = '[object AsyncFunction]',
+    funcTag = '[object Function]',
+    genTag = '[object GeneratorFunction]',
+    proxyTag = '[object Proxy]';
+
+/**
+ * Checks if `value` is classified as a `Function` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a function, else `false`.
+ * @example
+ *
+ * _.isFunction(_);
+ * // => true
+ *
+ * _.isFunction(/abc/);
+ * // => false
+ */
+function isFunction(value) {
+  if (!isObject(value)) {
+    return false;
+  }
+  // The use of `Object#toString` avoids issues with the `typeof` operator
+  // in Safari 9 which returns 'object' for typed arrays and other constructors.
+  var tag = baseGetTag(value);
+  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
+}
+
+module.exports = isFunction;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isLength.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/isLength.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
+/** Used as references for various `Number` constants. */
+var MAX_SAFE_INTEGER = 9007199254740991;
+
+/**
+ * Checks if `value` is a valid array-like length.
+ *
+ * **Note:** This method is loosely based on
+ * [`ToLength`](http://ecma-international.org/ecma-262/7.0/#sec-tolength).
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
+ * @example
+ *
+ * _.isLength(3);
+ * // => true
+ *
+ * _.isLength(Number.MIN_VALUE);
+ * // => false
+ *
+ * _.isLength(Infinity);
+ * // => false
+ *
+ * _.isLength('3');
+ * // => false
+ */
+function isLength(value) {
+  return typeof value == 'number' &&
+    value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+}
+
+module.exports = isLength;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isObject.js":
+/*!*****************************************!*\
+  !*** ./node_modules/lodash/isObject.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
+/**
+ * Checks if `value` is the
+ * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
+ * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(_.noop);
+ * // => true
+ *
+ * _.isObject(null);
+ * // => false
+ */
+function isObject(value) {
+  var type = typeof value;
+  return value != null && (type == 'object' || type == 'function');
+}
+
+module.exports = isObject;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isObjectLike.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/isObjectLike.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+/**
+ * Checks if `value` is object-like. A value is object-like if it's not `null`
+ * and has a `typeof` result of "object".
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ * @example
+ *
+ * _.isObjectLike({});
+ * // => true
+ *
+ * _.isObjectLike([1, 2, 3]);
+ * // => true
+ *
+ * _.isObjectLike(_.noop);
+ * // => false
+ *
+ * _.isObjectLike(null);
+ * // => false
+ */
+function isObjectLike(value) {
+  return value != null && typeof value == 'object';
+}
+
+module.exports = isObjectLike;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/isTypedArray.js":
+/*!*********************************************!*\
+  !*** ./node_modules/lodash/isTypedArray.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseIsTypedArray = __webpack_require__(/*! ./_baseIsTypedArray */ "./node_modules/lodash/_baseIsTypedArray.js"),
+    baseUnary = __webpack_require__(/*! ./_baseUnary */ "./node_modules/lodash/_baseUnary.js"),
+    nodeUtil = __webpack_require__(/*! ./_nodeUtil */ "./node_modules/lodash/_nodeUtil.js");
+
+/* Node.js helper references. */
+var nodeIsTypedArray = nodeUtil && nodeUtil.isTypedArray;
+
+/**
+ * Checks if `value` is classified as a typed array.
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
+ * @example
+ *
+ * _.isTypedArray(new Uint8Array);
+ * // => true
+ *
+ * _.isTypedArray([]);
+ * // => false
+ */
+var isTypedArray = nodeIsTypedArray ? baseUnary(nodeIsTypedArray) : baseIsTypedArray;
+
+module.exports = isTypedArray;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/keys.js":
+/*!*************************************!*\
+  !*** ./node_modules/lodash/keys.js ***!
+  \*************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayLikeKeys = __webpack_require__(/*! ./_arrayLikeKeys */ "./node_modules/lodash/_arrayLikeKeys.js"),
+    baseKeys = __webpack_require__(/*! ./_baseKeys */ "./node_modules/lodash/_baseKeys.js"),
+    isArrayLike = __webpack_require__(/*! ./isArrayLike */ "./node_modules/lodash/isArrayLike.js");
+
+/**
+ * Creates an array of the own enumerable property names of `object`.
+ *
+ * **Note:** Non-object values are coerced to objects. See the
+ * [ES spec](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
+ * for more details.
+ *
+ * @static
+ * @since 0.1.0
+ * @memberOf _
+ * @category Object
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ * @example
+ *
+ * function Foo() {
+ *   this.a = 1;
+ *   this.b = 2;
+ * }
+ *
+ * Foo.prototype.c = 3;
+ *
+ * _.keys(new Foo);
+ * // => ['a', 'b'] (iteration order is not guaranteed)
+ *
+ * _.keys('hi');
+ * // => ['0', '1']
+ */
+function keys(object) {
+  return isArrayLike(object) ? arrayLikeKeys(object) : baseKeys(object);
+}
+
+module.exports = keys;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/noop.js":
+/*!*************************************!*\
+  !*** ./node_modules/lodash/noop.js ***!
+  \*************************************/
+/***/ ((module) => {
+
+/**
+ * This method returns `undefined`.
+ *
+ * @static
+ * @memberOf _
+ * @since 2.3.0
+ * @category Util
+ * @example
+ *
+ * _.times(2, _.noop);
+ * // => [undefined, undefined]
+ */
+function noop() {
+  // No operation performed.
+}
+
+module.exports = noop;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/stubArray.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/stubArray.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+/**
+ * This method returns a new empty array.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.13.0
+ * @category Util
+ * @returns {Array} Returns the new empty array.
+ * @example
+ *
+ * var arrays = _.times(2, _.stubArray);
+ *
+ * console.log(arrays);
+ * // => [[], []]
+ *
+ * console.log(arrays[0] === arrays[1]);
+ * // => false
+ */
+function stubArray() {
+  return [];
+}
+
+module.exports = stubArray;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/stubFalse.js":
+/*!******************************************!*\
+  !*** ./node_modules/lodash/stubFalse.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+/**
+ * This method returns `false`.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.13.0
+ * @category Util
+ * @returns {boolean} Returns `false`.
+ * @example
+ *
+ * _.times(2, _.stubFalse);
+ * // => [false, false]
+ */
+function stubFalse() {
+  return false;
+}
+
+module.exports = stubFalse;
+
+
+/***/ }),
+
+/***/ "./node_modules/lodash/uniq.js":
+/*!*************************************!*\
+  !*** ./node_modules/lodash/uniq.js ***!
+  \*************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseUniq = __webpack_require__(/*! ./_baseUniq */ "./node_modules/lodash/_baseUniq.js");
+
+/**
+ * Creates a duplicate-free version of an array, using
+ * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+ * for equality comparisons, in which only the first occurrence of each element
+ * is kept. The order of result values is determined by the order they occur
+ * in the array.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Array
+ * @param {Array} array The array to inspect.
+ * @returns {Array} Returns the new duplicate free array.
+ * @example
+ *
+ * _.uniq([2, 1, 2]);
+ * // => [2, 1]
+ */
+function uniq(array) {
+  return (array && array.length) ? baseUniq(array) : [];
+}
+
+module.exports = uniq;
+
+
+/***/ }),
+
+/***/ "./node_modules/memoize-one/dist/memoize-one.esm.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/memoize-one/dist/memoize-one.esm.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+var safeIsNaN = Number.isNaN ||
+    function ponyfill(value) {
+        return typeof value === 'number' && value !== value;
+    };
+function isEqual(first, second) {
+    if (first === second) {
+        return true;
+    }
+    if (safeIsNaN(first) && safeIsNaN(second)) {
+        return true;
+    }
+    return false;
+}
+function areInputsEqual(newInputs, lastInputs) {
+    if (newInputs.length !== lastInputs.length) {
+        return false;
+    }
+    for (var i = 0; i < newInputs.length; i++) {
+        if (!isEqual(newInputs[i], lastInputs[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function memoizeOne(resultFn, isEqual) {
+    if (isEqual === void 0) { isEqual = areInputsEqual; }
+    var lastThis;
+    var lastArgs = [];
+    var lastResult;
+    var calledOnce = false;
+    function memoized() {
+        var newArgs = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            newArgs[_i] = arguments[_i];
+        }
+        if (calledOnce && lastThis === this && isEqual(newArgs, lastArgs)) {
+            return lastResult;
+        }
+        lastResult = resultFn.apply(this, newArgs);
+        calledOnce = true;
+        lastThis = this;
+        lastArgs = newArgs;
+        return lastResult;
+    }
+    return memoized;
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (memoizeOne);
+
+
+/***/ }),
+
+/***/ "./node_modules/min-indent/index.js":
+/*!******************************************!*\
+  !*** ./node_modules/min-indent/index.js ***!
+  \******************************************/
+/***/ ((module) => {
+
+"use strict";
+
+module.exports = string => {
+	const match = string.match(/^[ \t]*(?=\S)/gm);
+
+	if (!match) {
+		return 0;
+	}
+
+	return match.reduce((r, a) => Math.min(r, a.length), Infinity);
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/react-dom/cjs/react-dom.development.js":
 /*!*************************************************************!*\
   !*** ./node_modules/react-dom/cjs/react-dom.development.js ***!
   \*************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 /**
  * @license React
  * react-dom.development.js
@@ -30292,6 +47846,7 @@ if (
   \******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 var m = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
@@ -30324,6 +47879,7 @@ if (false) {} else {
   \*****************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 function checkDCE() {
@@ -30361,12 +47917,4663 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./node_modules/react-select/dist/Select-54ac8379.esm.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/react-select/dist/Select-54ac8379.esm.js ***!
+  \***************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "S": () => (/* binding */ Select),
+/* harmony export */   "a": () => (/* binding */ getOptionLabel$1),
+/* harmony export */   "b": () => (/* binding */ defaultProps),
+/* harmony export */   "c": () => (/* binding */ createFilter),
+/* harmony export */   "d": () => (/* binding */ defaultTheme),
+/* harmony export */   "g": () => (/* binding */ getOptionValue$1),
+/* harmony export */   "m": () => (/* binding */ mergeStyles)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./index-a7690a33.esm.js */ "./node_modules/react-select/dist/index-a7690a33.esm.js");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/esm/inherits */ "./node_modules/@babel/runtime/helpers/esm/inherits.js");
+/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.browser.esm.js");
+/* harmony import */ var memoize_one__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! memoize-one */ "./node_modules/memoize-one/dist/memoize-one.esm.js");
+/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutProperties */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutProperties.js");
+
+
+
+
+
+
+
+
+
+
+
+
+function _EMOTION_STRINGIFIED_CSS_ERROR__$1() { return "You have tried to stringify object returned from `css` function. It isn't supposed to be used directly (e.g. as value of the `className` prop), but rather handed to emotion so it can handle it (e.g. as value of `css` prop)."; }
+
+var _ref =  false ? 0 : {
+  name: "1f43avz-a11yText-A11yText",
+  styles: "label:a11yText;z-index:9999;border:0;clip:rect(1px, 1px, 1px, 1px);height:1px;width:1px;position:absolute;overflow:hidden;padding:0;white-space:nowrap;label:A11yText;",
+  map: "/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkExMXlUZXh0LnRzeCJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFNSSIsImZpbGUiOiJBMTF5VGV4dC50c3giLCJzb3VyY2VzQ29udGVudCI6WyIvKiogQGpzeCBqc3ggKi9cbmltcG9ydCB7IGpzeCB9IGZyb20gJ0BlbW90aW9uL3JlYWN0JztcblxuLy8gQXNzaXN0aXZlIHRleHQgdG8gZGVzY3JpYmUgdmlzdWFsIGVsZW1lbnRzLiBIaWRkZW4gZm9yIHNpZ2h0ZWQgdXNlcnMuXG5jb25zdCBBMTF5VGV4dCA9IChwcm9wczogSlNYLkludHJpbnNpY0VsZW1lbnRzWydzcGFuJ10pID0+IChcbiAgPHNwYW5cbiAgICBjc3M9e3tcbiAgICAgIGxhYmVsOiAnYTExeVRleHQnLFxuICAgICAgekluZGV4OiA5OTk5LFxuICAgICAgYm9yZGVyOiAwLFxuICAgICAgY2xpcDogJ3JlY3QoMXB4LCAxcHgsIDFweCwgMXB4KScsXG4gICAgICBoZWlnaHQ6IDEsXG4gICAgICB3aWR0aDogMSxcbiAgICAgIHBvc2l0aW9uOiAnYWJzb2x1dGUnLFxuICAgICAgb3ZlcmZsb3c6ICdoaWRkZW4nLFxuICAgICAgcGFkZGluZzogMCxcbiAgICAgIHdoaXRlU3BhY2U6ICdub3dyYXAnLFxuICAgIH19XG4gICAgey4uLnByb3BzfVxuICAvPlxuKTtcblxuZXhwb3J0IGRlZmF1bHQgQTExeVRleHQ7XG4iXX0= */",
+  toString: _EMOTION_STRINGIFIED_CSS_ERROR__$1
+};
+
+var A11yText = function A11yText(props) {
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)("span", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: _ref
+  }, props));
+};
+
+var defaultAriaLiveMessages = {
+  guidance: function guidance(props) {
+    var isSearchable = props.isSearchable,
+        isMulti = props.isMulti,
+        isDisabled = props.isDisabled,
+        tabSelectsValue = props.tabSelectsValue,
+        context = props.context;
+
+    switch (context) {
+      case 'menu':
+        return "Use Up and Down to choose options".concat(isDisabled ? '' : ', press Enter to select the currently focused option', ", press Escape to exit the menu").concat(tabSelectsValue ? ', press Tab to select the option and exit the menu' : '', ".");
+
+      case 'input':
+        return "".concat(props['aria-label'] || 'Select', " is focused ").concat(isSearchable ? ',type to refine list' : '', ", press Down to open the menu, ").concat(isMulti ? ' press left to focus selected values' : '');
+
+      case 'value':
+        return 'Use left and right to toggle between focused values, press Backspace to remove the currently focused value';
+
+      default:
+        return '';
+    }
+  },
+  onChange: function onChange(props) {
+    var action = props.action,
+        _props$label = props.label,
+        label = _props$label === void 0 ? '' : _props$label,
+        labels = props.labels,
+        isDisabled = props.isDisabled;
+
+    switch (action) {
+      case 'deselect-option':
+      case 'pop-value':
+      case 'remove-value':
+        return "option ".concat(label, ", deselected.");
+
+      case 'clear':
+        return 'All selected options have been cleared.';
+
+      case 'initial-input-focus':
+        return "option".concat(labels.length > 1 ? 's' : '', " ").concat(labels.join(','), ", selected.");
+
+      case 'select-option':
+        return isDisabled ? "option ".concat(label, " is disabled. Select another option.") : "option ".concat(label, ", selected.");
+
+      default:
+        return '';
+    }
+  },
+  onFocus: function onFocus(props) {
+    var context = props.context,
+        focused = props.focused,
+        options = props.options,
+        _props$label2 = props.label,
+        label = _props$label2 === void 0 ? '' : _props$label2,
+        selectValue = props.selectValue,
+        isDisabled = props.isDisabled,
+        isSelected = props.isSelected;
+
+    var getArrayIndex = function getArrayIndex(arr, item) {
+      return arr && arr.length ? "".concat(arr.indexOf(item) + 1, " of ").concat(arr.length) : '';
+    };
+
+    if (context === 'value' && selectValue) {
+      return "value ".concat(label, " focused, ").concat(getArrayIndex(selectValue, focused), ".");
+    }
+
+    if (context === 'menu') {
+      var disabled = isDisabled ? ' disabled' : '';
+      var status = "".concat(isSelected ? 'selected' : 'focused').concat(disabled);
+      return "option ".concat(label, " ").concat(status, ", ").concat(getArrayIndex(options, focused), ".");
+    }
+
+    return '';
+  },
+  onFilter: function onFilter(props) {
+    var inputValue = props.inputValue,
+        resultsMessage = props.resultsMessage;
+    return "".concat(resultsMessage).concat(inputValue ? ' for search term ' + inputValue : '', ".");
+  }
+};
+
+var LiveRegion = function LiveRegion(props) {
+  var ariaSelection = props.ariaSelection,
+      focusedOption = props.focusedOption,
+      focusedValue = props.focusedValue,
+      focusableOptions = props.focusableOptions,
+      isFocused = props.isFocused,
+      selectValue = props.selectValue,
+      selectProps = props.selectProps,
+      id = props.id;
+  var ariaLiveMessages = selectProps.ariaLiveMessages,
+      getOptionLabel = selectProps.getOptionLabel,
+      inputValue = selectProps.inputValue,
+      isMulti = selectProps.isMulti,
+      isOptionDisabled = selectProps.isOptionDisabled,
+      isSearchable = selectProps.isSearchable,
+      menuIsOpen = selectProps.menuIsOpen,
+      options = selectProps.options,
+      screenReaderStatus = selectProps.screenReaderStatus,
+      tabSelectsValue = selectProps.tabSelectsValue;
+  var ariaLabel = selectProps['aria-label'];
+  var ariaLive = selectProps['aria-live']; // Update aria live message configuration when prop changes
+
+  var messages = (0,react__WEBPACK_IMPORTED_MODULE_5__.useMemo)(function () {
+    return (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({}, defaultAriaLiveMessages), ariaLiveMessages || {});
+  }, [ariaLiveMessages]); // Update aria live selected option when prop changes
+
+  var ariaSelected = (0,react__WEBPACK_IMPORTED_MODULE_5__.useMemo)(function () {
+    var message = '';
+
+    if (ariaSelection && messages.onChange) {
+      var option = ariaSelection.option,
+          selectedOptions = ariaSelection.options,
+          removedValue = ariaSelection.removedValue,
+          removedValues = ariaSelection.removedValues,
+          value = ariaSelection.value; // select-option when !isMulti does not return option so we assume selected option is value
+
+      var asOption = function asOption(val) {
+        return !Array.isArray(val) ? val : null;
+      }; // If there is just one item from the action then get its label
+
+
+      var selected = removedValue || option || asOption(value);
+      var label = selected ? getOptionLabel(selected) : ''; // If there are multiple items from the action then return an array of labels
+
+      var multiSelected = selectedOptions || removedValues || undefined;
+      var labels = multiSelected ? multiSelected.map(getOptionLabel) : [];
+
+      var onChangeProps = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({
+        // multiSelected items are usually items that have already been selected
+        // or set by the user as a default value so we assume they are not disabled
+        isDisabled: selected && isOptionDisabled(selected, selectValue),
+        label: label,
+        labels: labels
+      }, ariaSelection);
+
+      message = messages.onChange(onChangeProps);
+    }
+
+    return message;
+  }, [ariaSelection, messages, isOptionDisabled, selectValue, getOptionLabel]);
+  var ariaFocused = (0,react__WEBPACK_IMPORTED_MODULE_5__.useMemo)(function () {
+    var focusMsg = '';
+    var focused = focusedOption || focusedValue;
+    var isSelected = !!(focusedOption && selectValue && selectValue.includes(focusedOption));
+
+    if (focused && messages.onFocus) {
+      var onFocusProps = {
+        focused: focused,
+        label: getOptionLabel(focused),
+        isDisabled: isOptionDisabled(focused, selectValue),
+        isSelected: isSelected,
+        options: options,
+        context: focused === focusedOption ? 'menu' : 'value',
+        selectValue: selectValue
+      };
+      focusMsg = messages.onFocus(onFocusProps);
+    }
+
+    return focusMsg;
+  }, [focusedOption, focusedValue, getOptionLabel, isOptionDisabled, messages, options, selectValue]);
+  var ariaResults = (0,react__WEBPACK_IMPORTED_MODULE_5__.useMemo)(function () {
+    var resultsMsg = '';
+
+    if (menuIsOpen && options.length && messages.onFilter) {
+      var resultsMessage = screenReaderStatus({
+        count: focusableOptions.length
+      });
+      resultsMsg = messages.onFilter({
+        inputValue: inputValue,
+        resultsMessage: resultsMessage
+      });
+    }
+
+    return resultsMsg;
+  }, [focusableOptions, inputValue, menuIsOpen, messages, options, screenReaderStatus]);
+  var ariaGuidance = (0,react__WEBPACK_IMPORTED_MODULE_5__.useMemo)(function () {
+    var guidanceMsg = '';
+
+    if (messages.guidance) {
+      var context = focusedValue ? 'value' : menuIsOpen ? 'menu' : 'input';
+      guidanceMsg = messages.guidance({
+        'aria-label': ariaLabel,
+        context: context,
+        isDisabled: focusedOption && isOptionDisabled(focusedOption, selectValue),
+        isMulti: isMulti,
+        isSearchable: isSearchable,
+        tabSelectsValue: tabSelectsValue
+      });
+    }
+
+    return guidanceMsg;
+  }, [ariaLabel, focusedOption, focusedValue, isMulti, isOptionDisabled, isSearchable, menuIsOpen, messages, selectValue, tabSelectsValue]);
+  var ariaContext = "".concat(ariaFocused, " ").concat(ariaResults, " ").concat(ariaGuidance);
+  var ScreenReaderText = (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)(react__WEBPACK_IMPORTED_MODULE_5__.Fragment, null, (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)("span", {
+    id: "aria-selection"
+  }, ariaSelected), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)("span", {
+    id: "aria-context"
+  }, ariaContext));
+  var isInitialFocus = (ariaSelection === null || ariaSelection === void 0 ? void 0 : ariaSelection.action) === 'initial-input-focus';
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)(react__WEBPACK_IMPORTED_MODULE_5__.Fragment, null, (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)(A11yText, {
+    id: id
+  }, isInitialFocus && ScreenReaderText), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)(A11yText, {
+    "aria-live": ariaLive,
+    "aria-atomic": "false",
+    "aria-relevant": "additions text"
+  }, isFocused && !isInitialFocus && ScreenReaderText));
+};
+
+var diacritics = [{
+  base: 'A',
+  letters: "A\u24B6\uFF21\xC0\xC1\xC2\u1EA6\u1EA4\u1EAA\u1EA8\xC3\u0100\u0102\u1EB0\u1EAE\u1EB4\u1EB2\u0226\u01E0\xC4\u01DE\u1EA2\xC5\u01FA\u01CD\u0200\u0202\u1EA0\u1EAC\u1EB6\u1E00\u0104\u023A\u2C6F"
+}, {
+  base: 'AA',
+  letters: "\uA732"
+}, {
+  base: 'AE',
+  letters: "\xC6\u01FC\u01E2"
+}, {
+  base: 'AO',
+  letters: "\uA734"
+}, {
+  base: 'AU',
+  letters: "\uA736"
+}, {
+  base: 'AV',
+  letters: "\uA738\uA73A"
+}, {
+  base: 'AY',
+  letters: "\uA73C"
+}, {
+  base: 'B',
+  letters: "B\u24B7\uFF22\u1E02\u1E04\u1E06\u0243\u0182\u0181"
+}, {
+  base: 'C',
+  letters: "C\u24B8\uFF23\u0106\u0108\u010A\u010C\xC7\u1E08\u0187\u023B\uA73E"
+}, {
+  base: 'D',
+  letters: "D\u24B9\uFF24\u1E0A\u010E\u1E0C\u1E10\u1E12\u1E0E\u0110\u018B\u018A\u0189\uA779"
+}, {
+  base: 'DZ',
+  letters: "\u01F1\u01C4"
+}, {
+  base: 'Dz',
+  letters: "\u01F2\u01C5"
+}, {
+  base: 'E',
+  letters: "E\u24BA\uFF25\xC8\xC9\xCA\u1EC0\u1EBE\u1EC4\u1EC2\u1EBC\u0112\u1E14\u1E16\u0114\u0116\xCB\u1EBA\u011A\u0204\u0206\u1EB8\u1EC6\u0228\u1E1C\u0118\u1E18\u1E1A\u0190\u018E"
+}, {
+  base: 'F',
+  letters: "F\u24BB\uFF26\u1E1E\u0191\uA77B"
+}, {
+  base: 'G',
+  letters: "G\u24BC\uFF27\u01F4\u011C\u1E20\u011E\u0120\u01E6\u0122\u01E4\u0193\uA7A0\uA77D\uA77E"
+}, {
+  base: 'H',
+  letters: "H\u24BD\uFF28\u0124\u1E22\u1E26\u021E\u1E24\u1E28\u1E2A\u0126\u2C67\u2C75\uA78D"
+}, {
+  base: 'I',
+  letters: "I\u24BE\uFF29\xCC\xCD\xCE\u0128\u012A\u012C\u0130\xCF\u1E2E\u1EC8\u01CF\u0208\u020A\u1ECA\u012E\u1E2C\u0197"
+}, {
+  base: 'J',
+  letters: "J\u24BF\uFF2A\u0134\u0248"
+}, {
+  base: 'K',
+  letters: "K\u24C0\uFF2B\u1E30\u01E8\u1E32\u0136\u1E34\u0198\u2C69\uA740\uA742\uA744\uA7A2"
+}, {
+  base: 'L',
+  letters: "L\u24C1\uFF2C\u013F\u0139\u013D\u1E36\u1E38\u013B\u1E3C\u1E3A\u0141\u023D\u2C62\u2C60\uA748\uA746\uA780"
+}, {
+  base: 'LJ',
+  letters: "\u01C7"
+}, {
+  base: 'Lj',
+  letters: "\u01C8"
+}, {
+  base: 'M',
+  letters: "M\u24C2\uFF2D\u1E3E\u1E40\u1E42\u2C6E\u019C"
+}, {
+  base: 'N',
+  letters: "N\u24C3\uFF2E\u01F8\u0143\xD1\u1E44\u0147\u1E46\u0145\u1E4A\u1E48\u0220\u019D\uA790\uA7A4"
+}, {
+  base: 'NJ',
+  letters: "\u01CA"
+}, {
+  base: 'Nj',
+  letters: "\u01CB"
+}, {
+  base: 'O',
+  letters: "O\u24C4\uFF2F\xD2\xD3\xD4\u1ED2\u1ED0\u1ED6\u1ED4\xD5\u1E4C\u022C\u1E4E\u014C\u1E50\u1E52\u014E\u022E\u0230\xD6\u022A\u1ECE\u0150\u01D1\u020C\u020E\u01A0\u1EDC\u1EDA\u1EE0\u1EDE\u1EE2\u1ECC\u1ED8\u01EA\u01EC\xD8\u01FE\u0186\u019F\uA74A\uA74C"
+}, {
+  base: 'OI',
+  letters: "\u01A2"
+}, {
+  base: 'OO',
+  letters: "\uA74E"
+}, {
+  base: 'OU',
+  letters: "\u0222"
+}, {
+  base: 'P',
+  letters: "P\u24C5\uFF30\u1E54\u1E56\u01A4\u2C63\uA750\uA752\uA754"
+}, {
+  base: 'Q',
+  letters: "Q\u24C6\uFF31\uA756\uA758\u024A"
+}, {
+  base: 'R',
+  letters: "R\u24C7\uFF32\u0154\u1E58\u0158\u0210\u0212\u1E5A\u1E5C\u0156\u1E5E\u024C\u2C64\uA75A\uA7A6\uA782"
+}, {
+  base: 'S',
+  letters: "S\u24C8\uFF33\u1E9E\u015A\u1E64\u015C\u1E60\u0160\u1E66\u1E62\u1E68\u0218\u015E\u2C7E\uA7A8\uA784"
+}, {
+  base: 'T',
+  letters: "T\u24C9\uFF34\u1E6A\u0164\u1E6C\u021A\u0162\u1E70\u1E6E\u0166\u01AC\u01AE\u023E\uA786"
+}, {
+  base: 'TZ',
+  letters: "\uA728"
+}, {
+  base: 'U',
+  letters: "U\u24CA\uFF35\xD9\xDA\xDB\u0168\u1E78\u016A\u1E7A\u016C\xDC\u01DB\u01D7\u01D5\u01D9\u1EE6\u016E\u0170\u01D3\u0214\u0216\u01AF\u1EEA\u1EE8\u1EEE\u1EEC\u1EF0\u1EE4\u1E72\u0172\u1E76\u1E74\u0244"
+}, {
+  base: 'V',
+  letters: "V\u24CB\uFF36\u1E7C\u1E7E\u01B2\uA75E\u0245"
+}, {
+  base: 'VY',
+  letters: "\uA760"
+}, {
+  base: 'W',
+  letters: "W\u24CC\uFF37\u1E80\u1E82\u0174\u1E86\u1E84\u1E88\u2C72"
+}, {
+  base: 'X',
+  letters: "X\u24CD\uFF38\u1E8A\u1E8C"
+}, {
+  base: 'Y',
+  letters: "Y\u24CE\uFF39\u1EF2\xDD\u0176\u1EF8\u0232\u1E8E\u0178\u1EF6\u1EF4\u01B3\u024E\u1EFE"
+}, {
+  base: 'Z',
+  letters: "Z\u24CF\uFF3A\u0179\u1E90\u017B\u017D\u1E92\u1E94\u01B5\u0224\u2C7F\u2C6B\uA762"
+}, {
+  base: 'a',
+  letters: "a\u24D0\uFF41\u1E9A\xE0\xE1\xE2\u1EA7\u1EA5\u1EAB\u1EA9\xE3\u0101\u0103\u1EB1\u1EAF\u1EB5\u1EB3\u0227\u01E1\xE4\u01DF\u1EA3\xE5\u01FB\u01CE\u0201\u0203\u1EA1\u1EAD\u1EB7\u1E01\u0105\u2C65\u0250"
+}, {
+  base: 'aa',
+  letters: "\uA733"
+}, {
+  base: 'ae',
+  letters: "\xE6\u01FD\u01E3"
+}, {
+  base: 'ao',
+  letters: "\uA735"
+}, {
+  base: 'au',
+  letters: "\uA737"
+}, {
+  base: 'av',
+  letters: "\uA739\uA73B"
+}, {
+  base: 'ay',
+  letters: "\uA73D"
+}, {
+  base: 'b',
+  letters: "b\u24D1\uFF42\u1E03\u1E05\u1E07\u0180\u0183\u0253"
+}, {
+  base: 'c',
+  letters: "c\u24D2\uFF43\u0107\u0109\u010B\u010D\xE7\u1E09\u0188\u023C\uA73F\u2184"
+}, {
+  base: 'd',
+  letters: "d\u24D3\uFF44\u1E0B\u010F\u1E0D\u1E11\u1E13\u1E0F\u0111\u018C\u0256\u0257\uA77A"
+}, {
+  base: 'dz',
+  letters: "\u01F3\u01C6"
+}, {
+  base: 'e',
+  letters: "e\u24D4\uFF45\xE8\xE9\xEA\u1EC1\u1EBF\u1EC5\u1EC3\u1EBD\u0113\u1E15\u1E17\u0115\u0117\xEB\u1EBB\u011B\u0205\u0207\u1EB9\u1EC7\u0229\u1E1D\u0119\u1E19\u1E1B\u0247\u025B\u01DD"
+}, {
+  base: 'f',
+  letters: "f\u24D5\uFF46\u1E1F\u0192\uA77C"
+}, {
+  base: 'g',
+  letters: "g\u24D6\uFF47\u01F5\u011D\u1E21\u011F\u0121\u01E7\u0123\u01E5\u0260\uA7A1\u1D79\uA77F"
+}, {
+  base: 'h',
+  letters: "h\u24D7\uFF48\u0125\u1E23\u1E27\u021F\u1E25\u1E29\u1E2B\u1E96\u0127\u2C68\u2C76\u0265"
+}, {
+  base: 'hv',
+  letters: "\u0195"
+}, {
+  base: 'i',
+  letters: "i\u24D8\uFF49\xEC\xED\xEE\u0129\u012B\u012D\xEF\u1E2F\u1EC9\u01D0\u0209\u020B\u1ECB\u012F\u1E2D\u0268\u0131"
+}, {
+  base: 'j',
+  letters: "j\u24D9\uFF4A\u0135\u01F0\u0249"
+}, {
+  base: 'k',
+  letters: "k\u24DA\uFF4B\u1E31\u01E9\u1E33\u0137\u1E35\u0199\u2C6A\uA741\uA743\uA745\uA7A3"
+}, {
+  base: 'l',
+  letters: "l\u24DB\uFF4C\u0140\u013A\u013E\u1E37\u1E39\u013C\u1E3D\u1E3B\u017F\u0142\u019A\u026B\u2C61\uA749\uA781\uA747"
+}, {
+  base: 'lj',
+  letters: "\u01C9"
+}, {
+  base: 'm',
+  letters: "m\u24DC\uFF4D\u1E3F\u1E41\u1E43\u0271\u026F"
+}, {
+  base: 'n',
+  letters: "n\u24DD\uFF4E\u01F9\u0144\xF1\u1E45\u0148\u1E47\u0146\u1E4B\u1E49\u019E\u0272\u0149\uA791\uA7A5"
+}, {
+  base: 'nj',
+  letters: "\u01CC"
+}, {
+  base: 'o',
+  letters: "o\u24DE\uFF4F\xF2\xF3\xF4\u1ED3\u1ED1\u1ED7\u1ED5\xF5\u1E4D\u022D\u1E4F\u014D\u1E51\u1E53\u014F\u022F\u0231\xF6\u022B\u1ECF\u0151\u01D2\u020D\u020F\u01A1\u1EDD\u1EDB\u1EE1\u1EDF\u1EE3\u1ECD\u1ED9\u01EB\u01ED\xF8\u01FF\u0254\uA74B\uA74D\u0275"
+}, {
+  base: 'oi',
+  letters: "\u01A3"
+}, {
+  base: 'ou',
+  letters: "\u0223"
+}, {
+  base: 'oo',
+  letters: "\uA74F"
+}, {
+  base: 'p',
+  letters: "p\u24DF\uFF50\u1E55\u1E57\u01A5\u1D7D\uA751\uA753\uA755"
+}, {
+  base: 'q',
+  letters: "q\u24E0\uFF51\u024B\uA757\uA759"
+}, {
+  base: 'r',
+  letters: "r\u24E1\uFF52\u0155\u1E59\u0159\u0211\u0213\u1E5B\u1E5D\u0157\u1E5F\u024D\u027D\uA75B\uA7A7\uA783"
+}, {
+  base: 's',
+  letters: "s\u24E2\uFF53\xDF\u015B\u1E65\u015D\u1E61\u0161\u1E67\u1E63\u1E69\u0219\u015F\u023F\uA7A9\uA785\u1E9B"
+}, {
+  base: 't',
+  letters: "t\u24E3\uFF54\u1E6B\u1E97\u0165\u1E6D\u021B\u0163\u1E71\u1E6F\u0167\u01AD\u0288\u2C66\uA787"
+}, {
+  base: 'tz',
+  letters: "\uA729"
+}, {
+  base: 'u',
+  letters: "u\u24E4\uFF55\xF9\xFA\xFB\u0169\u1E79\u016B\u1E7B\u016D\xFC\u01DC\u01D8\u01D6\u01DA\u1EE7\u016F\u0171\u01D4\u0215\u0217\u01B0\u1EEB\u1EE9\u1EEF\u1EED\u1EF1\u1EE5\u1E73\u0173\u1E77\u1E75\u0289"
+}, {
+  base: 'v',
+  letters: "v\u24E5\uFF56\u1E7D\u1E7F\u028B\uA75F\u028C"
+}, {
+  base: 'vy',
+  letters: "\uA761"
+}, {
+  base: 'w',
+  letters: "w\u24E6\uFF57\u1E81\u1E83\u0175\u1E87\u1E85\u1E98\u1E89\u2C73"
+}, {
+  base: 'x',
+  letters: "x\u24E7\uFF58\u1E8B\u1E8D"
+}, {
+  base: 'y',
+  letters: "y\u24E8\uFF59\u1EF3\xFD\u0177\u1EF9\u0233\u1E8F\xFF\u1EF7\u1E99\u1EF5\u01B4\u024F\u1EFF"
+}, {
+  base: 'z',
+  letters: "z\u24E9\uFF5A\u017A\u1E91\u017C\u017E\u1E93\u1E95\u01B6\u0225\u0240\u2C6C\uA763"
+}];
+var anyDiacritic = new RegExp('[' + diacritics.map(function (d) {
+  return d.letters;
+}).join('') + ']', 'g');
+var diacriticToBase = {};
+
+for (var i = 0; i < diacritics.length; i++) {
+  var diacritic = diacritics[i];
+
+  for (var j = 0; j < diacritic.letters.length; j++) {
+    diacriticToBase[diacritic.letters[j]] = diacritic.base;
+  }
+}
+
+var stripDiacritics = function stripDiacritics(str) {
+  return str.replace(anyDiacritic, function (match) {
+    return diacriticToBase[match];
+  });
+};
+
+var memoizedStripDiacriticsForInput = (0,memoize_one__WEBPACK_IMPORTED_MODULE_9__["default"])(stripDiacritics);
+
+var trimString = function trimString(str) {
+  return str.replace(/^\s+|\s+$/g, '');
+};
+
+var defaultStringify = function defaultStringify(option) {
+  return "".concat(option.label, " ").concat(option.value);
+};
+
+var createFilter = function createFilter(config) {
+  return function (option, rawInput) {
+    // eslint-disable-next-line no-underscore-dangle
+    if (option.data.__isNew__) return true;
+
+    var _ignoreCase$ignoreAcc = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({
+      ignoreCase: true,
+      ignoreAccents: true,
+      stringify: defaultStringify,
+      trim: true,
+      matchFrom: 'any'
+    }, config),
+        ignoreCase = _ignoreCase$ignoreAcc.ignoreCase,
+        ignoreAccents = _ignoreCase$ignoreAcc.ignoreAccents,
+        stringify = _ignoreCase$ignoreAcc.stringify,
+        trim = _ignoreCase$ignoreAcc.trim,
+        matchFrom = _ignoreCase$ignoreAcc.matchFrom;
+
+    var input = trim ? trimString(rawInput) : rawInput;
+    var candidate = trim ? trimString(stringify(option)) : stringify(option);
+
+    if (ignoreCase) {
+      input = input.toLowerCase();
+      candidate = candidate.toLowerCase();
+    }
+
+    if (ignoreAccents) {
+      input = memoizedStripDiacriticsForInput(input);
+      candidate = stripDiacritics(candidate);
+    }
+
+    return matchFrom === 'start' ? candidate.substr(0, input.length) === input : candidate.indexOf(input) > -1;
+  };
+};
+
+var _excluded = ["innerRef"];
+function DummyInput(_ref) {
+  var innerRef = _ref.innerRef,
+      props = (0,_babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_6__["default"])(_ref, _excluded);
+
+  // Remove animation props not meant for HTML elements
+  var filteredProps = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.r)(props, 'onExited', 'in', 'enter', 'exit', 'appear');
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)("input", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    ref: innerRef
+  }, filteredProps, {
+    css: /*#__PURE__*/(0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.css)({
+      label: 'dummyInput',
+      // get rid of any default styles
+      background: 0,
+      border: 0,
+      // important! this hides the flashing cursor
+      caretColor: 'transparent',
+      fontSize: 'inherit',
+      gridArea: '1 / 1 / 2 / 3',
+      outline: 0,
+      padding: 0,
+      // important! without `width` browsers won't allow focus
+      width: 1,
+      // remove cursor on desktop
+      color: 'transparent',
+      // remove cursor on mobile whilst maintaining "scroll into view" behaviour
+      left: -100,
+      opacity: 0,
+      position: 'relative',
+      transform: 'scale(.01)'
+    },  false ? 0 : ";label:DummyInput;",  false ? 0 : "/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkR1bW15SW5wdXQudHN4Il0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQXlCTSIsImZpbGUiOiJEdW1teUlucHV0LnRzeCIsInNvdXJjZXNDb250ZW50IjpbIi8qKiBAanN4IGpzeCAqL1xuaW1wb3J0IHsgUmVmIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsganN4IH0gZnJvbSAnQGVtb3Rpb24vcmVhY3QnO1xuaW1wb3J0IHsgcmVtb3ZlUHJvcHMgfSBmcm9tICcuLi91dGlscyc7XG5cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIER1bW15SW5wdXQoe1xuICBpbm5lclJlZixcbiAgLi4ucHJvcHNcbn06IEpTWC5JbnRyaW5zaWNFbGVtZW50c1snaW5wdXQnXSAmIHtcbiAgcmVhZG9ubHkgaW5uZXJSZWY6IFJlZjxIVE1MSW5wdXRFbGVtZW50Pjtcbn0pIHtcbiAgLy8gUmVtb3ZlIGFuaW1hdGlvbiBwcm9wcyBub3QgbWVhbnQgZm9yIEhUTUwgZWxlbWVudHNcbiAgY29uc3QgZmlsdGVyZWRQcm9wcyA9IHJlbW92ZVByb3BzKFxuICAgIHByb3BzLFxuICAgICdvbkV4aXRlZCcsXG4gICAgJ2luJyxcbiAgICAnZW50ZXInLFxuICAgICdleGl0JyxcbiAgICAnYXBwZWFyJ1xuICApO1xuXG4gIHJldHVybiAoXG4gICAgPGlucHV0XG4gICAgICByZWY9e2lubmVyUmVmfVxuICAgICAgey4uLmZpbHRlcmVkUHJvcHN9XG4gICAgICBjc3M9e3tcbiAgICAgICAgbGFiZWw6ICdkdW1teUlucHV0JyxcbiAgICAgICAgLy8gZ2V0IHJpZCBvZiBhbnkgZGVmYXVsdCBzdHlsZXNcbiAgICAgICAgYmFja2dyb3VuZDogMCxcbiAgICAgICAgYm9yZGVyOiAwLFxuICAgICAgICAvLyBpbXBvcnRhbnQhIHRoaXMgaGlkZXMgdGhlIGZsYXNoaW5nIGN1cnNvclxuICAgICAgICBjYXJldENvbG9yOiAndHJhbnNwYXJlbnQnLFxuICAgICAgICBmb250U2l6ZTogJ2luaGVyaXQnLFxuICAgICAgICBncmlkQXJlYTogJzEgLyAxIC8gMiAvIDMnLFxuICAgICAgICBvdXRsaW5lOiAwLFxuICAgICAgICBwYWRkaW5nOiAwLFxuICAgICAgICAvLyBpbXBvcnRhbnQhIHdpdGhvdXQgYHdpZHRoYCBicm93c2VycyB3b24ndCBhbGxvdyBmb2N1c1xuICAgICAgICB3aWR0aDogMSxcblxuICAgICAgICAvLyByZW1vdmUgY3Vyc29yIG9uIGRlc2t0b3BcbiAgICAgICAgY29sb3I6ICd0cmFuc3BhcmVudCcsXG5cbiAgICAgICAgLy8gcmVtb3ZlIGN1cnNvciBvbiBtb2JpbGUgd2hpbHN0IG1haW50YWluaW5nIFwic2Nyb2xsIGludG8gdmlld1wiIGJlaGF2aW91clxuICAgICAgICBsZWZ0OiAtMTAwLFxuICAgICAgICBvcGFjaXR5OiAwLFxuICAgICAgICBwb3NpdGlvbjogJ3JlbGF0aXZlJyxcbiAgICAgICAgdHJhbnNmb3JtOiAnc2NhbGUoLjAxKScsXG4gICAgICB9fVxuICAgIC8+XG4gICk7XG59XG4iXX0= */")
+  }));
+}
+
+var cancelScroll = function cancelScroll(event) {
+  event.preventDefault();
+  event.stopPropagation();
+};
+
+function useScrollCapture(_ref) {
+  var isEnabled = _ref.isEnabled,
+      onBottomArrive = _ref.onBottomArrive,
+      onBottomLeave = _ref.onBottomLeave,
+      onTopArrive = _ref.onTopArrive,
+      onTopLeave = _ref.onTopLeave;
+  var isBottom = (0,react__WEBPACK_IMPORTED_MODULE_5__.useRef)(false);
+  var isTop = (0,react__WEBPACK_IMPORTED_MODULE_5__.useRef)(false);
+  var touchStart = (0,react__WEBPACK_IMPORTED_MODULE_5__.useRef)(0);
+  var scrollTarget = (0,react__WEBPACK_IMPORTED_MODULE_5__.useRef)(null);
+  var handleEventDelta = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (event, delta) {
+    if (scrollTarget.current === null) return;
+    var _scrollTarget$current = scrollTarget.current,
+        scrollTop = _scrollTarget$current.scrollTop,
+        scrollHeight = _scrollTarget$current.scrollHeight,
+        clientHeight = _scrollTarget$current.clientHeight;
+    var target = scrollTarget.current;
+    var isDeltaPositive = delta > 0;
+    var availableScroll = scrollHeight - clientHeight - scrollTop;
+    var shouldCancelScroll = false; // reset bottom/top flags
+
+    if (availableScroll > delta && isBottom.current) {
+      if (onBottomLeave) onBottomLeave(event);
+      isBottom.current = false;
+    }
+
+    if (isDeltaPositive && isTop.current) {
+      if (onTopLeave) onTopLeave(event);
+      isTop.current = false;
+    } // bottom limit
+
+
+    if (isDeltaPositive && delta > availableScroll) {
+      if (onBottomArrive && !isBottom.current) {
+        onBottomArrive(event);
+      }
+
+      target.scrollTop = scrollHeight;
+      shouldCancelScroll = true;
+      isBottom.current = true; // top limit
+    } else if (!isDeltaPositive && -delta > scrollTop) {
+      if (onTopArrive && !isTop.current) {
+        onTopArrive(event);
+      }
+
+      target.scrollTop = 0;
+      shouldCancelScroll = true;
+      isTop.current = true;
+    } // cancel scroll
+
+
+    if (shouldCancelScroll) {
+      cancelScroll(event);
+    }
+  }, [onBottomArrive, onBottomLeave, onTopArrive, onTopLeave]);
+  var onWheel = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (event) {
+    handleEventDelta(event, event.deltaY);
+  }, [handleEventDelta]);
+  var onTouchStart = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (event) {
+    // set touch start so we can calculate touchmove delta
+    touchStart.current = event.changedTouches[0].clientY;
+  }, []);
+  var onTouchMove = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (event) {
+    var deltaY = touchStart.current - event.changedTouches[0].clientY;
+    handleEventDelta(event, deltaY);
+  }, [handleEventDelta]);
+  var startListening = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (el) {
+    // bail early if no element is available to attach to
+    if (!el) return;
+    var notPassive = _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.s ? {
+      passive: false
+    } : false;
+    el.addEventListener('wheel', onWheel, notPassive);
+    el.addEventListener('touchstart', onTouchStart, notPassive);
+    el.addEventListener('touchmove', onTouchMove, notPassive);
+  }, [onTouchMove, onTouchStart, onWheel]);
+  var stopListening = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (el) {
+    // bail early if no element is available to detach from
+    if (!el) return;
+    el.removeEventListener('wheel', onWheel, false);
+    el.removeEventListener('touchstart', onTouchStart, false);
+    el.removeEventListener('touchmove', onTouchMove, false);
+  }, [onTouchMove, onTouchStart, onWheel]);
+  (0,react__WEBPACK_IMPORTED_MODULE_5__.useEffect)(function () {
+    if (!isEnabled) return;
+    var element = scrollTarget.current;
+    startListening(element);
+    return function () {
+      stopListening(element);
+    };
+  }, [isEnabled, startListening, stopListening]);
+  return function (element) {
+    scrollTarget.current = element;
+  };
+}
+
+var STYLE_KEYS = ['boxSizing', 'height', 'overflow', 'paddingRight', 'position'];
+var LOCK_STYLES = {
+  boxSizing: 'border-box',
+  // account for possible declaration `width: 100%;` on body
+  overflow: 'hidden',
+  position: 'relative',
+  height: '100%'
+};
+
+function preventTouchMove(e) {
+  e.preventDefault();
+}
+
+function allowTouchMove(e) {
+  e.stopPropagation();
+}
+
+function preventInertiaScroll() {
+  var top = this.scrollTop;
+  var totalScroll = this.scrollHeight;
+  var currentScroll = top + this.offsetHeight;
+
+  if (top === 0) {
+    this.scrollTop = 1;
+  } else if (currentScroll === totalScroll) {
+    this.scrollTop = top - 1;
+  }
+} // `ontouchstart` check works on most browsers
+// `maxTouchPoints` works on IE10/11 and Surface
+
+
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints;
+}
+
+var canUseDOM = !!(typeof window !== 'undefined' && window.document && window.document.createElement);
+var activeScrollLocks = 0;
+var listenerOptions = {
+  capture: false,
+  passive: false
+};
+function useScrollLock(_ref) {
+  var isEnabled = _ref.isEnabled,
+      _ref$accountForScroll = _ref.accountForScrollbars,
+      accountForScrollbars = _ref$accountForScroll === void 0 ? true : _ref$accountForScroll;
+  var originalStyles = (0,react__WEBPACK_IMPORTED_MODULE_5__.useRef)({});
+  var scrollTarget = (0,react__WEBPACK_IMPORTED_MODULE_5__.useRef)(null);
+  var addScrollLock = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (touchScrollTarget) {
+    if (!canUseDOM) return;
+    var target = document.body;
+    var targetStyle = target && target.style;
+
+    if (accountForScrollbars) {
+      // store any styles already applied to the body
+      STYLE_KEYS.forEach(function (key) {
+        var val = targetStyle && targetStyle[key];
+        originalStyles.current[key] = val;
+      });
+    } // apply the lock styles and padding if this is the first scroll lock
+
+
+    if (accountForScrollbars && activeScrollLocks < 1) {
+      var currentPadding = parseInt(originalStyles.current.paddingRight, 10) || 0;
+      var clientWidth = document.body ? document.body.clientWidth : 0;
+      var adjustedPadding = window.innerWidth - clientWidth + currentPadding || 0;
+      Object.keys(LOCK_STYLES).forEach(function (key) {
+        var val = LOCK_STYLES[key];
+
+        if (targetStyle) {
+          targetStyle[key] = val;
+        }
+      });
+
+      if (targetStyle) {
+        targetStyle.paddingRight = "".concat(adjustedPadding, "px");
+      }
+    } // account for touch devices
+
+
+    if (target && isTouchDevice()) {
+      // Mobile Safari ignores { overflow: hidden } declaration on the body.
+      target.addEventListener('touchmove', preventTouchMove, listenerOptions); // Allow scroll on provided target
+
+      if (touchScrollTarget) {
+        touchScrollTarget.addEventListener('touchstart', preventInertiaScroll, listenerOptions);
+        touchScrollTarget.addEventListener('touchmove', allowTouchMove, listenerOptions);
+      }
+    } // increment active scroll locks
+
+
+    activeScrollLocks += 1;
+  }, [accountForScrollbars]);
+  var removeScrollLock = (0,react__WEBPACK_IMPORTED_MODULE_5__.useCallback)(function (touchScrollTarget) {
+    if (!canUseDOM) return;
+    var target = document.body;
+    var targetStyle = target && target.style; // safely decrement active scroll locks
+
+    activeScrollLocks = Math.max(activeScrollLocks - 1, 0); // reapply original body styles, if any
+
+    if (accountForScrollbars && activeScrollLocks < 1) {
+      STYLE_KEYS.forEach(function (key) {
+        var val = originalStyles.current[key];
+
+        if (targetStyle) {
+          targetStyle[key] = val;
+        }
+      });
+    } // remove touch listeners
+
+
+    if (target && isTouchDevice()) {
+      target.removeEventListener('touchmove', preventTouchMove, listenerOptions);
+
+      if (touchScrollTarget) {
+        touchScrollTarget.removeEventListener('touchstart', preventInertiaScroll, listenerOptions);
+        touchScrollTarget.removeEventListener('touchmove', allowTouchMove, listenerOptions);
+      }
+    }
+  }, [accountForScrollbars]);
+  (0,react__WEBPACK_IMPORTED_MODULE_5__.useEffect)(function () {
+    if (!isEnabled) return;
+    var element = scrollTarget.current;
+    addScrollLock(element);
+    return function () {
+      removeScrollLock(element);
+    };
+  }, [isEnabled, addScrollLock, removeScrollLock]);
+  return function (element) {
+    scrollTarget.current = element;
+  };
+}
+
+function _EMOTION_STRINGIFIED_CSS_ERROR__() { return "You have tried to stringify object returned from `css` function. It isn't supposed to be used directly (e.g. as value of the `className` prop), but rather handed to emotion so it can handle it (e.g. as value of `css` prop)."; }
+
+var blurSelectInput = function blurSelectInput() {
+  return document.activeElement && document.activeElement.blur();
+};
+
+var _ref2 =  false ? 0 : {
+  name: "bp8cua-ScrollManager",
+  styles: "position:fixed;left:0;bottom:0;right:0;top:0;label:ScrollManager;",
+  map: "/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIlNjcm9sbE1hbmFnZXIudHN4Il0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQStDVSIsImZpbGUiOiJTY3JvbGxNYW5hZ2VyLnRzeCIsInNvdXJjZXNDb250ZW50IjpbIi8qKiBAanN4IGpzeCAqL1xuaW1wb3J0IHsganN4IH0gZnJvbSAnQGVtb3Rpb24vcmVhY3QnO1xuaW1wb3J0IHsgRnJhZ21lbnQsIFJlYWN0RWxlbWVudCwgUmVmQ2FsbGJhY2sgfSBmcm9tICdyZWFjdCc7XG5pbXBvcnQgdXNlU2Nyb2xsQ2FwdHVyZSBmcm9tICcuL3VzZVNjcm9sbENhcHR1cmUnO1xuaW1wb3J0IHVzZVNjcm9sbExvY2sgZnJvbSAnLi91c2VTY3JvbGxMb2NrJztcblxuaW50ZXJmYWNlIFByb3BzIHtcbiAgcmVhZG9ubHkgY2hpbGRyZW46IChyZWY6IFJlZkNhbGxiYWNrPEhUTUxFbGVtZW50PikgPT4gUmVhY3RFbGVtZW50O1xuICByZWFkb25seSBsb2NrRW5hYmxlZDogYm9vbGVhbjtcbiAgcmVhZG9ubHkgY2FwdHVyZUVuYWJsZWQ6IGJvb2xlYW47XG4gIHJlYWRvbmx5IG9uQm90dG9tQXJyaXZlPzogKGV2ZW50OiBXaGVlbEV2ZW50IHwgVG91Y2hFdmVudCkgPT4gdm9pZDtcbiAgcmVhZG9ubHkgb25Cb3R0b21MZWF2ZT86IChldmVudDogV2hlZWxFdmVudCB8IFRvdWNoRXZlbnQpID0+IHZvaWQ7XG4gIHJlYWRvbmx5IG9uVG9wQXJyaXZlPzogKGV2ZW50OiBXaGVlbEV2ZW50IHwgVG91Y2hFdmVudCkgPT4gdm9pZDtcbiAgcmVhZG9ubHkgb25Ub3BMZWF2ZT86IChldmVudDogV2hlZWxFdmVudCB8IFRvdWNoRXZlbnQpID0+IHZvaWQ7XG59XG5cbmNvbnN0IGJsdXJTZWxlY3RJbnB1dCA9ICgpID0+XG4gIGRvY3VtZW50LmFjdGl2ZUVsZW1lbnQgJiYgKGRvY3VtZW50LmFjdGl2ZUVsZW1lbnQgYXMgSFRNTEVsZW1lbnQpLmJsdXIoKTtcblxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU2Nyb2xsTWFuYWdlcih7XG4gIGNoaWxkcmVuLFxuICBsb2NrRW5hYmxlZCxcbiAgY2FwdHVyZUVuYWJsZWQgPSB0cnVlLFxuICBvbkJvdHRvbUFycml2ZSxcbiAgb25Cb3R0b21MZWF2ZSxcbiAgb25Ub3BBcnJpdmUsXG4gIG9uVG9wTGVhdmUsXG59OiBQcm9wcykge1xuICBjb25zdCBzZXRTY3JvbGxDYXB0dXJlVGFyZ2V0ID0gdXNlU2Nyb2xsQ2FwdHVyZSh7XG4gICAgaXNFbmFibGVkOiBjYXB0dXJlRW5hYmxlZCxcbiAgICBvbkJvdHRvbUFycml2ZSxcbiAgICBvbkJvdHRvbUxlYXZlLFxuICAgIG9uVG9wQXJyaXZlLFxuICAgIG9uVG9wTGVhdmUsXG4gIH0pO1xuICBjb25zdCBzZXRTY3JvbGxMb2NrVGFyZ2V0ID0gdXNlU2Nyb2xsTG9jayh7IGlzRW5hYmxlZDogbG9ja0VuYWJsZWQgfSk7XG5cbiAgY29uc3QgdGFyZ2V0UmVmOiBSZWZDYWxsYmFjazxIVE1MRWxlbWVudD4gPSAoZWxlbWVudCkgPT4ge1xuICAgIHNldFNjcm9sbENhcHR1cmVUYXJnZXQoZWxlbWVudCk7XG4gICAgc2V0U2Nyb2xsTG9ja1RhcmdldChlbGVtZW50KTtcbiAgfTtcblxuICByZXR1cm4gKFxuICAgIDxGcmFnbWVudD5cbiAgICAgIHtsb2NrRW5hYmxlZCAmJiAoXG4gICAgICAgIDxkaXZcbiAgICAgICAgICBvbkNsaWNrPXtibHVyU2VsZWN0SW5wdXR9XG4gICAgICAgICAgY3NzPXt7IHBvc2l0aW9uOiAnZml4ZWQnLCBsZWZ0OiAwLCBib3R0b206IDAsIHJpZ2h0OiAwLCB0b3A6IDAgfX1cbiAgICAgICAgLz5cbiAgICAgICl9XG4gICAgICB7Y2hpbGRyZW4odGFyZ2V0UmVmKX1cbiAgICA8L0ZyYWdtZW50PlxuICApO1xufVxuIl19 */",
+  toString: _EMOTION_STRINGIFIED_CSS_ERROR__
+};
+
+function ScrollManager(_ref) {
+  var children = _ref.children,
+      lockEnabled = _ref.lockEnabled,
+      _ref$captureEnabled = _ref.captureEnabled,
+      captureEnabled = _ref$captureEnabled === void 0 ? true : _ref$captureEnabled,
+      onBottomArrive = _ref.onBottomArrive,
+      onBottomLeave = _ref.onBottomLeave,
+      onTopArrive = _ref.onTopArrive,
+      onTopLeave = _ref.onTopLeave;
+  var setScrollCaptureTarget = useScrollCapture({
+    isEnabled: captureEnabled,
+    onBottomArrive: onBottomArrive,
+    onBottomLeave: onBottomLeave,
+    onTopArrive: onTopArrive,
+    onTopLeave: onTopLeave
+  });
+  var setScrollLockTarget = useScrollLock({
+    isEnabled: lockEnabled
+  });
+
+  var targetRef = function targetRef(element) {
+    setScrollCaptureTarget(element);
+    setScrollLockTarget(element);
+  };
+
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)(react__WEBPACK_IMPORTED_MODULE_5__.Fragment, null, lockEnabled && (0,_emotion_react__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
+    onClick: blurSelectInput,
+    css: _ref2
+  }), children(targetRef));
+}
+
+var formatGroupLabel = function formatGroupLabel(group) {
+  return group.label;
+};
+var getOptionLabel$1 = function getOptionLabel(option) {
+  return option.label;
+};
+var getOptionValue$1 = function getOptionValue(option) {
+  return option.value;
+};
+var isOptionDisabled = function isOptionDisabled(option) {
+  return !!option.isDisabled;
+};
+
+var defaultStyles = {
+  clearIndicator: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.b,
+  container: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.d,
+  control: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.e,
+  dropdownIndicator: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.f,
+  group: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.g,
+  groupHeading: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.h,
+  indicatorsContainer: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.i,
+  indicatorSeparator: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.j,
+  input: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.k,
+  loadingIndicator: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.l,
+  loadingMessage: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.m,
+  menu: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.n,
+  menuList: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.o,
+  menuPortal: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.p,
+  multiValue: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.q,
+  multiValueLabel: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.t,
+  multiValueRemove: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.u,
+  noOptionsMessage: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.v,
+  option: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.w,
+  placeholder: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.x,
+  singleValue: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.y,
+  valueContainer: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.z
+}; // Merge Utility
+// Allows consumers to extend a base Select with additional styles
+
+function mergeStyles(source) {
+  var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  // initialize with source styles
+  var styles = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({}, source); // massage in target styles
+
+
+  Object.keys(target).forEach(function (keyAsString) {
+    var key = keyAsString;
+
+    if (source[key]) {
+      styles[key] = function (rsCss, props) {
+        return target[key](source[key](rsCss, props), props);
+      };
+    } else {
+      styles[key] = target[key];
+    }
+  });
+  return styles;
+}
+
+var colors = {
+  primary: '#2684FF',
+  primary75: '#4C9AFF',
+  primary50: '#B2D4FF',
+  primary25: '#DEEBFF',
+  danger: '#DE350B',
+  dangerLight: '#FFBDAD',
+  neutral0: 'hsl(0, 0%, 100%)',
+  neutral5: 'hsl(0, 0%, 95%)',
+  neutral10: 'hsl(0, 0%, 90%)',
+  neutral20: 'hsl(0, 0%, 80%)',
+  neutral30: 'hsl(0, 0%, 70%)',
+  neutral40: 'hsl(0, 0%, 60%)',
+  neutral50: 'hsl(0, 0%, 50%)',
+  neutral60: 'hsl(0, 0%, 40%)',
+  neutral70: 'hsl(0, 0%, 30%)',
+  neutral80: 'hsl(0, 0%, 20%)',
+  neutral90: 'hsl(0, 0%, 10%)'
+};
+var borderRadius = 4; // Used to calculate consistent margin/padding on elements
+
+var baseUnit = 4; // The minimum height of the control
+
+var controlHeight = 38; // The amount of space between the control and menu */
+
+var menuGutter = baseUnit * 2;
+var spacing = {
+  baseUnit: baseUnit,
+  controlHeight: controlHeight,
+  menuGutter: menuGutter
+};
+var defaultTheme = {
+  borderRadius: borderRadius,
+  colors: colors,
+  spacing: spacing
+};
+
+var defaultProps = {
+  'aria-live': 'polite',
+  backspaceRemovesValue: true,
+  blurInputOnSelect: (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.A)(),
+  captureMenuScroll: !(0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.A)(),
+  closeMenuOnSelect: true,
+  closeMenuOnScroll: false,
+  components: {},
+  controlShouldRenderValue: true,
+  escapeClearsValue: false,
+  filterOption: createFilter(),
+  formatGroupLabel: formatGroupLabel,
+  getOptionLabel: getOptionLabel$1,
+  getOptionValue: getOptionValue$1,
+  isDisabled: false,
+  isLoading: false,
+  isMulti: false,
+  isRtl: false,
+  isSearchable: true,
+  isOptionDisabled: isOptionDisabled,
+  loadingMessage: function loadingMessage() {
+    return 'Loading...';
+  },
+  maxMenuHeight: 300,
+  minMenuHeight: 140,
+  menuIsOpen: false,
+  menuPlacement: 'bottom',
+  menuPosition: 'absolute',
+  menuShouldBlockScroll: false,
+  menuShouldScrollIntoView: !(0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.B)(),
+  noOptionsMessage: function noOptionsMessage() {
+    return 'No options';
+  },
+  openMenuOnFocus: false,
+  openMenuOnClick: true,
+  options: [],
+  pageSize: 5,
+  placeholder: 'Select...',
+  screenReaderStatus: function screenReaderStatus(_ref) {
+    var count = _ref.count;
+    return "".concat(count, " result").concat(count !== 1 ? 's' : '', " available");
+  },
+  styles: {},
+  tabIndex: 0,
+  tabSelectsValue: true
+};
+
+function toCategorizedOption(props, option, selectValue, index) {
+  var isDisabled = _isOptionDisabled(props, option, selectValue);
+
+  var isSelected = _isOptionSelected(props, option, selectValue);
+
+  var label = getOptionLabel(props, option);
+  var value = getOptionValue(props, option);
+  return {
+    type: 'option',
+    data: option,
+    isDisabled: isDisabled,
+    isSelected: isSelected,
+    label: label,
+    value: value,
+    index: index
+  };
+}
+
+function buildCategorizedOptions(props, selectValue) {
+  return props.options.map(function (groupOrOption, groupOrOptionIndex) {
+    if ('options' in groupOrOption) {
+      var categorizedOptions = groupOrOption.options.map(function (option, optionIndex) {
+        return toCategorizedOption(props, option, selectValue, optionIndex);
+      }).filter(function (categorizedOption) {
+        return isFocusable(props, categorizedOption);
+      });
+      return categorizedOptions.length > 0 ? {
+        type: 'group',
+        data: groupOrOption,
+        options: categorizedOptions,
+        index: groupOrOptionIndex
+      } : undefined;
+    }
+
+    var categorizedOption = toCategorizedOption(props, groupOrOption, selectValue, groupOrOptionIndex);
+    return isFocusable(props, categorizedOption) ? categorizedOption : undefined;
+  }).filter(_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.H);
+}
+
+function buildFocusableOptionsFromCategorizedOptions(categorizedOptions) {
+  return categorizedOptions.reduce(function (optionsAccumulator, categorizedOption) {
+    if (categorizedOption.type === 'group') {
+      optionsAccumulator.push.apply(optionsAccumulator, (0,_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_4__["default"])(categorizedOption.options.map(function (option) {
+        return option.data;
+      })));
+    } else {
+      optionsAccumulator.push(categorizedOption.data);
+    }
+
+    return optionsAccumulator;
+  }, []);
+}
+
+function buildFocusableOptions(props, selectValue) {
+  return buildFocusableOptionsFromCategorizedOptions(buildCategorizedOptions(props, selectValue));
+}
+
+function isFocusable(props, categorizedOption) {
+  var _props$inputValue = props.inputValue,
+      inputValue = _props$inputValue === void 0 ? '' : _props$inputValue;
+  var data = categorizedOption.data,
+      isSelected = categorizedOption.isSelected,
+      label = categorizedOption.label,
+      value = categorizedOption.value;
+  return (!shouldHideSelectedOptions(props) || !isSelected) && _filterOption(props, {
+    label: label,
+    value: value,
+    data: data
+  }, inputValue);
+}
+
+function getNextFocusedValue(state, nextSelectValue) {
+  var focusedValue = state.focusedValue,
+      lastSelectValue = state.selectValue;
+  var lastFocusedIndex = lastSelectValue.indexOf(focusedValue);
+
+  if (lastFocusedIndex > -1) {
+    var nextFocusedIndex = nextSelectValue.indexOf(focusedValue);
+
+    if (nextFocusedIndex > -1) {
+      // the focused value is still in the selectValue, return it
+      return focusedValue;
+    } else if (lastFocusedIndex < nextSelectValue.length) {
+      // the focusedValue is not present in the next selectValue array by
+      // reference, so return the new value at the same index
+      return nextSelectValue[lastFocusedIndex];
+    }
+  }
+
+  return null;
+}
+
+function getNextFocusedOption(state, options) {
+  var lastFocusedOption = state.focusedOption;
+  return lastFocusedOption && options.indexOf(lastFocusedOption) > -1 ? lastFocusedOption : options[0];
+}
+
+var getOptionLabel = function getOptionLabel(props, data) {
+  return props.getOptionLabel(data);
+};
+
+var getOptionValue = function getOptionValue(props, data) {
+  return props.getOptionValue(data);
+};
+
+function _isOptionDisabled(props, option, selectValue) {
+  return typeof props.isOptionDisabled === 'function' ? props.isOptionDisabled(option, selectValue) : false;
+}
+
+function _isOptionSelected(props, option, selectValue) {
+  if (selectValue.indexOf(option) > -1) return true;
+
+  if (typeof props.isOptionSelected === 'function') {
+    return props.isOptionSelected(option, selectValue);
+  }
+
+  var candidate = getOptionValue(props, option);
+  return selectValue.some(function (i) {
+    return getOptionValue(props, i) === candidate;
+  });
+}
+
+function _filterOption(props, option, inputValue) {
+  return props.filterOption ? props.filterOption(option, inputValue) : true;
+}
+
+var shouldHideSelectedOptions = function shouldHideSelectedOptions(props) {
+  var hideSelectedOptions = props.hideSelectedOptions,
+      isMulti = props.isMulti;
+  if (hideSelectedOptions === undefined) return isMulti;
+  return hideSelectedOptions;
+};
+
+var instanceId = 1;
+
+var Select = /*#__PURE__*/function (_Component) {
+  (0,_babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_3__["default"])(Select, _Component);
+
+  var _super = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__._)(Select);
+
+  // Misc. Instance Properties
+  // ------------------------------
+  // TODO
+  // Refs
+  // ------------------------------
+  // Lifecycle
+  // ------------------------------
+  function Select(_props) {
+    var _this;
+
+    (0,_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, Select);
+
+    _this = _super.call(this, _props);
+    _this.state = {
+      ariaSelection: null,
+      focusedOption: null,
+      focusedValue: null,
+      inputIsHidden: false,
+      isFocused: false,
+      selectValue: [],
+      clearFocusValueOnUpdate: false,
+      prevWasFocused: false,
+      inputIsHiddenAfterUpdate: undefined,
+      prevProps: undefined
+    };
+    _this.blockOptionHover = false;
+    _this.isComposing = false;
+    _this.commonProps = void 0;
+    _this.initialTouchX = 0;
+    _this.initialTouchY = 0;
+    _this.instancePrefix = '';
+    _this.openAfterFocus = false;
+    _this.scrollToFocusedOptionOnUpdate = false;
+    _this.userIsDragging = void 0;
+    _this.controlRef = null;
+
+    _this.getControlRef = function (ref) {
+      _this.controlRef = ref;
+    };
+
+    _this.focusedOptionRef = null;
+
+    _this.getFocusedOptionRef = function (ref) {
+      _this.focusedOptionRef = ref;
+    };
+
+    _this.menuListRef = null;
+
+    _this.getMenuListRef = function (ref) {
+      _this.menuListRef = ref;
+    };
+
+    _this.inputRef = null;
+
+    _this.getInputRef = function (ref) {
+      _this.inputRef = ref;
+    };
+
+    _this.focus = _this.focusInput;
+    _this.blur = _this.blurInput;
+
+    _this.onChange = function (newValue, actionMeta) {
+      var _this$props = _this.props,
+          onChange = _this$props.onChange,
+          name = _this$props.name;
+      actionMeta.name = name;
+
+      _this.ariaOnChange(newValue, actionMeta);
+
+      onChange(newValue, actionMeta);
+    };
+
+    _this.setValue = function (newValue, action, option) {
+      var _this$props2 = _this.props,
+          closeMenuOnSelect = _this$props2.closeMenuOnSelect,
+          isMulti = _this$props2.isMulti,
+          inputValue = _this$props2.inputValue;
+
+      _this.onInputChange('', {
+        action: 'set-value',
+        prevInputValue: inputValue
+      });
+
+      if (closeMenuOnSelect) {
+        _this.setState({
+          inputIsHiddenAfterUpdate: !isMulti
+        });
+
+        _this.onMenuClose();
+      } // when the select value should change, we should reset focusedValue
+
+
+      _this.setState({
+        clearFocusValueOnUpdate: true
+      });
+
+      _this.onChange(newValue, {
+        action: action,
+        option: option
+      });
+    };
+
+    _this.selectOption = function (newValue) {
+      var _this$props3 = _this.props,
+          blurInputOnSelect = _this$props3.blurInputOnSelect,
+          isMulti = _this$props3.isMulti,
+          name = _this$props3.name;
+      var selectValue = _this.state.selectValue;
+
+      var deselected = isMulti && _this.isOptionSelected(newValue, selectValue);
+
+      var isDisabled = _this.isOptionDisabled(newValue, selectValue);
+
+      if (deselected) {
+        var candidate = _this.getOptionValue(newValue);
+
+        _this.setValue((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.C)(selectValue.filter(function (i) {
+          return _this.getOptionValue(i) !== candidate;
+        })), 'deselect-option', newValue);
+      } else if (!isDisabled) {
+        // Select option if option is not disabled
+        if (isMulti) {
+          _this.setValue((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.C)([].concat((0,_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_4__["default"])(selectValue), [newValue])), 'select-option', newValue);
+        } else {
+          _this.setValue((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.D)(newValue), 'select-option');
+        }
+      } else {
+        _this.ariaOnChange((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.D)(newValue), {
+          action: 'select-option',
+          option: newValue,
+          name: name
+        });
+
+        return;
+      }
+
+      if (blurInputOnSelect) {
+        _this.blurInput();
+      }
+    };
+
+    _this.removeValue = function (removedValue) {
+      var isMulti = _this.props.isMulti;
+      var selectValue = _this.state.selectValue;
+
+      var candidate = _this.getOptionValue(removedValue);
+
+      var newValueArray = selectValue.filter(function (i) {
+        return _this.getOptionValue(i) !== candidate;
+      });
+      var newValue = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.E)(isMulti, newValueArray, newValueArray[0] || null);
+
+      _this.onChange(newValue, {
+        action: 'remove-value',
+        removedValue: removedValue
+      });
+
+      _this.focusInput();
+    };
+
+    _this.clearValue = function () {
+      var selectValue = _this.state.selectValue;
+
+      _this.onChange((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.E)(_this.props.isMulti, [], null), {
+        action: 'clear',
+        removedValues: selectValue
+      });
+    };
+
+    _this.popValue = function () {
+      var isMulti = _this.props.isMulti;
+      var selectValue = _this.state.selectValue;
+      var lastSelectedValue = selectValue[selectValue.length - 1];
+      var newValueArray = selectValue.slice(0, selectValue.length - 1);
+      var newValue = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.E)(isMulti, newValueArray, newValueArray[0] || null);
+
+      _this.onChange(newValue, {
+        action: 'pop-value',
+        removedValue: lastSelectedValue
+      });
+    };
+
+    _this.getValue = function () {
+      return _this.state.selectValue;
+    };
+
+    _this.cx = function () {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      return _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.F.apply(void 0, [_this.props.classNamePrefix].concat(args));
+    };
+
+    _this.getOptionLabel = function (data) {
+      return getOptionLabel(_this.props, data);
+    };
+
+    _this.getOptionValue = function (data) {
+      return getOptionValue(_this.props, data);
+    };
+
+    _this.getStyles = function (key, props) {
+      var base = defaultStyles[key](props);
+      base.boxSizing = 'border-box';
+      var custom = _this.props.styles[key];
+      return custom ? custom(base, props) : base;
+    };
+
+    _this.getElementId = function (element) {
+      return "".concat(_this.instancePrefix, "-").concat(element);
+    };
+
+    _this.getComponents = function () {
+      return (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.G)(_this.props);
+    };
+
+    _this.buildCategorizedOptions = function () {
+      return buildCategorizedOptions(_this.props, _this.state.selectValue);
+    };
+
+    _this.getCategorizedOptions = function () {
+      return _this.props.menuIsOpen ? _this.buildCategorizedOptions() : [];
+    };
+
+    _this.buildFocusableOptions = function () {
+      return buildFocusableOptionsFromCategorizedOptions(_this.buildCategorizedOptions());
+    };
+
+    _this.getFocusableOptions = function () {
+      return _this.props.menuIsOpen ? _this.buildFocusableOptions() : [];
+    };
+
+    _this.ariaOnChange = function (value, actionMeta) {
+      _this.setState({
+        ariaSelection: (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({
+          value: value
+        }, actionMeta)
+      });
+    };
+
+    _this.onMenuMouseDown = function (event) {
+      if (event.button !== 0) {
+        return;
+      }
+
+      event.stopPropagation();
+      event.preventDefault();
+
+      _this.focusInput();
+    };
+
+    _this.onMenuMouseMove = function (event) {
+      _this.blockOptionHover = false;
+    };
+
+    _this.onControlMouseDown = function (event) {
+      // Event captured by dropdown indicator
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      var openMenuOnClick = _this.props.openMenuOnClick;
+
+      if (!_this.state.isFocused) {
+        if (openMenuOnClick) {
+          _this.openAfterFocus = true;
+        }
+
+        _this.focusInput();
+      } else if (!_this.props.menuIsOpen) {
+        if (openMenuOnClick) {
+          _this.openMenu('first');
+        }
+      } else {
+        if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+          _this.onMenuClose();
+        }
+      }
+
+      if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+        event.preventDefault();
+      }
+    };
+
+    _this.onDropdownIndicatorMouseDown = function (event) {
+      // ignore mouse events that weren't triggered by the primary button
+      if (event && event.type === 'mousedown' && event.button !== 0) {
+        return;
+      }
+
+      if (_this.props.isDisabled) return;
+      var _this$props4 = _this.props,
+          isMulti = _this$props4.isMulti,
+          menuIsOpen = _this$props4.menuIsOpen;
+
+      _this.focusInput();
+
+      if (menuIsOpen) {
+        _this.setState({
+          inputIsHiddenAfterUpdate: !isMulti
+        });
+
+        _this.onMenuClose();
+      } else {
+        _this.openMenu('first');
+      }
+
+      event.preventDefault();
+    };
+
+    _this.onClearIndicatorMouseDown = function (event) {
+      // ignore mouse events that weren't triggered by the primary button
+      if (event && event.type === 'mousedown' && event.button !== 0) {
+        return;
+      }
+
+      _this.clearValue();
+
+      event.preventDefault();
+      _this.openAfterFocus = false;
+
+      if (event.type === 'touchend') {
+        _this.focusInput();
+      } else {
+        setTimeout(function () {
+          return _this.focusInput();
+        });
+      }
+    };
+
+    _this.onScroll = function (event) {
+      if (typeof _this.props.closeMenuOnScroll === 'boolean') {
+        if (event.target instanceof HTMLElement && (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.I)(event.target)) {
+          _this.props.onMenuClose();
+        }
+      } else if (typeof _this.props.closeMenuOnScroll === 'function') {
+        if (_this.props.closeMenuOnScroll(event)) {
+          _this.props.onMenuClose();
+        }
+      }
+    };
+
+    _this.onCompositionStart = function () {
+      _this.isComposing = true;
+    };
+
+    _this.onCompositionEnd = function () {
+      _this.isComposing = false;
+    };
+
+    _this.onTouchStart = function (_ref2) {
+      var touches = _ref2.touches;
+      var touch = touches && touches.item(0);
+
+      if (!touch) {
+        return;
+      }
+
+      _this.initialTouchX = touch.clientX;
+      _this.initialTouchY = touch.clientY;
+      _this.userIsDragging = false;
+    };
+
+    _this.onTouchMove = function (_ref3) {
+      var touches = _ref3.touches;
+      var touch = touches && touches.item(0);
+
+      if (!touch) {
+        return;
+      }
+
+      var deltaX = Math.abs(touch.clientX - _this.initialTouchX);
+      var deltaY = Math.abs(touch.clientY - _this.initialTouchY);
+      var moveThreshold = 5;
+      _this.userIsDragging = deltaX > moveThreshold || deltaY > moveThreshold;
+    };
+
+    _this.onTouchEnd = function (event) {
+      if (_this.userIsDragging) return; // close the menu if the user taps outside
+      // we're checking on event.target here instead of event.currentTarget, because we want to assert information
+      // on events on child elements, not the document (which we've attached this handler to).
+
+      if (_this.controlRef && !_this.controlRef.contains(event.target) && _this.menuListRef && !_this.menuListRef.contains(event.target)) {
+        _this.blurInput();
+      } // reset move vars
+
+
+      _this.initialTouchX = 0;
+      _this.initialTouchY = 0;
+    };
+
+    _this.onControlTouchEnd = function (event) {
+      if (_this.userIsDragging) return;
+
+      _this.onControlMouseDown(event);
+    };
+
+    _this.onClearIndicatorTouchEnd = function (event) {
+      if (_this.userIsDragging) return;
+
+      _this.onClearIndicatorMouseDown(event);
+    };
+
+    _this.onDropdownIndicatorTouchEnd = function (event) {
+      if (_this.userIsDragging) return;
+
+      _this.onDropdownIndicatorMouseDown(event);
+    };
+
+    _this.handleInputChange = function (event) {
+      var prevInputValue = _this.props.inputValue;
+      var inputValue = event.currentTarget.value;
+
+      _this.setState({
+        inputIsHiddenAfterUpdate: false
+      });
+
+      _this.onInputChange(inputValue, {
+        action: 'input-change',
+        prevInputValue: prevInputValue
+      });
+
+      if (!_this.props.menuIsOpen) {
+        _this.onMenuOpen();
+      }
+    };
+
+    _this.onInputFocus = function (event) {
+      if (_this.props.onFocus) {
+        _this.props.onFocus(event);
+      }
+
+      _this.setState({
+        inputIsHiddenAfterUpdate: false,
+        isFocused: true
+      });
+
+      if (_this.openAfterFocus || _this.props.openMenuOnFocus) {
+        _this.openMenu('first');
+      }
+
+      _this.openAfterFocus = false;
+    };
+
+    _this.onInputBlur = function (event) {
+      var prevInputValue = _this.props.inputValue;
+
+      if (_this.menuListRef && _this.menuListRef.contains(document.activeElement)) {
+        _this.inputRef.focus();
+
+        return;
+      }
+
+      if (_this.props.onBlur) {
+        _this.props.onBlur(event);
+      }
+
+      _this.onInputChange('', {
+        action: 'input-blur',
+        prevInputValue: prevInputValue
+      });
+
+      _this.onMenuClose();
+
+      _this.setState({
+        focusedValue: null,
+        isFocused: false
+      });
+    };
+
+    _this.onOptionHover = function (focusedOption) {
+      if (_this.blockOptionHover || _this.state.focusedOption === focusedOption) {
+        return;
+      }
+
+      _this.setState({
+        focusedOption: focusedOption
+      });
+    };
+
+    _this.shouldHideSelectedOptions = function () {
+      return shouldHideSelectedOptions(_this.props);
+    };
+
+    _this.onKeyDown = function (event) {
+      var _this$props5 = _this.props,
+          isMulti = _this$props5.isMulti,
+          backspaceRemovesValue = _this$props5.backspaceRemovesValue,
+          escapeClearsValue = _this$props5.escapeClearsValue,
+          inputValue = _this$props5.inputValue,
+          isClearable = _this$props5.isClearable,
+          isDisabled = _this$props5.isDisabled,
+          menuIsOpen = _this$props5.menuIsOpen,
+          onKeyDown = _this$props5.onKeyDown,
+          tabSelectsValue = _this$props5.tabSelectsValue,
+          openMenuOnFocus = _this$props5.openMenuOnFocus;
+      var _this$state = _this.state,
+          focusedOption = _this$state.focusedOption,
+          focusedValue = _this$state.focusedValue,
+          selectValue = _this$state.selectValue;
+      if (isDisabled) return;
+
+      if (typeof onKeyDown === 'function') {
+        onKeyDown(event);
+
+        if (event.defaultPrevented) {
+          return;
+        }
+      } // Block option hover events when the user has just pressed a key
+
+
+      _this.blockOptionHover = true;
+
+      switch (event.key) {
+        case 'ArrowLeft':
+          if (!isMulti || inputValue) return;
+
+          _this.focusValue('previous');
+
+          break;
+
+        case 'ArrowRight':
+          if (!isMulti || inputValue) return;
+
+          _this.focusValue('next');
+
+          break;
+
+        case 'Delete':
+        case 'Backspace':
+          if (inputValue) return;
+
+          if (focusedValue) {
+            _this.removeValue(focusedValue);
+          } else {
+            if (!backspaceRemovesValue) return;
+
+            if (isMulti) {
+              _this.popValue();
+            } else if (isClearable) {
+              _this.clearValue();
+            }
+          }
+
+          break;
+
+        case 'Tab':
+          if (_this.isComposing) return;
+
+          if (event.shiftKey || !menuIsOpen || !tabSelectsValue || !focusedOption || // don't capture the event if the menu opens on focus and the focused
+          // option is already selected; it breaks the flow of navigation
+          openMenuOnFocus && _this.isOptionSelected(focusedOption, selectValue)) {
+            return;
+          }
+
+          _this.selectOption(focusedOption);
+
+          break;
+
+        case 'Enter':
+          if (event.keyCode === 229) {
+            // ignore the keydown event from an Input Method Editor(IME)
+            // ref. https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode
+            break;
+          }
+
+          if (menuIsOpen) {
+            if (!focusedOption) return;
+            if (_this.isComposing) return;
+
+            _this.selectOption(focusedOption);
+
+            break;
+          }
+
+          return;
+
+        case 'Escape':
+          if (menuIsOpen) {
+            _this.setState({
+              inputIsHiddenAfterUpdate: false
+            });
+
+            _this.onInputChange('', {
+              action: 'menu-close',
+              prevInputValue: inputValue
+            });
+
+            _this.onMenuClose();
+          } else if (isClearable && escapeClearsValue) {
+            _this.clearValue();
+          }
+
+          break;
+
+        case ' ':
+          // space
+          if (inputValue) {
+            return;
+          }
+
+          if (!menuIsOpen) {
+            _this.openMenu('first');
+
+            break;
+          }
+
+          if (!focusedOption) return;
+
+          _this.selectOption(focusedOption);
+
+          break;
+
+        case 'ArrowUp':
+          if (menuIsOpen) {
+            _this.focusOption('up');
+          } else {
+            _this.openMenu('last');
+          }
+
+          break;
+
+        case 'ArrowDown':
+          if (menuIsOpen) {
+            _this.focusOption('down');
+          } else {
+            _this.openMenu('first');
+          }
+
+          break;
+
+        case 'PageUp':
+          if (!menuIsOpen) return;
+
+          _this.focusOption('pageup');
+
+          break;
+
+        case 'PageDown':
+          if (!menuIsOpen) return;
+
+          _this.focusOption('pagedown');
+
+          break;
+
+        case 'Home':
+          if (!menuIsOpen) return;
+
+          _this.focusOption('first');
+
+          break;
+
+        case 'End':
+          if (!menuIsOpen) return;
+
+          _this.focusOption('last');
+
+          break;
+
+        default:
+          return;
+      }
+
+      event.preventDefault();
+    };
+
+    _this.instancePrefix = 'react-select-' + (_this.props.instanceId || ++instanceId);
+    _this.state.selectValue = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.J)(_props.value);
+    return _this;
+  }
+
+  (0,_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(Select, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      this.startListeningComposition();
+      this.startListeningToTouch();
+
+      if (this.props.closeMenuOnScroll && document && document.addEventListener) {
+        // Listen to all scroll events, and filter them out inside of 'onScroll'
+        document.addEventListener('scroll', this.onScroll, true);
+      }
+
+      if (this.props.autoFocus) {
+        this.focusInput();
+      }
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate(prevProps) {
+      var _this$props6 = this.props,
+          isDisabled = _this$props6.isDisabled,
+          menuIsOpen = _this$props6.menuIsOpen;
+      var isFocused = this.state.isFocused;
+
+      if ( // ensure focus is restored correctly when the control becomes enabled
+      isFocused && !isDisabled && prevProps.isDisabled || // ensure focus is on the Input when the menu opens
+      isFocused && menuIsOpen && !prevProps.menuIsOpen) {
+        this.focusInput();
+      }
+
+      if (isFocused && isDisabled && !prevProps.isDisabled) {
+        // ensure select state gets blurred in case Select is programmatically disabled while focused
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+          isFocused: false
+        }, this.onMenuClose);
+      } // scroll the focused option into view if necessary
+
+
+      if (this.menuListRef && this.focusedOptionRef && this.scrollToFocusedOptionOnUpdate) {
+        (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.K)(this.menuListRef, this.focusedOptionRef);
+        this.scrollToFocusedOptionOnUpdate = false;
+      }
+    }
+  }, {
+    key: "componentWillUnmount",
+    value: function componentWillUnmount() {
+      this.stopListeningComposition();
+      this.stopListeningToTouch();
+      document.removeEventListener('scroll', this.onScroll, true);
+    } // ==============================
+    // Consumer Handlers
+    // ==============================
+
+  }, {
+    key: "onMenuOpen",
+    value: function onMenuOpen() {
+      this.props.onMenuOpen();
+    }
+  }, {
+    key: "onMenuClose",
+    value: function onMenuClose() {
+      this.onInputChange('', {
+        action: 'menu-close',
+        prevInputValue: this.props.inputValue
+      });
+      this.props.onMenuClose();
+    }
+  }, {
+    key: "onInputChange",
+    value: function onInputChange(newValue, actionMeta) {
+      this.props.onInputChange(newValue, actionMeta);
+    } // ==============================
+    // Methods
+    // ==============================
+
+  }, {
+    key: "focusInput",
+    value: function focusInput() {
+      if (!this.inputRef) return;
+      this.inputRef.focus();
+    }
+  }, {
+    key: "blurInput",
+    value: function blurInput() {
+      if (!this.inputRef) return;
+      this.inputRef.blur();
+    } // aliased for consumers
+
+  }, {
+    key: "openMenu",
+    value: function openMenu(focusOption) {
+      var _this2 = this;
+
+      var _this$state2 = this.state,
+          selectValue = _this$state2.selectValue,
+          isFocused = _this$state2.isFocused;
+      var focusableOptions = this.buildFocusableOptions();
+      var openAtIndex = focusOption === 'first' ? 0 : focusableOptions.length - 1;
+
+      if (!this.props.isMulti) {
+        var selectedIndex = focusableOptions.indexOf(selectValue[0]);
+
+        if (selectedIndex > -1) {
+          openAtIndex = selectedIndex;
+        }
+      } // only scroll if the menu isn't already open
+
+
+      this.scrollToFocusedOptionOnUpdate = !(isFocused && this.menuListRef);
+      this.setState({
+        inputIsHiddenAfterUpdate: false,
+        focusedValue: null,
+        focusedOption: focusableOptions[openAtIndex]
+      }, function () {
+        return _this2.onMenuOpen();
+      });
+    }
+  }, {
+    key: "focusValue",
+    value: function focusValue(direction) {
+      var _this$state3 = this.state,
+          selectValue = _this$state3.selectValue,
+          focusedValue = _this$state3.focusedValue; // Only multiselects support value focusing
+
+      if (!this.props.isMulti) return;
+      this.setState({
+        focusedOption: null
+      });
+      var focusedIndex = selectValue.indexOf(focusedValue);
+
+      if (!focusedValue) {
+        focusedIndex = -1;
+      }
+
+      var lastIndex = selectValue.length - 1;
+      var nextFocus = -1;
+      if (!selectValue.length) return;
+
+      switch (direction) {
+        case 'previous':
+          if (focusedIndex === 0) {
+            // don't cycle from the start to the end
+            nextFocus = 0;
+          } else if (focusedIndex === -1) {
+            // if nothing is focused, focus the last value first
+            nextFocus = lastIndex;
+          } else {
+            nextFocus = focusedIndex - 1;
+          }
+
+          break;
+
+        case 'next':
+          if (focusedIndex > -1 && focusedIndex < lastIndex) {
+            nextFocus = focusedIndex + 1;
+          }
+
+          break;
+      }
+
+      this.setState({
+        inputIsHidden: nextFocus !== -1,
+        focusedValue: selectValue[nextFocus]
+      });
+    }
+  }, {
+    key: "focusOption",
+    value: function focusOption() {
+      var direction = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'first';
+      var pageSize = this.props.pageSize;
+      var focusedOption = this.state.focusedOption;
+      var options = this.getFocusableOptions();
+      if (!options.length) return;
+      var nextFocus = 0; // handles 'first'
+
+      var focusedIndex = options.indexOf(focusedOption);
+
+      if (!focusedOption) {
+        focusedIndex = -1;
+      }
+
+      if (direction === 'up') {
+        nextFocus = focusedIndex > 0 ? focusedIndex - 1 : options.length - 1;
+      } else if (direction === 'down') {
+        nextFocus = (focusedIndex + 1) % options.length;
+      } else if (direction === 'pageup') {
+        nextFocus = focusedIndex - pageSize;
+        if (nextFocus < 0) nextFocus = 0;
+      } else if (direction === 'pagedown') {
+        nextFocus = focusedIndex + pageSize;
+        if (nextFocus > options.length - 1) nextFocus = options.length - 1;
+      } else if (direction === 'last') {
+        nextFocus = options.length - 1;
+      }
+
+      this.scrollToFocusedOptionOnUpdate = true;
+      this.setState({
+        focusedOption: options[nextFocus],
+        focusedValue: null
+      });
+    }
+  }, {
+    key: "getTheme",
+    value: // ==============================
+    // Getters
+    // ==============================
+    function getTheme() {
+      // Use the default theme if there are no customizations.
+      if (!this.props.theme) {
+        return defaultTheme;
+      } // If the theme prop is a function, assume the function
+      // knows how to merge the passed-in default theme with
+      // its own modifications.
+
+
+      if (typeof this.props.theme === 'function') {
+        return this.props.theme(defaultTheme);
+      } // Otherwise, if a plain theme object was passed in,
+      // overlay it with the default theme.
+
+
+      return (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({}, defaultTheme), this.props.theme);
+    }
+  }, {
+    key: "getCommonProps",
+    value: function getCommonProps() {
+      var clearValue = this.clearValue,
+          cx = this.cx,
+          getStyles = this.getStyles,
+          getValue = this.getValue,
+          selectOption = this.selectOption,
+          setValue = this.setValue,
+          props = this.props;
+      var isMulti = props.isMulti,
+          isRtl = props.isRtl,
+          options = props.options;
+      var hasValue = this.hasValue();
+      return {
+        clearValue: clearValue,
+        cx: cx,
+        getStyles: getStyles,
+        getValue: getValue,
+        hasValue: hasValue,
+        isMulti: isMulti,
+        isRtl: isRtl,
+        options: options,
+        selectOption: selectOption,
+        selectProps: props,
+        setValue: setValue,
+        theme: this.getTheme()
+      };
+    }
+  }, {
+    key: "hasValue",
+    value: function hasValue() {
+      var selectValue = this.state.selectValue;
+      return selectValue.length > 0;
+    }
+  }, {
+    key: "hasOptions",
+    value: function hasOptions() {
+      return !!this.getFocusableOptions().length;
+    }
+  }, {
+    key: "isClearable",
+    value: function isClearable() {
+      var _this$props7 = this.props,
+          isClearable = _this$props7.isClearable,
+          isMulti = _this$props7.isMulti; // single select, by default, IS NOT clearable
+      // multi select, by default, IS clearable
+
+      if (isClearable === undefined) return isMulti;
+      return isClearable;
+    }
+  }, {
+    key: "isOptionDisabled",
+    value: function isOptionDisabled(option, selectValue) {
+      return _isOptionDisabled(this.props, option, selectValue);
+    }
+  }, {
+    key: "isOptionSelected",
+    value: function isOptionSelected(option, selectValue) {
+      return _isOptionSelected(this.props, option, selectValue);
+    }
+  }, {
+    key: "filterOption",
+    value: function filterOption(option, inputValue) {
+      return _filterOption(this.props, option, inputValue);
+    }
+  }, {
+    key: "formatOptionLabel",
+    value: function formatOptionLabel(data, context) {
+      if (typeof this.props.formatOptionLabel === 'function') {
+        var _inputValue = this.props.inputValue;
+        var _selectValue = this.state.selectValue;
+        return this.props.formatOptionLabel(data, {
+          context: context,
+          inputValue: _inputValue,
+          selectValue: _selectValue
+        });
+      } else {
+        return this.getOptionLabel(data);
+      }
+    }
+  }, {
+    key: "formatGroupLabel",
+    value: function formatGroupLabel(data) {
+      return this.props.formatGroupLabel(data);
+    } // ==============================
+    // Mouse Handlers
+    // ==============================
+
+  }, {
+    key: "startListeningComposition",
+    value: // ==============================
+    // Composition Handlers
+    // ==============================
+    function startListeningComposition() {
+      if (document && document.addEventListener) {
+        document.addEventListener('compositionstart', this.onCompositionStart, false);
+        document.addEventListener('compositionend', this.onCompositionEnd, false);
+      }
+    }
+  }, {
+    key: "stopListeningComposition",
+    value: function stopListeningComposition() {
+      if (document && document.removeEventListener) {
+        document.removeEventListener('compositionstart', this.onCompositionStart);
+        document.removeEventListener('compositionend', this.onCompositionEnd);
+      }
+    }
+  }, {
+    key: "startListeningToTouch",
+    value: // ==============================
+    // Touch Handlers
+    // ==============================
+    function startListeningToTouch() {
+      if (document && document.addEventListener) {
+        document.addEventListener('touchstart', this.onTouchStart, false);
+        document.addEventListener('touchmove', this.onTouchMove, false);
+        document.addEventListener('touchend', this.onTouchEnd, false);
+      }
+    }
+  }, {
+    key: "stopListeningToTouch",
+    value: function stopListeningToTouch() {
+      if (document && document.removeEventListener) {
+        document.removeEventListener('touchstart', this.onTouchStart);
+        document.removeEventListener('touchmove', this.onTouchMove);
+        document.removeEventListener('touchend', this.onTouchEnd);
+      }
+    }
+  }, {
+    key: "renderInput",
+    value: // ==============================
+    // Renderers
+    // ==============================
+    function renderInput() {
+      var _this$props8 = this.props,
+          isDisabled = _this$props8.isDisabled,
+          isSearchable = _this$props8.isSearchable,
+          inputId = _this$props8.inputId,
+          inputValue = _this$props8.inputValue,
+          tabIndex = _this$props8.tabIndex,
+          form = _this$props8.form,
+          menuIsOpen = _this$props8.menuIsOpen;
+
+      var _this$getComponents = this.getComponents(),
+          Input = _this$getComponents.Input;
+
+      var _this$state4 = this.state,
+          inputIsHidden = _this$state4.inputIsHidden,
+          ariaSelection = _this$state4.ariaSelection;
+      var commonProps = this.commonProps;
+      var id = inputId || this.getElementId('input'); // aria attributes makes the JSX "noisy", separated for clarity
+
+      var ariaAttributes = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({
+        'aria-autocomplete': 'list',
+        'aria-expanded': menuIsOpen,
+        'aria-haspopup': true,
+        'aria-errormessage': this.props['aria-errormessage'],
+        'aria-invalid': this.props['aria-invalid'],
+        'aria-label': this.props['aria-label'],
+        'aria-labelledby': this.props['aria-labelledby'],
+        role: 'combobox'
+      }, menuIsOpen && {
+        'aria-controls': this.getElementId('listbox'),
+        'aria-owns': this.getElementId('listbox')
+      }), !isSearchable && {
+        'aria-readonly': true
+      }), this.hasValue() ? (ariaSelection === null || ariaSelection === void 0 ? void 0 : ariaSelection.action) === 'initial-input-focus' && {
+        'aria-describedby': this.getElementId('live-region')
+      } : {
+        'aria-describedby': this.getElementId('placeholder')
+      });
+
+      if (!isSearchable) {
+        // use a dummy input to maintain focus/blur functionality
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(DummyInput, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+          id: id,
+          innerRef: this.getInputRef,
+          onBlur: this.onInputBlur,
+          onChange: _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.L,
+          onFocus: this.onInputFocus,
+          disabled: isDisabled,
+          tabIndex: tabIndex,
+          inputMode: "none",
+          form: form,
+          value: ""
+        }, ariaAttributes));
+      }
+
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(Input, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        autoCapitalize: "none",
+        autoComplete: "off",
+        autoCorrect: "off",
+        id: id,
+        innerRef: this.getInputRef,
+        isDisabled: isDisabled,
+        isHidden: inputIsHidden,
+        onBlur: this.onInputBlur,
+        onChange: this.handleInputChange,
+        onFocus: this.onInputFocus,
+        spellCheck: "false",
+        tabIndex: tabIndex,
+        form: form,
+        type: "text",
+        value: inputValue
+      }, ariaAttributes));
+    }
+  }, {
+    key: "renderPlaceholderOrValue",
+    value: function renderPlaceholderOrValue() {
+      var _this3 = this;
+
+      var _this$getComponents2 = this.getComponents(),
+          MultiValue = _this$getComponents2.MultiValue,
+          MultiValueContainer = _this$getComponents2.MultiValueContainer,
+          MultiValueLabel = _this$getComponents2.MultiValueLabel,
+          MultiValueRemove = _this$getComponents2.MultiValueRemove,
+          SingleValue = _this$getComponents2.SingleValue,
+          Placeholder = _this$getComponents2.Placeholder;
+
+      var commonProps = this.commonProps;
+      var _this$props9 = this.props,
+          controlShouldRenderValue = _this$props9.controlShouldRenderValue,
+          isDisabled = _this$props9.isDisabled,
+          isMulti = _this$props9.isMulti,
+          inputValue = _this$props9.inputValue,
+          placeholder = _this$props9.placeholder;
+      var _this$state5 = this.state,
+          selectValue = _this$state5.selectValue,
+          focusedValue = _this$state5.focusedValue,
+          isFocused = _this$state5.isFocused;
+
+      if (!this.hasValue() || !controlShouldRenderValue) {
+        return inputValue ? null : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(Placeholder, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+          key: "placeholder",
+          isDisabled: isDisabled,
+          isFocused: isFocused,
+          innerProps: {
+            id: this.getElementId('placeholder')
+          }
+        }), placeholder);
+      }
+
+      if (isMulti) {
+        return selectValue.map(function (opt, index) {
+          var isOptionFocused = opt === focusedValue;
+          var key = "".concat(_this3.getOptionLabel(opt), "-").concat(_this3.getOptionValue(opt));
+          return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(MultiValue, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+            components: {
+              Container: MultiValueContainer,
+              Label: MultiValueLabel,
+              Remove: MultiValueRemove
+            },
+            isFocused: isOptionFocused,
+            isDisabled: isDisabled,
+            key: key,
+            index: index,
+            removeProps: {
+              onClick: function onClick() {
+                return _this3.removeValue(opt);
+              },
+              onTouchEnd: function onTouchEnd() {
+                return _this3.removeValue(opt);
+              },
+              onMouseDown: function onMouseDown(e) {
+                e.preventDefault();
+              }
+            },
+            data: opt
+          }), _this3.formatOptionLabel(opt, 'value'));
+        });
+      }
+
+      if (inputValue) {
+        return null;
+      }
+
+      var singleValue = selectValue[0];
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(SingleValue, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        data: singleValue,
+        isDisabled: isDisabled
+      }), this.formatOptionLabel(singleValue, 'value'));
+    }
+  }, {
+    key: "renderClearIndicator",
+    value: function renderClearIndicator() {
+      var _this$getComponents3 = this.getComponents(),
+          ClearIndicator = _this$getComponents3.ClearIndicator;
+
+      var commonProps = this.commonProps;
+      var _this$props10 = this.props,
+          isDisabled = _this$props10.isDisabled,
+          isLoading = _this$props10.isLoading;
+      var isFocused = this.state.isFocused;
+
+      if (!this.isClearable() || !ClearIndicator || isDisabled || !this.hasValue() || isLoading) {
+        return null;
+      }
+
+      var innerProps = {
+        onMouseDown: this.onClearIndicatorMouseDown,
+        onTouchEnd: this.onClearIndicatorTouchEnd,
+        'aria-hidden': 'true'
+      };
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(ClearIndicator, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        innerProps: innerProps,
+        isFocused: isFocused
+      }));
+    }
+  }, {
+    key: "renderLoadingIndicator",
+    value: function renderLoadingIndicator() {
+      var _this$getComponents4 = this.getComponents(),
+          LoadingIndicator = _this$getComponents4.LoadingIndicator;
+
+      var commonProps = this.commonProps;
+      var _this$props11 = this.props,
+          isDisabled = _this$props11.isDisabled,
+          isLoading = _this$props11.isLoading;
+      var isFocused = this.state.isFocused;
+      if (!LoadingIndicator || !isLoading) return null;
+      var innerProps = {
+        'aria-hidden': 'true'
+      };
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(LoadingIndicator, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        innerProps: innerProps,
+        isDisabled: isDisabled,
+        isFocused: isFocused
+      }));
+    }
+  }, {
+    key: "renderIndicatorSeparator",
+    value: function renderIndicatorSeparator() {
+      var _this$getComponents5 = this.getComponents(),
+          DropdownIndicator = _this$getComponents5.DropdownIndicator,
+          IndicatorSeparator = _this$getComponents5.IndicatorSeparator; // separator doesn't make sense without the dropdown indicator
+
+
+      if (!DropdownIndicator || !IndicatorSeparator) return null;
+      var commonProps = this.commonProps;
+      var isDisabled = this.props.isDisabled;
+      var isFocused = this.state.isFocused;
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(IndicatorSeparator, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        isDisabled: isDisabled,
+        isFocused: isFocused
+      }));
+    }
+  }, {
+    key: "renderDropdownIndicator",
+    value: function renderDropdownIndicator() {
+      var _this$getComponents6 = this.getComponents(),
+          DropdownIndicator = _this$getComponents6.DropdownIndicator;
+
+      if (!DropdownIndicator) return null;
+      var commonProps = this.commonProps;
+      var isDisabled = this.props.isDisabled;
+      var isFocused = this.state.isFocused;
+      var innerProps = {
+        onMouseDown: this.onDropdownIndicatorMouseDown,
+        onTouchEnd: this.onDropdownIndicatorTouchEnd,
+        'aria-hidden': 'true'
+      };
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(DropdownIndicator, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        innerProps: innerProps,
+        isDisabled: isDisabled,
+        isFocused: isFocused
+      }));
+    }
+  }, {
+    key: "renderMenu",
+    value: function renderMenu() {
+      var _this4 = this;
+
+      var _this$getComponents7 = this.getComponents(),
+          Group = _this$getComponents7.Group,
+          GroupHeading = _this$getComponents7.GroupHeading,
+          Menu = _this$getComponents7.Menu,
+          MenuList = _this$getComponents7.MenuList,
+          MenuPortal = _this$getComponents7.MenuPortal,
+          LoadingMessage = _this$getComponents7.LoadingMessage,
+          NoOptionsMessage = _this$getComponents7.NoOptionsMessage,
+          Option = _this$getComponents7.Option;
+
+      var commonProps = this.commonProps;
+      var focusedOption = this.state.focusedOption;
+      var _this$props12 = this.props,
+          captureMenuScroll = _this$props12.captureMenuScroll,
+          inputValue = _this$props12.inputValue,
+          isLoading = _this$props12.isLoading,
+          loadingMessage = _this$props12.loadingMessage,
+          minMenuHeight = _this$props12.minMenuHeight,
+          maxMenuHeight = _this$props12.maxMenuHeight,
+          menuIsOpen = _this$props12.menuIsOpen,
+          menuPlacement = _this$props12.menuPlacement,
+          menuPosition = _this$props12.menuPosition,
+          menuPortalTarget = _this$props12.menuPortalTarget,
+          menuShouldBlockScroll = _this$props12.menuShouldBlockScroll,
+          menuShouldScrollIntoView = _this$props12.menuShouldScrollIntoView,
+          noOptionsMessage = _this$props12.noOptionsMessage,
+          onMenuScrollToTop = _this$props12.onMenuScrollToTop,
+          onMenuScrollToBottom = _this$props12.onMenuScrollToBottom;
+      if (!menuIsOpen) return null; // TODO: Internal Option Type here
+
+      var render = function render(props, id) {
+        var type = props.type,
+            data = props.data,
+            isDisabled = props.isDisabled,
+            isSelected = props.isSelected,
+            label = props.label,
+            value = props.value;
+        var isFocused = focusedOption === data;
+        var onHover = isDisabled ? undefined : function () {
+          return _this4.onOptionHover(data);
+        };
+        var onSelect = isDisabled ? undefined : function () {
+          return _this4.selectOption(data);
+        };
+        var optionId = "".concat(_this4.getElementId('option'), "-").concat(id);
+        var innerProps = {
+          id: optionId,
+          onClick: onSelect,
+          onMouseMove: onHover,
+          onMouseOver: onHover,
+          tabIndex: -1
+        };
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(Option, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+          innerProps: innerProps,
+          data: data,
+          isDisabled: isDisabled,
+          isSelected: isSelected,
+          key: optionId,
+          label: label,
+          type: type,
+          value: value,
+          isFocused: isFocused,
+          innerRef: isFocused ? _this4.getFocusedOptionRef : undefined
+        }), _this4.formatOptionLabel(props.data, 'menu'));
+      };
+
+      var menuUI;
+
+      if (this.hasOptions()) {
+        menuUI = this.getCategorizedOptions().map(function (item) {
+          if (item.type === 'group') {
+            var _data = item.data,
+                options = item.options,
+                groupIndex = item.index;
+            var groupId = "".concat(_this4.getElementId('group'), "-").concat(groupIndex);
+            var headingId = "".concat(groupId, "-heading");
+            return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(Group, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+              key: groupId,
+              data: _data,
+              options: options,
+              Heading: GroupHeading,
+              headingProps: {
+                id: headingId,
+                data: item.data
+              },
+              label: _this4.formatGroupLabel(item.data)
+            }), item.options.map(function (option) {
+              return render(option, "".concat(groupIndex, "-").concat(option.index));
+            }));
+          } else if (item.type === 'option') {
+            return render(item, "".concat(item.index));
+          }
+        });
+      } else if (isLoading) {
+        var message = loadingMessage({
+          inputValue: inputValue
+        });
+        if (message === null) return null;
+        menuUI = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(LoadingMessage, commonProps, message);
+      } else {
+        var _message = noOptionsMessage({
+          inputValue: inputValue
+        });
+
+        if (_message === null) return null;
+        menuUI = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(NoOptionsMessage, commonProps, _message);
+      }
+
+      var menuPlacementProps = {
+        minMenuHeight: minMenuHeight,
+        maxMenuHeight: maxMenuHeight,
+        menuPlacement: menuPlacement,
+        menuPosition: menuPosition,
+        menuShouldScrollIntoView: menuShouldScrollIntoView
+      };
+      var menuElement = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.M, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, menuPlacementProps), function (_ref4) {
+        var ref = _ref4.ref,
+            _ref4$placerProps = _ref4.placerProps,
+            placement = _ref4$placerProps.placement,
+            maxHeight = _ref4$placerProps.maxHeight;
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(Menu, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, menuPlacementProps, {
+          innerRef: ref,
+          innerProps: {
+            onMouseDown: _this4.onMenuMouseDown,
+            onMouseMove: _this4.onMenuMouseMove,
+            id: _this4.getElementId('listbox')
+          },
+          isLoading: isLoading,
+          placement: placement
+        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(ScrollManager, {
+          captureEnabled: captureMenuScroll,
+          onTopArrive: onMenuScrollToTop,
+          onBottomArrive: onMenuScrollToBottom,
+          lockEnabled: menuShouldBlockScroll
+        }, function (scrollTargetRef) {
+          return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(MenuList, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+            innerRef: function innerRef(instance) {
+              _this4.getMenuListRef(instance);
+
+              scrollTargetRef(instance);
+            },
+            isLoading: isLoading,
+            maxHeight: maxHeight,
+            focusedOption: focusedOption
+          }), menuUI);
+        }));
+      }); // positioning behaviour is almost identical for portalled and fixed,
+      // so we use the same component. the actual portalling logic is forked
+      // within the component based on `menuPosition`
+
+      return menuPortalTarget || menuPosition === 'fixed' ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(MenuPortal, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        appendTo: menuPortalTarget,
+        controlElement: this.controlRef,
+        menuPlacement: menuPlacement,
+        menuPosition: menuPosition
+      }), menuElement) : menuElement;
+    }
+  }, {
+    key: "renderFormField",
+    value: function renderFormField() {
+      var _this5 = this;
+
+      var _this$props13 = this.props,
+          delimiter = _this$props13.delimiter,
+          isDisabled = _this$props13.isDisabled,
+          isMulti = _this$props13.isMulti,
+          name = _this$props13.name;
+      var selectValue = this.state.selectValue;
+      if (!name || isDisabled) return;
+
+      if (isMulti) {
+        if (delimiter) {
+          var value = selectValue.map(function (opt) {
+            return _this5.getOptionValue(opt);
+          }).join(delimiter);
+          return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement("input", {
+            name: name,
+            type: "hidden",
+            value: value
+          });
+        } else {
+          var input = selectValue.length > 0 ? selectValue.map(function (opt, i) {
+            return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement("input", {
+              key: "i-".concat(i),
+              name: name,
+              type: "hidden",
+              value: _this5.getOptionValue(opt)
+            });
+          }) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement("input", {
+            name: name,
+            type: "hidden"
+          });
+          return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", null, input);
+        }
+      } else {
+        var _value = selectValue[0] ? this.getOptionValue(selectValue[0]) : '';
+
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement("input", {
+          name: name,
+          type: "hidden",
+          value: _value
+        });
+      }
+    }
+  }, {
+    key: "renderLiveRegion",
+    value: function renderLiveRegion() {
+      var commonProps = this.commonProps;
+      var _this$state6 = this.state,
+          ariaSelection = _this$state6.ariaSelection,
+          focusedOption = _this$state6.focusedOption,
+          focusedValue = _this$state6.focusedValue,
+          isFocused = _this$state6.isFocused,
+          selectValue = _this$state6.selectValue;
+      var focusableOptions = this.getFocusableOptions();
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(LiveRegion, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        id: this.getElementId('live-region'),
+        ariaSelection: ariaSelection,
+        focusedOption: focusedOption,
+        focusedValue: focusedValue,
+        isFocused: isFocused,
+        selectValue: selectValue,
+        focusableOptions: focusableOptions
+      }));
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this$getComponents8 = this.getComponents(),
+          Control = _this$getComponents8.Control,
+          IndicatorsContainer = _this$getComponents8.IndicatorsContainer,
+          SelectContainer = _this$getComponents8.SelectContainer,
+          ValueContainer = _this$getComponents8.ValueContainer;
+
+      var _this$props14 = this.props,
+          className = _this$props14.className,
+          id = _this$props14.id,
+          isDisabled = _this$props14.isDisabled,
+          menuIsOpen = _this$props14.menuIsOpen;
+      var isFocused = this.state.isFocused;
+      var commonProps = this.commonProps = this.getCommonProps();
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(SelectContainer, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        className: className,
+        innerProps: {
+          id: id,
+          onKeyDown: this.onKeyDown
+        },
+        isDisabled: isDisabled,
+        isFocused: isFocused
+      }), this.renderLiveRegion(), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(Control, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        innerRef: this.getControlRef,
+        innerProps: {
+          onMouseDown: this.onControlMouseDown,
+          onTouchEnd: this.onControlTouchEnd
+        },
+        isDisabled: isDisabled,
+        isFocused: isFocused,
+        menuIsOpen: menuIsOpen
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(ValueContainer, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        isDisabled: isDisabled
+      }), this.renderPlaceholderOrValue(), this.renderInput()), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5__.createElement(IndicatorsContainer, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, commonProps, {
+        isDisabled: isDisabled
+      }), this.renderClearIndicator(), this.renderLoadingIndicator(), this.renderIndicatorSeparator(), this.renderDropdownIndicator())), this.renderMenu(), this.renderFormField());
+    }
+  }], [{
+    key: "getDerivedStateFromProps",
+    value: function getDerivedStateFromProps(props, state) {
+      var prevProps = state.prevProps,
+          clearFocusValueOnUpdate = state.clearFocusValueOnUpdate,
+          inputIsHiddenAfterUpdate = state.inputIsHiddenAfterUpdate,
+          ariaSelection = state.ariaSelection,
+          isFocused = state.isFocused,
+          prevWasFocused = state.prevWasFocused;
+      var options = props.options,
+          value = props.value,
+          menuIsOpen = props.menuIsOpen,
+          inputValue = props.inputValue,
+          isMulti = props.isMulti;
+      var selectValue = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.J)(value);
+      var newMenuOptionsState = {};
+
+      if (prevProps && (value !== prevProps.value || options !== prevProps.options || menuIsOpen !== prevProps.menuIsOpen || inputValue !== prevProps.inputValue)) {
+        var focusableOptions = menuIsOpen ? buildFocusableOptions(props, selectValue) : [];
+        var focusedValue = clearFocusValueOnUpdate ? getNextFocusedValue(state, selectValue) : null;
+        var focusedOption = getNextFocusedOption(state, focusableOptions);
+        newMenuOptionsState = {
+          selectValue: selectValue,
+          focusedOption: focusedOption,
+          focusedValue: focusedValue,
+          clearFocusValueOnUpdate: false
+        };
+      } // some updates should toggle the state of the input visibility
+
+
+      var newInputIsHiddenState = inputIsHiddenAfterUpdate != null && props !== prevProps ? {
+        inputIsHidden: inputIsHiddenAfterUpdate,
+        inputIsHiddenAfterUpdate: undefined
+      } : {};
+      var newAriaSelection = ariaSelection;
+      var hasKeptFocus = isFocused && prevWasFocused;
+
+      if (isFocused && !hasKeptFocus) {
+        // If `value` or `defaultValue` props are not empty then announce them
+        // when the Select is initially focused
+        newAriaSelection = {
+          value: (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.E)(isMulti, selectValue, selectValue[0] || null),
+          options: selectValue,
+          action: 'initial-input-focus'
+        };
+        hasKeptFocus = !prevWasFocused;
+      } // If the 'initial-input-focus' action has been set already
+      // then reset the ariaSelection to null
+
+
+      if ((ariaSelection === null || ariaSelection === void 0 ? void 0 : ariaSelection.action) === 'initial-input-focus') {
+        newAriaSelection = null;
+      }
+
+      return (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_8__.a)({}, newMenuOptionsState), newInputIsHiddenState), {}, {
+        prevProps: props,
+        ariaSelection: newAriaSelection,
+        prevWasFocused: hasKeptFocus
+      });
+    }
+  }]);
+
+  return Select;
+}(react__WEBPACK_IMPORTED_MODULE_5__.Component);
+
+Select.defaultProps = defaultProps;
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/react-select/dist/index-a7690a33.esm.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/react-select/dist/index-a7690a33.esm.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "A": () => (/* binding */ isTouchCapable),
+/* harmony export */   "B": () => (/* binding */ isMobileDevice),
+/* harmony export */   "C": () => (/* binding */ multiValueAsValue),
+/* harmony export */   "D": () => (/* binding */ singleValueAsValue),
+/* harmony export */   "E": () => (/* binding */ valueTernary),
+/* harmony export */   "F": () => (/* binding */ classNames),
+/* harmony export */   "G": () => (/* binding */ defaultComponents),
+/* harmony export */   "H": () => (/* binding */ notNullish),
+/* harmony export */   "I": () => (/* binding */ isDocumentElement),
+/* harmony export */   "J": () => (/* binding */ cleanValue),
+/* harmony export */   "K": () => (/* binding */ scrollIntoView),
+/* harmony export */   "L": () => (/* binding */ noop),
+/* harmony export */   "M": () => (/* binding */ MenuPlacer),
+/* harmony export */   "N": () => (/* binding */ handleInputChange),
+/* harmony export */   "_": () => (/* binding */ _createSuper),
+/* harmony export */   "a": () => (/* binding */ _objectSpread2),
+/* harmony export */   "b": () => (/* binding */ clearIndicatorCSS),
+/* harmony export */   "c": () => (/* binding */ components),
+/* harmony export */   "d": () => (/* binding */ containerCSS),
+/* harmony export */   "e": () => (/* binding */ css$1),
+/* harmony export */   "f": () => (/* binding */ dropdownIndicatorCSS),
+/* harmony export */   "g": () => (/* binding */ groupCSS),
+/* harmony export */   "h": () => (/* binding */ groupHeadingCSS),
+/* harmony export */   "i": () => (/* binding */ indicatorsContainerCSS),
+/* harmony export */   "j": () => (/* binding */ indicatorSeparatorCSS),
+/* harmony export */   "k": () => (/* binding */ inputCSS),
+/* harmony export */   "l": () => (/* binding */ loadingIndicatorCSS),
+/* harmony export */   "m": () => (/* binding */ loadingMessageCSS),
+/* harmony export */   "n": () => (/* binding */ menuCSS),
+/* harmony export */   "o": () => (/* binding */ menuListCSS),
+/* harmony export */   "p": () => (/* binding */ menuPortalCSS),
+/* harmony export */   "q": () => (/* binding */ multiValueCSS),
+/* harmony export */   "r": () => (/* binding */ removeProps),
+/* harmony export */   "s": () => (/* binding */ supportsPassiveEvents),
+/* harmony export */   "t": () => (/* binding */ multiValueLabelCSS),
+/* harmony export */   "u": () => (/* binding */ multiValueRemoveCSS),
+/* harmony export */   "v": () => (/* binding */ noOptionsMessageCSS),
+/* harmony export */   "w": () => (/* binding */ optionCSS),
+/* harmony export */   "x": () => (/* binding */ placeholderCSS),
+/* harmony export */   "y": () => (/* binding */ css),
+/* harmony export */   "z": () => (/* binding */ valueContainerCSS)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.browser.esm.js");
+/* harmony import */ var _babel_runtime_helpers_esm_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/taggedTemplateLiteral */ "./node_modules/@babel/runtime/helpers/esm/taggedTemplateLiteral.js");
+/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutProperties */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutProperties.js");
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/esm/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_esm_typeof__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @babel/runtime/helpers/esm/inherits */ "./node_modules/@babel/runtime/helpers/esm/inherits.js");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+
+    if (enumerableOnly) {
+      symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+    }
+
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i] != null ? arguments[i] : {};
+
+    if (i % 2) {
+      ownKeys(Object(source), true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(Object(source)).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
+    }
+  }
+
+  return target;
+}
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _isNativeReflectConstruct() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+
+  try {
+    Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (call && (typeof call === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
+function _createSuper(Derived) {
+  var hasNativeReflectConstruct = _isNativeReflectConstruct();
+  return function _createSuperInternal() {
+    var Super = _getPrototypeOf(Derived),
+        result;
+
+    if (hasNativeReflectConstruct) {
+      var NewTarget = _getPrototypeOf(this).constructor;
+      result = Reflect.construct(Super, arguments, NewTarget);
+    } else {
+      result = Super.apply(this, arguments);
+    }
+
+    return _possibleConstructorReturn(this, result);
+  };
+}
+
+var _excluded$3 = ["className", "clearValue", "cx", "getStyles", "getValue", "hasValue", "isMulti", "isRtl", "options", "selectOption", "selectProps", "setValue", "theme"];
+// ==============================
+// NO OP
+// ==============================
+var noop = function noop() {};
+// Class Name Prefixer
+// ==============================
+
+/**
+ String representation of component state for styling with class names.
+
+ Expects an array of strings OR a string/object pair:
+ - className(['comp', 'comp-arg', 'comp-arg-2'])
+   @returns 'react-select__comp react-select__comp-arg react-select__comp-arg-2'
+ - className('comp', { some: true, state: false })
+   @returns 'react-select__comp react-select__comp--some'
+*/
+
+function applyPrefixToName(prefix, name) {
+  if (!name) {
+    return prefix;
+  } else if (name[0] === '-') {
+    return prefix + name;
+  } else {
+    return prefix + '__' + name;
+  }
+}
+
+function classNames(prefix, state, className) {
+  var arr = [className];
+
+  if (state && prefix) {
+    for (var key in state) {
+      if (state.hasOwnProperty(key) && state[key]) {
+        arr.push("".concat(applyPrefixToName(prefix, key)));
+      }
+    }
+  }
+
+  return arr.filter(function (i) {
+    return i;
+  }).map(function (i) {
+    return String(i).trim();
+  }).join(' ');
+} // ==============================
+// Clean Value
+// ==============================
+
+var cleanValue = function cleanValue(value) {
+  if (isArray(value)) return value.filter(Boolean);
+  if ((0,_babel_runtime_helpers_esm_typeof__WEBPACK_IMPORTED_MODULE_4__["default"])(value) === 'object' && value !== null) return [value];
+  return [];
+}; // ==============================
+// Clean Common Props
+// ==============================
+
+var cleanCommonProps = function cleanCommonProps(props) {
+  //className
+  props.className;
+      props.clearValue;
+      props.cx;
+      props.getStyles;
+      props.getValue;
+      props.hasValue;
+      props.isMulti;
+      props.isRtl;
+      props.options;
+      props.selectOption;
+      props.selectProps;
+      props.setValue;
+      props.theme;
+      var innerProps = (0,_babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_2__["default"])(props, _excluded$3);
+
+  return _objectSpread2({}, innerProps);
+}; // ==============================
+// Handle Input Change
+// ==============================
+
+function handleInputChange(inputValue, actionMeta, onInputChange) {
+  if (onInputChange) {
+    var _newValue = onInputChange(inputValue, actionMeta);
+
+    if (typeof _newValue === 'string') return _newValue;
+  }
+
+  return inputValue;
+} // ==============================
+// Scroll Helpers
+// ==============================
+
+function isDocumentElement(el) {
+  return [document.documentElement, document.body, window].indexOf(el) > -1;
+} // Normalized Scroll Top
+// ------------------------------
+
+function normalizedHeight(el) {
+  if (isDocumentElement(el)) {
+    return window.innerHeight;
+  }
+
+  return el.clientHeight;
+} // Normalized scrollTo & scrollTop
+// ------------------------------
+
+function getScrollTop(el) {
+  if (isDocumentElement(el)) {
+    return window.pageYOffset;
+  }
+
+  return el.scrollTop;
+}
+function scrollTo(el, top) {
+  // with a scroll distance, we perform scroll on the element
+  if (isDocumentElement(el)) {
+    window.scrollTo(0, top);
+    return;
+  }
+
+  el.scrollTop = top;
+} // Get Scroll Parent
+// ------------------------------
+
+function getScrollParent(element) {
+  var style = getComputedStyle(element);
+  var excludeStaticParent = style.position === 'absolute';
+  var overflowRx = /(auto|scroll)/;
+  if (style.position === 'fixed') return document.documentElement;
+
+  for (var parent = element; parent = parent.parentElement;) {
+    style = getComputedStyle(parent);
+
+    if (excludeStaticParent && style.position === 'static') {
+      continue;
+    }
+
+    if (overflowRx.test(style.overflow + style.overflowY + style.overflowX)) {
+      return parent;
+    }
+  }
+
+  return document.documentElement;
+} // Animated Scroll To
+// ------------------------------
+
+/**
+  @param t: time (elapsed)
+  @param b: initial value
+  @param c: amount of change
+  @param d: duration
+*/
+
+function easeOutCubic(t, b, c, d) {
+  return c * ((t = t / d - 1) * t * t + 1) + b;
+}
+
+function animatedScrollTo(element, to) {
+  var duration = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 200;
+  var callback = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : noop;
+  var start = getScrollTop(element);
+  var change = to - start;
+  var increment = 10;
+  var currentTime = 0;
+
+  function animateScroll() {
+    currentTime += increment;
+    var val = easeOutCubic(currentTime, start, change, duration);
+    scrollTo(element, val);
+
+    if (currentTime < duration) {
+      window.requestAnimationFrame(animateScroll);
+    } else {
+      callback(element);
+    }
+  }
+
+  animateScroll();
+} // Scroll Into View
+// ------------------------------
+
+function scrollIntoView(menuEl, focusedEl) {
+  var menuRect = menuEl.getBoundingClientRect();
+  var focusedRect = focusedEl.getBoundingClientRect();
+  var overScroll = focusedEl.offsetHeight / 3;
+
+  if (focusedRect.bottom + overScroll > menuRect.bottom) {
+    scrollTo(menuEl, Math.min(focusedEl.offsetTop + focusedEl.clientHeight - menuEl.offsetHeight + overScroll, menuEl.scrollHeight));
+  } else if (focusedRect.top - overScroll < menuRect.top) {
+    scrollTo(menuEl, Math.max(focusedEl.offsetTop - overScroll, 0));
+  }
+} // ==============================
+// Get bounding client object
+// ==============================
+// cannot get keys using array notation with DOMRect
+
+function getBoundingClientObj(element) {
+  var rect = element.getBoundingClientRect();
+  return {
+    bottom: rect.bottom,
+    height: rect.height,
+    left: rect.left,
+    right: rect.right,
+    top: rect.top,
+    width: rect.width
+  };
+}
+// Touch Capability Detector
+// ==============================
+
+function isTouchCapable() {
+  try {
+    document.createEvent('TouchEvent');
+    return true;
+  } catch (e) {
+    return false;
+  }
+} // ==============================
+// Mobile Device Detector
+// ==============================
+
+function isMobileDevice() {
+  try {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  } catch (e) {
+    return false;
+  }
+} // ==============================
+// Passive Event Detector
+// ==============================
+// https://github.com/rafgraph/detect-it/blob/main/src/index.ts#L19-L36
+
+var passiveOptionAccessed = false;
+var options = {
+  get passive() {
+    return passiveOptionAccessed = true;
+  }
+
+}; // check for SSR
+
+var w = typeof window !== 'undefined' ? window : {};
+
+if (w.addEventListener && w.removeEventListener) {
+  w.addEventListener('p', noop, options);
+  w.removeEventListener('p', noop, false);
+}
+
+var supportsPassiveEvents = passiveOptionAccessed;
+function notNullish(item) {
+  return item != null;
+}
+function isArray(arg) {
+  return Array.isArray(arg);
+}
+function valueTernary(isMulti, multiValue, singleValue) {
+  return isMulti ? multiValue : singleValue;
+}
+function singleValueAsValue(singleValue) {
+  return singleValue;
+}
+function multiValueAsValue(multiValue) {
+  return multiValue;
+}
+var removeProps = function removeProps(propsObj) {
+  for (var _len = arguments.length, properties = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    properties[_key - 1] = arguments[_key];
+  }
+
+  var propsMap = Object.entries(propsObj).filter(function (_ref) {
+    var _ref2 = (0,_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_ref, 1),
+        key = _ref2[0];
+
+    return !properties.includes(key);
+  });
+  return propsMap.reduce(function (newProps, _ref3) {
+    var _ref4 = (0,_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3__["default"])(_ref3, 2),
+        key = _ref4[0],
+        val = _ref4[1];
+
+    newProps[key] = val;
+    return newProps;
+  }, {});
+};
+
+function getMenuPlacement(_ref) {
+  var maxHeight = _ref.maxHeight,
+      menuEl = _ref.menuEl,
+      minHeight = _ref.minHeight,
+      placement = _ref.placement,
+      shouldScroll = _ref.shouldScroll,
+      isFixedPosition = _ref.isFixedPosition,
+      theme = _ref.theme;
+  var spacing = theme.spacing;
+  var scrollParent = getScrollParent(menuEl);
+  var defaultState = {
+    placement: 'bottom',
+    maxHeight: maxHeight
+  }; // something went wrong, return default state
+
+  if (!menuEl || !menuEl.offsetParent) return defaultState; // we can't trust `scrollParent.scrollHeight` --> it may increase when
+  // the menu is rendered
+
+  var _scrollParent$getBoun = scrollParent.getBoundingClientRect(),
+      scrollHeight = _scrollParent$getBoun.height;
+
+  var _menuEl$getBoundingCl = menuEl.getBoundingClientRect(),
+      menuBottom = _menuEl$getBoundingCl.bottom,
+      menuHeight = _menuEl$getBoundingCl.height,
+      menuTop = _menuEl$getBoundingCl.top;
+
+  var _menuEl$offsetParent$ = menuEl.offsetParent.getBoundingClientRect(),
+      containerTop = _menuEl$offsetParent$.top;
+
+  var viewHeight = isFixedPosition ? window.innerHeight : normalizedHeight(scrollParent);
+  var scrollTop = getScrollTop(scrollParent);
+  var marginBottom = parseInt(getComputedStyle(menuEl).marginBottom, 10);
+  var marginTop = parseInt(getComputedStyle(menuEl).marginTop, 10);
+  var viewSpaceAbove = containerTop - marginTop;
+  var viewSpaceBelow = viewHeight - menuTop;
+  var scrollSpaceAbove = viewSpaceAbove + scrollTop;
+  var scrollSpaceBelow = scrollHeight - scrollTop - menuTop;
+  var scrollDown = menuBottom - viewHeight + scrollTop + marginBottom;
+  var scrollUp = scrollTop + menuTop - marginTop;
+  var scrollDuration = 160;
+
+  switch (placement) {
+    case 'auto':
+    case 'bottom':
+      // 1: the menu will fit, do nothing
+      if (viewSpaceBelow >= menuHeight) {
+        return {
+          placement: 'bottom',
+          maxHeight: maxHeight
+        };
+      } // 2: the menu will fit, if scrolled
+
+
+      if (scrollSpaceBelow >= menuHeight && !isFixedPosition) {
+        if (shouldScroll) {
+          animatedScrollTo(scrollParent, scrollDown, scrollDuration);
+        }
+
+        return {
+          placement: 'bottom',
+          maxHeight: maxHeight
+        };
+      } // 3: the menu will fit, if constrained
+
+
+      if (!isFixedPosition && scrollSpaceBelow >= minHeight || isFixedPosition && viewSpaceBelow >= minHeight) {
+        if (shouldScroll) {
+          animatedScrollTo(scrollParent, scrollDown, scrollDuration);
+        } // we want to provide as much of the menu as possible to the user,
+        // so give them whatever is available below rather than the minHeight.
+
+
+        var constrainedHeight = isFixedPosition ? viewSpaceBelow - marginBottom : scrollSpaceBelow - marginBottom;
+        return {
+          placement: 'bottom',
+          maxHeight: constrainedHeight
+        };
+      } // 4. Forked beviour when there isn't enough space below
+      // AUTO: flip the menu, render above
+
+
+      if (placement === 'auto' || isFixedPosition) {
+        // may need to be constrained after flipping
+        var _constrainedHeight = maxHeight;
+        var spaceAbove = isFixedPosition ? viewSpaceAbove : scrollSpaceAbove;
+
+        if (spaceAbove >= minHeight) {
+          _constrainedHeight = Math.min(spaceAbove - marginBottom - spacing.controlHeight, maxHeight);
+        }
+
+        return {
+          placement: 'top',
+          maxHeight: _constrainedHeight
+        };
+      } // BOTTOM: allow browser to increase scrollable area and immediately set scroll
+
+
+      if (placement === 'bottom') {
+        if (shouldScroll) {
+          scrollTo(scrollParent, scrollDown);
+        }
+
+        return {
+          placement: 'bottom',
+          maxHeight: maxHeight
+        };
+      }
+
+      break;
+
+    case 'top':
+      // 1: the menu will fit, do nothing
+      if (viewSpaceAbove >= menuHeight) {
+        return {
+          placement: 'top',
+          maxHeight: maxHeight
+        };
+      } // 2: the menu will fit, if scrolled
+
+
+      if (scrollSpaceAbove >= menuHeight && !isFixedPosition) {
+        if (shouldScroll) {
+          animatedScrollTo(scrollParent, scrollUp, scrollDuration);
+        }
+
+        return {
+          placement: 'top',
+          maxHeight: maxHeight
+        };
+      } // 3: the menu will fit, if constrained
+
+
+      if (!isFixedPosition && scrollSpaceAbove >= minHeight || isFixedPosition && viewSpaceAbove >= minHeight) {
+        var _constrainedHeight2 = maxHeight; // we want to provide as much of the menu as possible to the user,
+        // so give them whatever is available below rather than the minHeight.
+
+        if (!isFixedPosition && scrollSpaceAbove >= minHeight || isFixedPosition && viewSpaceAbove >= minHeight) {
+          _constrainedHeight2 = isFixedPosition ? viewSpaceAbove - marginTop : scrollSpaceAbove - marginTop;
+        }
+
+        if (shouldScroll) {
+          animatedScrollTo(scrollParent, scrollUp, scrollDuration);
+        }
+
+        return {
+          placement: 'top',
+          maxHeight: _constrainedHeight2
+        };
+      } // 4. not enough space, the browser WILL NOT increase scrollable area when
+      // absolutely positioned element rendered above the viewport (only below).
+      // Flip the menu, render below
+
+
+      return {
+        placement: 'bottom',
+        maxHeight: maxHeight
+      };
+
+    default:
+      throw new Error("Invalid placement provided \"".concat(placement, "\"."));
+  }
+
+  return defaultState;
+} // Menu Component
+// ------------------------------
+
+function alignToControl(placement) {
+  var placementToCSSProp = {
+    bottom: 'top',
+    top: 'bottom'
+  };
+  return placement ? placementToCSSProp[placement] : 'bottom';
+}
+
+var coercePlacement = function coercePlacement(p) {
+  return p === 'auto' ? 'bottom' : p;
+};
+
+var menuCSS = function menuCSS(_ref2) {
+  var _ref3;
+
+  var placement = _ref2.placement,
+      _ref2$theme = _ref2.theme,
+      borderRadius = _ref2$theme.borderRadius,
+      spacing = _ref2$theme.spacing,
+      colors = _ref2$theme.colors;
+  return _ref3 = {
+    label: 'menu'
+  }, (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, alignToControl(placement), '100%'), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "backgroundColor", colors.neutral0), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "borderRadius", borderRadius), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "boxShadow", '0 0 0 1px hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1)'), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "marginBottom", spacing.menuGutter), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "marginTop", spacing.menuGutter), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "position", 'absolute'), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "width", '100%'), (0,_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_8__["default"])(_ref3, "zIndex", 1), _ref3;
+};
+var PortalPlacementContext = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_9__.createContext)({
+  getPortalPlacement: null
+}); // NOTE: internal only
+
+var MenuPlacer = /*#__PURE__*/function (_Component) {
+  (0,_babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7__["default"])(MenuPlacer, _Component);
+
+  var _super = _createSuper(MenuPlacer);
+
+  function MenuPlacer() {
+    var _this;
+
+    (0,_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_5__["default"])(this, MenuPlacer);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    _this.state = {
+      maxHeight: _this.props.maxMenuHeight,
+      placement: null
+    };
+    _this.context = void 0;
+
+    _this.getPlacement = function (ref) {
+      var _this$props = _this.props,
+          minMenuHeight = _this$props.minMenuHeight,
+          maxMenuHeight = _this$props.maxMenuHeight,
+          menuPlacement = _this$props.menuPlacement,
+          menuPosition = _this$props.menuPosition,
+          menuShouldScrollIntoView = _this$props.menuShouldScrollIntoView,
+          theme = _this$props.theme;
+      if (!ref) return; // DO NOT scroll if position is fixed
+
+      var isFixedPosition = menuPosition === 'fixed';
+      var shouldScroll = menuShouldScrollIntoView && !isFixedPosition;
+      var state = getMenuPlacement({
+        maxHeight: maxMenuHeight,
+        menuEl: ref,
+        minHeight: minMenuHeight,
+        placement: menuPlacement,
+        shouldScroll: shouldScroll,
+        isFixedPosition: isFixedPosition,
+        theme: theme
+      });
+      var getPortalPlacement = _this.context.getPortalPlacement;
+      if (getPortalPlacement) getPortalPlacement(state);
+
+      _this.setState(state);
+    };
+
+    _this.getUpdatedProps = function () {
+      var menuPlacement = _this.props.menuPlacement;
+      var placement = _this.state.placement || coercePlacement(menuPlacement);
+      return _objectSpread2(_objectSpread2({}, _this.props), {}, {
+        placement: placement,
+        maxHeight: _this.state.maxHeight
+      });
+    };
+
+    return _this;
+  }
+
+  (0,_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_6__["default"])(MenuPlacer, [{
+    key: "render",
+    value: function render() {
+      var children = this.props.children;
+      return children({
+        ref: this.getPlacement,
+        placerProps: this.getUpdatedProps()
+      });
+    }
+  }]);
+
+  return MenuPlacer;
+}(react__WEBPACK_IMPORTED_MODULE_9__.Component);
+MenuPlacer.contextType = PortalPlacementContext;
+
+var Menu = function Menu(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerRef = props.innerRef,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('menu', props),
+    className: cx({
+      menu: true
+    }, className),
+    ref: innerRef
+  }, innerProps), children);
+};
+// Menu List
+// ==============================
+
+var menuListCSS = function menuListCSS(_ref4) {
+  var maxHeight = _ref4.maxHeight,
+      baseUnit = _ref4.theme.spacing.baseUnit;
+  return {
+    maxHeight: maxHeight,
+    overflowY: 'auto',
+    paddingBottom: baseUnit,
+    paddingTop: baseUnit,
+    position: 'relative',
+    // required for offset[Height, Top] > keyboard scroll
+    WebkitOverflowScrolling: 'touch'
+  };
+};
+var MenuList = function MenuList(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps,
+      innerRef = props.innerRef,
+      isMulti = props.isMulti;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('menuList', props),
+    className: cx({
+      'menu-list': true,
+      'menu-list--is-multi': isMulti
+    }, className),
+    ref: innerRef
+  }, innerProps), children);
+}; // ==============================
+// Menu Notices
+// ==============================
+
+var noticeCSS = function noticeCSS(_ref5) {
+  var _ref5$theme = _ref5.theme,
+      baseUnit = _ref5$theme.spacing.baseUnit,
+      colors = _ref5$theme.colors;
+  return {
+    color: colors.neutral40,
+    padding: "".concat(baseUnit * 2, "px ").concat(baseUnit * 3, "px"),
+    textAlign: 'center'
+  };
+};
+
+var noOptionsMessageCSS = noticeCSS;
+var loadingMessageCSS = noticeCSS;
+var NoOptionsMessage = function NoOptionsMessage(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('noOptionsMessage', props),
+    className: cx({
+      'menu-notice': true,
+      'menu-notice--no-options': true
+    }, className)
+  }, innerProps), children);
+};
+NoOptionsMessage.defaultProps = {
+  children: 'No options'
+};
+var LoadingMessage = function LoadingMessage(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('loadingMessage', props),
+    className: cx({
+      'menu-notice': true,
+      'menu-notice--loading': true
+    }, className)
+  }, innerProps), children);
+};
+LoadingMessage.defaultProps = {
+  children: 'Loading...'
+}; // ==============================
+// Menu Portal
+// ==============================
+
+var menuPortalCSS = function menuPortalCSS(_ref6) {
+  var rect = _ref6.rect,
+      offset = _ref6.offset,
+      position = _ref6.position;
+  return {
+    left: rect.left,
+    position: position,
+    top: offset,
+    width: rect.width,
+    zIndex: 1
+  };
+};
+var MenuPortal = /*#__PURE__*/function (_Component2) {
+  (0,_babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7__["default"])(MenuPortal, _Component2);
+
+  var _super2 = _createSuper(MenuPortal);
+
+  function MenuPortal() {
+    var _this2;
+
+    (0,_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_5__["default"])(this, MenuPortal);
+
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    _this2 = _super2.call.apply(_super2, [this].concat(args));
+    _this2.state = {
+      placement: null
+    };
+
+    _this2.getPortalPlacement = function (_ref7) {
+      var placement = _ref7.placement;
+      var initialPlacement = coercePlacement(_this2.props.menuPlacement); // avoid re-renders if the placement has not changed
+
+      if (placement !== initialPlacement) {
+        _this2.setState({
+          placement: placement
+        });
+      }
+    };
+
+    return _this2;
+  }
+
+  (0,_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_6__["default"])(MenuPortal, [{
+    key: "render",
+    value: function render() {
+      var _this$props2 = this.props,
+          appendTo = _this$props2.appendTo,
+          children = _this$props2.children,
+          className = _this$props2.className,
+          controlElement = _this$props2.controlElement,
+          cx = _this$props2.cx,
+          innerProps = _this$props2.innerProps,
+          menuPlacement = _this$props2.menuPlacement,
+          position = _this$props2.menuPosition,
+          getStyles = _this$props2.getStyles;
+      var isFixed = position === 'fixed'; // bail early if required elements aren't present
+
+      if (!appendTo && !isFixed || !controlElement) {
+        return null;
+      }
+
+      var placement = this.state.placement || coercePlacement(menuPlacement);
+      var rect = getBoundingClientObj(controlElement);
+      var scrollDistance = isFixed ? 0 : window.pageYOffset;
+      var offset = rect[placement] + scrollDistance;
+      var state = {
+        offset: offset,
+        position: position,
+        rect: rect
+      }; // same wrapper element whether fixed or portalled
+
+      var menuWrapper = (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+        css: getStyles('menuPortal', state),
+        className: cx({
+          'menu-portal': true
+        }, className)
+      }, innerProps), children);
+      return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(PortalPlacementContext.Provider, {
+        value: {
+          getPortalPlacement: this.getPortalPlacement
+        }
+      }, appendTo ? /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_10__.createPortal)(menuWrapper, appendTo) : menuWrapper);
+    }
+  }]);
+
+  return MenuPortal;
+}(react__WEBPACK_IMPORTED_MODULE_9__.Component);
+
+var containerCSS = function containerCSS(_ref) {
+  var isDisabled = _ref.isDisabled,
+      isRtl = _ref.isRtl;
+  return {
+    label: 'container',
+    direction: isRtl ? 'rtl' : undefined,
+    pointerEvents: isDisabled ? 'none' : undefined,
+    // cancel mouse events when disabled
+    position: 'relative'
+  };
+};
+var SelectContainer = function SelectContainer(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps,
+      isDisabled = props.isDisabled,
+      isRtl = props.isRtl;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('container', props),
+    className: cx({
+      '--is-disabled': isDisabled,
+      '--is-rtl': isRtl
+    }, className)
+  }, innerProps), children);
+}; // ==============================
+// Value Container
+// ==============================
+
+var valueContainerCSS = function valueContainerCSS(_ref2) {
+  var spacing = _ref2.theme.spacing,
+      isMulti = _ref2.isMulti,
+      hasValue = _ref2.hasValue,
+      controlShouldRenderValue = _ref2.selectProps.controlShouldRenderValue;
+  return {
+    alignItems: 'center',
+    display: isMulti && hasValue && controlShouldRenderValue ? 'flex' : 'grid',
+    flex: 1,
+    flexWrap: 'wrap',
+    padding: "".concat(spacing.baseUnit / 2, "px ").concat(spacing.baseUnit * 2, "px"),
+    WebkitOverflowScrolling: 'touch',
+    position: 'relative',
+    overflow: 'hidden'
+  };
+};
+var ValueContainer = function ValueContainer(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      innerProps = props.innerProps,
+      isMulti = props.isMulti,
+      getStyles = props.getStyles,
+      hasValue = props.hasValue;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('valueContainer', props),
+    className: cx({
+      'value-container': true,
+      'value-container--is-multi': isMulti,
+      'value-container--has-value': hasValue
+    }, className)
+  }, innerProps), children);
+}; // ==============================
+// Indicator Container
+// ==============================
+
+var indicatorsContainerCSS = function indicatorsContainerCSS() {
+  return {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    display: 'flex',
+    flexShrink: 0
+  };
+};
+var IndicatorsContainer = function IndicatorsContainer(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      innerProps = props.innerProps,
+      getStyles = props.getStyles;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('indicatorsContainer', props),
+    className: cx({
+      indicators: true
+    }, className)
+  }, innerProps), children);
+};
+
+var _templateObject;
+
+var _excluded$2 = ["size"];
+
+function _EMOTION_STRINGIFIED_CSS_ERROR__() { return "You have tried to stringify object returned from `css` function. It isn't supposed to be used directly (e.g. as value of the `className` prop), but rather handed to emotion so it can handle it (e.g. as value of `css` prop)."; }
+
+var _ref2 =  false ? 0 : {
+  name: "tj5bde-Svg",
+  styles: "display:inline-block;fill:currentColor;line-height:1;stroke:currentColor;stroke-width:0;label:Svg;",
+  map: "/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImluZGljYXRvcnMudHN4Il0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQXdCSSIsImZpbGUiOiJpbmRpY2F0b3JzLnRzeCIsInNvdXJjZXNDb250ZW50IjpbIi8qKiBAanN4IGpzeCAqL1xuaW1wb3J0IHsgUmVhY3ROb2RlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsganN4LCBrZXlmcmFtZXMgfSBmcm9tICdAZW1vdGlvbi9yZWFjdCc7XG5cbmltcG9ydCB7XG4gIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lLFxuICBDU1NPYmplY3RXaXRoTGFiZWwsXG4gIEdyb3VwQmFzZSxcbn0gZnJvbSAnLi4vdHlwZXMnO1xuXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbi8vIERyb3Bkb3duICYgQ2xlYXIgSWNvbnNcbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuXG5jb25zdCBTdmcgPSAoe1xuICBzaXplLFxuICAuLi5wcm9wc1xufTogSlNYLkludHJpbnNpY0VsZW1lbnRzWydzdmcnXSAmIHsgc2l6ZTogbnVtYmVyIH0pID0+IChcbiAgPHN2Z1xuICAgIGhlaWdodD17c2l6ZX1cbiAgICB3aWR0aD17c2l6ZX1cbiAgICB2aWV3Qm94PVwiMCAwIDIwIDIwXCJcbiAgICBhcmlhLWhpZGRlbj1cInRydWVcIlxuICAgIGZvY3VzYWJsZT1cImZhbHNlXCJcbiAgICBjc3M9e3tcbiAgICAgIGRpc3BsYXk6ICdpbmxpbmUtYmxvY2snLFxuICAgICAgZmlsbDogJ2N1cnJlbnRDb2xvcicsXG4gICAgICBsaW5lSGVpZ2h0OiAxLFxuICAgICAgc3Ryb2tlOiAnY3VycmVudENvbG9yJyxcbiAgICAgIHN0cm9rZVdpZHRoOiAwLFxuICAgIH19XG4gICAgey4uLnByb3BzfVxuICAvPlxuKTtcblxuZXhwb3J0IHR5cGUgQ3Jvc3NJY29uUHJvcHMgPSBKU1guSW50cmluc2ljRWxlbWVudHNbJ3N2ZyddICYgeyBzaXplPzogbnVtYmVyIH07XG5leHBvcnQgY29uc3QgQ3Jvc3NJY29uID0gKHByb3BzOiBDcm9zc0ljb25Qcm9wcykgPT4gKFxuICA8U3ZnIHNpemU9ezIwfSB7Li4ucHJvcHN9PlxuICAgIDxwYXRoIGQ9XCJNMTQuMzQ4IDE0Ljg0OWMtMC40NjkgMC40NjktMS4yMjkgMC40NjktMS42OTcgMGwtMi42NTEtMy4wMzAtMi42NTEgMy4wMjljLTAuNDY5IDAuNDY5LTEuMjI5IDAuNDY5LTEuNjk3IDAtMC40NjktMC40NjktMC40NjktMS4yMjkgMC0xLjY5N2wyLjc1OC0zLjE1LTIuNzU5LTMuMTUyYy0wLjQ2OS0wLjQ2OS0wLjQ2OS0xLjIyOCAwLTEuNjk3czEuMjI4LTAuNDY5IDEuNjk3IDBsMi42NTIgMy4wMzEgMi42NTEtMy4wMzFjMC40NjktMC40NjkgMS4yMjgtMC40NjkgMS42OTcgMHMwLjQ2OSAxLjIyOSAwIDEuNjk3bC0yLjc1OCAzLjE1MiAyLjc1OCAzLjE1YzAuNDY5IDAuNDY5IDAuNDY5IDEuMjI5IDAgMS42OTh6XCIgLz5cbiAgPC9Tdmc+XG4pO1xuZXhwb3J0IHR5cGUgRG93bkNoZXZyb25Qcm9wcyA9IEpTWC5JbnRyaW5zaWNFbGVtZW50c1snc3ZnJ10gJiB7IHNpemU/OiBudW1iZXIgfTtcbmV4cG9ydCBjb25zdCBEb3duQ2hldnJvbiA9IChwcm9wczogRG93bkNoZXZyb25Qcm9wcykgPT4gKFxuICA8U3ZnIHNpemU9ezIwfSB7Li4ucHJvcHN9PlxuICAgIDxwYXRoIGQ9XCJNNC41MTYgNy41NDhjMC40MzYtMC40NDYgMS4wNDMtMC40ODEgMS41NzYgMGwzLjkwOCAzLjc0NyAzLjkwOC0zLjc0N2MwLjUzMy0wLjQ4MSAxLjE0MS0wLjQ0NiAxLjU3NCAwIDAuNDM2IDAuNDQ1IDAuNDA4IDEuMTk3IDAgMS42MTUtMC40MDYgMC40MTgtNC42OTUgNC41MDItNC42OTUgNC41MDItMC4yMTcgMC4yMjMtMC41MDIgMC4zMzUtMC43ODcgMC4zMzVzLTAuNTctMC4xMTItMC43ODktMC4zMzVjMCAwLTQuMjg3LTQuMDg0LTQuNjk1LTQuNTAycy0wLjQzNi0xLjE3IDAtMS42MTV6XCIgLz5cbiAgPC9Tdmc+XG4pO1xuXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbi8vIERyb3Bkb3duICYgQ2xlYXIgQnV0dG9uc1xuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG5cbmV4cG9ydCBpbnRlcmZhY2UgRHJvcGRvd25JbmRpY2F0b3JQcm9wczxcbiAgT3B0aW9uID0gdW5rbm93bixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4gPSBib29sZWFuLFxuICBHcm91cCBleHRlbmRzIEdyb3VwQmFzZTxPcHRpb24+ID0gR3JvdXBCYXNlPE9wdGlvbj5cbj4gZXh0ZW5kcyBDb21tb25Qcm9wc0FuZENsYXNzTmFtZTxPcHRpb24sIElzTXVsdGksIEdyb3VwPiB7XG4gIC8qKiBUaGUgY2hpbGRyZW4gdG8gYmUgcmVuZGVyZWQgaW5zaWRlIHRoZSBpbmRpY2F0b3IuICovXG4gIGNoaWxkcmVuPzogUmVhY3ROb2RlO1xuICAvKiogUHJvcHMgdGhhdCB3aWxsIGJlIHBhc3NlZCBvbiB0byB0aGUgY2hpbGRyZW4uICovXG4gIGlubmVyUHJvcHM6IEpTWC5JbnRyaW5zaWNFbGVtZW50c1snZGl2J107XG4gIC8qKiBUaGUgZm9jdXNlZCBzdGF0ZSBvZiB0aGUgc2VsZWN0LiAqL1xuICBpc0ZvY3VzZWQ6IGJvb2xlYW47XG4gIGlzRGlzYWJsZWQ6IGJvb2xlYW47XG59XG5cbmNvbnN0IGJhc2VDU1MgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oe1xuICBpc0ZvY3VzZWQsXG4gIHRoZW1lOiB7XG4gICAgc3BhY2luZzogeyBiYXNlVW5pdCB9LFxuICAgIGNvbG9ycyxcbiAgfSxcbn06XG4gIHwgRHJvcGRvd25JbmRpY2F0b3JQcm9wczxPcHRpb24sIElzTXVsdGksIEdyb3VwPlxuICB8IENsZWFySW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD4pOiBDU1NPYmplY3RXaXRoTGFiZWwgPT4gKHtcbiAgbGFiZWw6ICdpbmRpY2F0b3JDb250YWluZXInLFxuICBjb2xvcjogaXNGb2N1c2VkID8gY29sb3JzLm5ldXRyYWw2MCA6IGNvbG9ycy5uZXV0cmFsMjAsXG4gIGRpc3BsYXk6ICdmbGV4JyxcbiAgcGFkZGluZzogYmFzZVVuaXQgKiAyLFxuICB0cmFuc2l0aW9uOiAnY29sb3IgMTUwbXMnLFxuXG4gICc6aG92ZXInOiB7XG4gICAgY29sb3I6IGlzRm9jdXNlZCA/IGNvbG9ycy5uZXV0cmFsODAgOiBjb2xvcnMubmV1dHJhbDQwLFxuICB9LFxufSk7XG5cbmV4cG9ydCBjb25zdCBkcm9wZG93bkluZGljYXRvckNTUyA9IGJhc2VDU1M7XG5leHBvcnQgY29uc3QgRHJvcGRvd25JbmRpY2F0b3IgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oXG4gIHByb3BzOiBEcm9wZG93bkluZGljYXRvclByb3BzPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+XG4pID0+IHtcbiAgY29uc3QgeyBjaGlsZHJlbiwgY2xhc3NOYW1lLCBjeCwgZ2V0U3R5bGVzLCBpbm5lclByb3BzIH0gPSBwcm9wcztcbiAgcmV0dXJuIChcbiAgICA8ZGl2XG4gICAgICBjc3M9e2dldFN0eWxlcygnZHJvcGRvd25JbmRpY2F0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KFxuICAgICAgICB7XG4gICAgICAgICAgaW5kaWNhdG9yOiB0cnVlLFxuICAgICAgICAgICdkcm9wZG93bi1pbmRpY2F0b3InOiB0cnVlLFxuICAgICAgICB9LFxuICAgICAgICBjbGFzc05hbWVcbiAgICAgICl9XG4gICAgICB7Li4uaW5uZXJQcm9wc31cbiAgICA+XG4gICAgICB7Y2hpbGRyZW4gfHwgPERvd25DaGV2cm9uIC8+fVxuICAgIDwvZGl2PlxuICApO1xufTtcblxuZXhwb3J0IGludGVyZmFjZSBDbGVhckluZGljYXRvclByb3BzPFxuICBPcHRpb24gPSB1bmtub3duLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbiA9IGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj4gPSBHcm91cEJhc2U8T3B0aW9uPlxuPiBleHRlbmRzIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+IHtcbiAgLyoqIFRoZSBjaGlsZHJlbiB0byBiZSByZW5kZXJlZCBpbnNpZGUgdGhlIGluZGljYXRvci4gKi9cbiAgY2hpbGRyZW4/OiBSZWFjdE5vZGU7XG4gIC8qKiBQcm9wcyB0aGF0IHdpbGwgYmUgcGFzc2VkIG9uIHRvIHRoZSBjaGlsZHJlbi4gKi9cbiAgaW5uZXJQcm9wczogSlNYLkludHJpbnNpY0VsZW1lbnRzWydkaXYnXTtcbiAgLyoqIFRoZSBmb2N1c2VkIHN0YXRlIG9mIHRoZSBzZWxlY3QuICovXG4gIGlzRm9jdXNlZDogYm9vbGVhbjtcbn1cblxuZXhwb3J0IGNvbnN0IGNsZWFySW5kaWNhdG9yQ1NTID0gYmFzZUNTUztcbmV4cG9ydCBjb25zdCBDbGVhckluZGljYXRvciA9IDxcbiAgT3B0aW9uLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbixcbiAgR3JvdXAgZXh0ZW5kcyBHcm91cEJhc2U8T3B0aW9uPlxuPihcbiAgcHJvcHM6IENsZWFySW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD5cbikgPT4ge1xuICBjb25zdCB7IGNoaWxkcmVuLCBjbGFzc05hbWUsIGN4LCBnZXRTdHlsZXMsIGlubmVyUHJvcHMgfSA9IHByb3BzO1xuICByZXR1cm4gKFxuICAgIDxkaXZcbiAgICAgIGNzcz17Z2V0U3R5bGVzKCdjbGVhckluZGljYXRvcicsIHByb3BzKX1cbiAgICAgIGNsYXNzTmFtZT17Y3goXG4gICAgICAgIHtcbiAgICAgICAgICBpbmRpY2F0b3I6IHRydWUsXG4gICAgICAgICAgJ2NsZWFyLWluZGljYXRvcic6IHRydWUsXG4gICAgICAgIH0sXG4gICAgICAgIGNsYXNzTmFtZVxuICAgICAgKX1cbiAgICAgIHsuLi5pbm5lclByb3BzfVxuICAgID5cbiAgICAgIHtjaGlsZHJlbiB8fCA8Q3Jvc3NJY29uIC8+fVxuICAgIDwvZGl2PlxuICApO1xufTtcblxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG4vLyBTZXBhcmF0b3Jcbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuXG5leHBvcnQgaW50ZXJmYWNlIEluZGljYXRvclNlcGFyYXRvclByb3BzPFxuICBPcHRpb24gPSB1bmtub3duLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbiA9IGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj4gPSBHcm91cEJhc2U8T3B0aW9uPlxuPiBleHRlbmRzIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+IHtcbiAgaXNEaXNhYmxlZDogYm9vbGVhbjtcbiAgaXNGb2N1c2VkOiBib29sZWFuO1xuICBpbm5lclByb3BzPzogSlNYLkludHJpbnNpY0VsZW1lbnRzWydzcGFuJ107XG59XG5cbmV4cG9ydCBjb25zdCBpbmRpY2F0b3JTZXBhcmF0b3JDU1MgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oe1xuICBpc0Rpc2FibGVkLFxuICB0aGVtZToge1xuICAgIHNwYWNpbmc6IHsgYmFzZVVuaXQgfSxcbiAgICBjb2xvcnMsXG4gIH0sXG59OiBJbmRpY2F0b3JTZXBhcmF0b3JQcm9wczxPcHRpb24sIElzTXVsdGksIEdyb3VwPik6IENTU09iamVjdFdpdGhMYWJlbCA9PiAoe1xuICBsYWJlbDogJ2luZGljYXRvclNlcGFyYXRvcicsXG4gIGFsaWduU2VsZjogJ3N0cmV0Y2gnLFxuICBiYWNrZ3JvdW5kQ29sb3I6IGlzRGlzYWJsZWQgPyBjb2xvcnMubmV1dHJhbDEwIDogY29sb3JzLm5ldXRyYWwyMCxcbiAgbWFyZ2luQm90dG9tOiBiYXNlVW5pdCAqIDIsXG4gIG1hcmdpblRvcDogYmFzZVVuaXQgKiAyLFxuICB3aWR0aDogMSxcbn0pO1xuXG5leHBvcnQgY29uc3QgSW5kaWNhdG9yU2VwYXJhdG9yID0gPFxuICBPcHRpb24sXG4gIElzTXVsdGkgZXh0ZW5kcyBib29sZWFuLFxuICBHcm91cCBleHRlbmRzIEdyb3VwQmFzZTxPcHRpb24+XG4+KFxuICBwcm9wczogSW5kaWNhdG9yU2VwYXJhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD5cbikgPT4ge1xuICBjb25zdCB7IGNsYXNzTmFtZSwgY3gsIGdldFN0eWxlcywgaW5uZXJQcm9wcyB9ID0gcHJvcHM7XG4gIHJldHVybiAoXG4gICAgPHNwYW5cbiAgICAgIHsuLi5pbm5lclByb3BzfVxuICAgICAgY3NzPXtnZXRTdHlsZXMoJ2luZGljYXRvclNlcGFyYXRvcicsIHByb3BzKX1cbiAgICAgIGNsYXNzTmFtZT17Y3goeyAnaW5kaWNhdG9yLXNlcGFyYXRvcic6IHRydWUgfSwgY2xhc3NOYW1lKX1cbiAgICAvPlxuICApO1xufTtcblxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG4vLyBMb2FkaW5nXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cblxuY29uc3QgbG9hZGluZ0RvdEFuaW1hdGlvbnMgPSBrZXlmcmFtZXNgXG4gIDAlLCA4MCUsIDEwMCUgeyBvcGFjaXR5OiAwOyB9XG4gIDQwJSB7IG9wYWNpdHk6IDE7IH1cbmA7XG5cbmV4cG9ydCBjb25zdCBsb2FkaW5nSW5kaWNhdG9yQ1NTID0gPFxuICBPcHRpb24sXG4gIElzTXVsdGkgZXh0ZW5kcyBib29sZWFuLFxuICBHcm91cCBleHRlbmRzIEdyb3VwQmFzZTxPcHRpb24+XG4+KHtcbiAgaXNGb2N1c2VkLFxuICBzaXplLFxuICB0aGVtZToge1xuICAgIGNvbG9ycyxcbiAgICBzcGFjaW5nOiB7IGJhc2VVbml0IH0sXG4gIH0sXG59OiBMb2FkaW5nSW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD4pOiBDU1NPYmplY3RXaXRoTGFiZWwgPT4gKHtcbiAgbGFiZWw6ICdsb2FkaW5nSW5kaWNhdG9yJyxcbiAgY29sb3I6IGlzRm9jdXNlZCA/IGNvbG9ycy5uZXV0cmFsNjAgOiBjb2xvcnMubmV1dHJhbDIwLFxuICBkaXNwbGF5OiAnZmxleCcsXG4gIHBhZGRpbmc6IGJhc2VVbml0ICogMixcbiAgdHJhbnNpdGlvbjogJ2NvbG9yIDE1MG1zJyxcbiAgYWxpZ25TZWxmOiAnY2VudGVyJyxcbiAgZm9udFNpemU6IHNpemUsXG4gIGxpbmVIZWlnaHQ6IDEsXG4gIG1hcmdpblJpZ2h0OiBzaXplLFxuICB0ZXh0QWxpZ246ICdjZW50ZXInLFxuICB2ZXJ0aWNhbEFsaWduOiAnbWlkZGxlJyxcbn0pO1xuXG5pbnRlcmZhY2UgTG9hZGluZ0RvdFByb3BzIHtcbiAgZGVsYXk6IG51bWJlcjtcbiAgb2Zmc2V0OiBib29sZWFuO1xufVxuY29uc3QgTG9hZGluZ0RvdCA9ICh7IGRlbGF5LCBvZmZzZXQgfTogTG9hZGluZ0RvdFByb3BzKSA9PiAoXG4gIDxzcGFuXG4gICAgY3NzPXt7XG4gICAgICBhbmltYXRpb246IGAke2xvYWRpbmdEb3RBbmltYXRpb25zfSAxcyBlYXNlLWluLW91dCAke2RlbGF5fW1zIGluZmluaXRlO2AsXG4gICAgICBiYWNrZ3JvdW5kQ29sb3I6ICdjdXJyZW50Q29sb3InLFxuICAgICAgYm9yZGVyUmFkaXVzOiAnMWVtJyxcbiAgICAgIGRpc3BsYXk6ICdpbmxpbmUtYmxvY2snLFxuICAgICAgbWFyZ2luTGVmdDogb2Zmc2V0ID8gJzFlbScgOiB1bmRlZmluZWQsXG4gICAgICBoZWlnaHQ6ICcxZW0nLFxuICAgICAgdmVydGljYWxBbGlnbjogJ3RvcCcsXG4gICAgICB3aWR0aDogJzFlbScsXG4gICAgfX1cbiAgLz5cbik7XG5cbmV4cG9ydCBpbnRlcmZhY2UgTG9hZGluZ0luZGljYXRvclByb3BzPFxuICBPcHRpb24gPSB1bmtub3duLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbiA9IGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj4gPSBHcm91cEJhc2U8T3B0aW9uPlxuPiBleHRlbmRzIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+IHtcbiAgLyoqIFByb3BzIHRoYXQgd2lsbCBiZSBwYXNzZWQgb24gdG8gdGhlIGNoaWxkcmVuLiAqL1xuICBpbm5lclByb3BzOiBKU1guSW50cmluc2ljRWxlbWVudHNbJ2RpdiddO1xuICAvKiogVGhlIGZvY3VzZWQgc3RhdGUgb2YgdGhlIHNlbGVjdC4gKi9cbiAgaXNGb2N1c2VkOiBib29sZWFuO1xuICBpc0Rpc2FibGVkOiBib29sZWFuO1xuICAvKiogU2V0IHNpemUgb2YgdGhlIGNvbnRhaW5lci4gKi9cbiAgc2l6ZTogbnVtYmVyO1xufVxuZXhwb3J0IGNvbnN0IExvYWRpbmdJbmRpY2F0b3IgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oXG4gIHByb3BzOiBMb2FkaW5nSW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD5cbikgPT4ge1xuICBjb25zdCB7IGNsYXNzTmFtZSwgY3gsIGdldFN0eWxlcywgaW5uZXJQcm9wcywgaXNSdGwgfSA9IHByb3BzO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdlxuICAgICAgY3NzPXtnZXRTdHlsZXMoJ2xvYWRpbmdJbmRpY2F0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KFxuICAgICAgICB7XG4gICAgICAgICAgaW5kaWNhdG9yOiB0cnVlLFxuICAgICAgICAgICdsb2FkaW5nLWluZGljYXRvcic6IHRydWUsXG4gICAgICAgIH0sXG4gICAgICAgIGNsYXNzTmFtZVxuICAgICAgKX1cbiAgICAgIHsuLi5pbm5lclByb3BzfVxuICAgID5cbiAgICAgIDxMb2FkaW5nRG90IGRlbGF5PXswfSBvZmZzZXQ9e2lzUnRsfSAvPlxuICAgICAgPExvYWRpbmdEb3QgZGVsYXk9ezE2MH0gb2Zmc2V0IC8+XG4gICAgICA8TG9hZGluZ0RvdCBkZWxheT17MzIwfSBvZmZzZXQ9eyFpc1J0bH0gLz5cbiAgICA8L2Rpdj5cbiAgKTtcbn07XG5Mb2FkaW5nSW5kaWNhdG9yLmRlZmF1bHRQcm9wcyA9IHsgc2l6ZTogNCB9O1xuIl19 */",
+  toString: _EMOTION_STRINGIFIED_CSS_ERROR__
+};
+
+// ==============================
+// Dropdown & Clear Icons
+// ==============================
+var Svg = function Svg(_ref) {
+  var size = _ref.size,
+      props = (0,_babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_2__["default"])(_ref, _excluded$2);
+
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("svg", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    height: size,
+    width: size,
+    viewBox: "0 0 20 20",
+    "aria-hidden": "true",
+    focusable: "false",
+    css: _ref2
+  }, props));
+};
+
+var CrossIcon = function CrossIcon(props) {
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(Svg, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    size: 20
+  }, props), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("path", {
+    d: "M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+  }));
+};
+var DownChevron = function DownChevron(props) {
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(Svg, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    size: 20
+  }, props), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("path", {
+    d: "M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+  }));
+}; // ==============================
+// Dropdown & Clear Buttons
+// ==============================
+
+var baseCSS = function baseCSS(_ref3) {
+  var isFocused = _ref3.isFocused,
+      _ref3$theme = _ref3.theme,
+      baseUnit = _ref3$theme.spacing.baseUnit,
+      colors = _ref3$theme.colors;
+  return {
+    label: 'indicatorContainer',
+    color: isFocused ? colors.neutral60 : colors.neutral20,
+    display: 'flex',
+    padding: baseUnit * 2,
+    transition: 'color 150ms',
+    ':hover': {
+      color: isFocused ? colors.neutral80 : colors.neutral40
+    }
+  };
+};
+
+var dropdownIndicatorCSS = baseCSS;
+var DropdownIndicator = function DropdownIndicator(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('dropdownIndicator', props),
+    className: cx({
+      indicator: true,
+      'dropdown-indicator': true
+    }, className)
+  }, innerProps), children || (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(DownChevron, null));
+};
+var clearIndicatorCSS = baseCSS;
+var ClearIndicator = function ClearIndicator(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('clearIndicator', props),
+    className: cx({
+      indicator: true,
+      'clear-indicator': true
+    }, className)
+  }, innerProps), children || (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(CrossIcon, null));
+}; // ==============================
+// Separator
+// ==============================
+
+var indicatorSeparatorCSS = function indicatorSeparatorCSS(_ref4) {
+  var isDisabled = _ref4.isDisabled,
+      _ref4$theme = _ref4.theme,
+      baseUnit = _ref4$theme.spacing.baseUnit,
+      colors = _ref4$theme.colors;
+  return {
+    label: 'indicatorSeparator',
+    alignSelf: 'stretch',
+    backgroundColor: isDisabled ? colors.neutral10 : colors.neutral20,
+    marginBottom: baseUnit * 2,
+    marginTop: baseUnit * 2,
+    width: 1
+  };
+};
+var IndicatorSeparator = function IndicatorSeparator(props) {
+  var className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, innerProps, {
+    css: getStyles('indicatorSeparator', props),
+    className: cx({
+      'indicator-separator': true
+    }, className)
+  }));
+}; // ==============================
+// Loading
+// ==============================
+
+var loadingDotAnimations = (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.keyframes)(_templateObject || (_templateObject = (0,_babel_runtime_helpers_esm_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_1__["default"])(["\n  0%, 80%, 100% { opacity: 0; }\n  40% { opacity: 1; }\n"])));
+var loadingIndicatorCSS = function loadingIndicatorCSS(_ref5) {
+  var isFocused = _ref5.isFocused,
+      size = _ref5.size,
+      _ref5$theme = _ref5.theme,
+      colors = _ref5$theme.colors,
+      baseUnit = _ref5$theme.spacing.baseUnit;
+  return {
+    label: 'loadingIndicator',
+    color: isFocused ? colors.neutral60 : colors.neutral20,
+    display: 'flex',
+    padding: baseUnit * 2,
+    transition: 'color 150ms',
+    alignSelf: 'center',
+    fontSize: size,
+    lineHeight: 1,
+    marginRight: size,
+    textAlign: 'center',
+    verticalAlign: 'middle'
+  };
+};
+
+var LoadingDot = function LoadingDot(_ref6) {
+  var delay = _ref6.delay,
+      offset = _ref6.offset;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+    css: /*#__PURE__*/(0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.css)({
+      animation: "".concat(loadingDotAnimations, " 1s ease-in-out ").concat(delay, "ms infinite;"),
+      backgroundColor: 'currentColor',
+      borderRadius: '1em',
+      display: 'inline-block',
+      marginLeft: offset ? '1em' : undefined,
+      height: '1em',
+      verticalAlign: 'top',
+      width: '1em'
+    },  false ? 0 : ";label:LoadingDot;",  false ? 0 : "/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImluZGljYXRvcnMudHN4Il0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQXFQSSIsImZpbGUiOiJpbmRpY2F0b3JzLnRzeCIsInNvdXJjZXNDb250ZW50IjpbIi8qKiBAanN4IGpzeCAqL1xuaW1wb3J0IHsgUmVhY3ROb2RlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsganN4LCBrZXlmcmFtZXMgfSBmcm9tICdAZW1vdGlvbi9yZWFjdCc7XG5cbmltcG9ydCB7XG4gIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lLFxuICBDU1NPYmplY3RXaXRoTGFiZWwsXG4gIEdyb3VwQmFzZSxcbn0gZnJvbSAnLi4vdHlwZXMnO1xuXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbi8vIERyb3Bkb3duICYgQ2xlYXIgSWNvbnNcbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuXG5jb25zdCBTdmcgPSAoe1xuICBzaXplLFxuICAuLi5wcm9wc1xufTogSlNYLkludHJpbnNpY0VsZW1lbnRzWydzdmcnXSAmIHsgc2l6ZTogbnVtYmVyIH0pID0+IChcbiAgPHN2Z1xuICAgIGhlaWdodD17c2l6ZX1cbiAgICB3aWR0aD17c2l6ZX1cbiAgICB2aWV3Qm94PVwiMCAwIDIwIDIwXCJcbiAgICBhcmlhLWhpZGRlbj1cInRydWVcIlxuICAgIGZvY3VzYWJsZT1cImZhbHNlXCJcbiAgICBjc3M9e3tcbiAgICAgIGRpc3BsYXk6ICdpbmxpbmUtYmxvY2snLFxuICAgICAgZmlsbDogJ2N1cnJlbnRDb2xvcicsXG4gICAgICBsaW5lSGVpZ2h0OiAxLFxuICAgICAgc3Ryb2tlOiAnY3VycmVudENvbG9yJyxcbiAgICAgIHN0cm9rZVdpZHRoOiAwLFxuICAgIH19XG4gICAgey4uLnByb3BzfVxuICAvPlxuKTtcblxuZXhwb3J0IHR5cGUgQ3Jvc3NJY29uUHJvcHMgPSBKU1guSW50cmluc2ljRWxlbWVudHNbJ3N2ZyddICYgeyBzaXplPzogbnVtYmVyIH07XG5leHBvcnQgY29uc3QgQ3Jvc3NJY29uID0gKHByb3BzOiBDcm9zc0ljb25Qcm9wcykgPT4gKFxuICA8U3ZnIHNpemU9ezIwfSB7Li4ucHJvcHN9PlxuICAgIDxwYXRoIGQ9XCJNMTQuMzQ4IDE0Ljg0OWMtMC40NjkgMC40NjktMS4yMjkgMC40NjktMS42OTcgMGwtMi42NTEtMy4wMzAtMi42NTEgMy4wMjljLTAuNDY5IDAuNDY5LTEuMjI5IDAuNDY5LTEuNjk3IDAtMC40NjktMC40NjktMC40NjktMS4yMjkgMC0xLjY5N2wyLjc1OC0zLjE1LTIuNzU5LTMuMTUyYy0wLjQ2OS0wLjQ2OS0wLjQ2OS0xLjIyOCAwLTEuNjk3czEuMjI4LTAuNDY5IDEuNjk3IDBsMi42NTIgMy4wMzEgMi42NTEtMy4wMzFjMC40NjktMC40NjkgMS4yMjgtMC40NjkgMS42OTcgMHMwLjQ2OSAxLjIyOSAwIDEuNjk3bC0yLjc1OCAzLjE1MiAyLjc1OCAzLjE1YzAuNDY5IDAuNDY5IDAuNDY5IDEuMjI5IDAgMS42OTh6XCIgLz5cbiAgPC9Tdmc+XG4pO1xuZXhwb3J0IHR5cGUgRG93bkNoZXZyb25Qcm9wcyA9IEpTWC5JbnRyaW5zaWNFbGVtZW50c1snc3ZnJ10gJiB7IHNpemU/OiBudW1iZXIgfTtcbmV4cG9ydCBjb25zdCBEb3duQ2hldnJvbiA9IChwcm9wczogRG93bkNoZXZyb25Qcm9wcykgPT4gKFxuICA8U3ZnIHNpemU9ezIwfSB7Li4ucHJvcHN9PlxuICAgIDxwYXRoIGQ9XCJNNC41MTYgNy41NDhjMC40MzYtMC40NDYgMS4wNDMtMC40ODEgMS41NzYgMGwzLjkwOCAzLjc0NyAzLjkwOC0zLjc0N2MwLjUzMy0wLjQ4MSAxLjE0MS0wLjQ0NiAxLjU3NCAwIDAuNDM2IDAuNDQ1IDAuNDA4IDEuMTk3IDAgMS42MTUtMC40MDYgMC40MTgtNC42OTUgNC41MDItNC42OTUgNC41MDItMC4yMTcgMC4yMjMtMC41MDIgMC4zMzUtMC43ODcgMC4zMzVzLTAuNTctMC4xMTItMC43ODktMC4zMzVjMCAwLTQuMjg3LTQuMDg0LTQuNjk1LTQuNTAycy0wLjQzNi0xLjE3IDAtMS42MTV6XCIgLz5cbiAgPC9Tdmc+XG4pO1xuXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbi8vIERyb3Bkb3duICYgQ2xlYXIgQnV0dG9uc1xuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG5cbmV4cG9ydCBpbnRlcmZhY2UgRHJvcGRvd25JbmRpY2F0b3JQcm9wczxcbiAgT3B0aW9uID0gdW5rbm93bixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4gPSBib29sZWFuLFxuICBHcm91cCBleHRlbmRzIEdyb3VwQmFzZTxPcHRpb24+ID0gR3JvdXBCYXNlPE9wdGlvbj5cbj4gZXh0ZW5kcyBDb21tb25Qcm9wc0FuZENsYXNzTmFtZTxPcHRpb24sIElzTXVsdGksIEdyb3VwPiB7XG4gIC8qKiBUaGUgY2hpbGRyZW4gdG8gYmUgcmVuZGVyZWQgaW5zaWRlIHRoZSBpbmRpY2F0b3IuICovXG4gIGNoaWxkcmVuPzogUmVhY3ROb2RlO1xuICAvKiogUHJvcHMgdGhhdCB3aWxsIGJlIHBhc3NlZCBvbiB0byB0aGUgY2hpbGRyZW4uICovXG4gIGlubmVyUHJvcHM6IEpTWC5JbnRyaW5zaWNFbGVtZW50c1snZGl2J107XG4gIC8qKiBUaGUgZm9jdXNlZCBzdGF0ZSBvZiB0aGUgc2VsZWN0LiAqL1xuICBpc0ZvY3VzZWQ6IGJvb2xlYW47XG4gIGlzRGlzYWJsZWQ6IGJvb2xlYW47XG59XG5cbmNvbnN0IGJhc2VDU1MgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oe1xuICBpc0ZvY3VzZWQsXG4gIHRoZW1lOiB7XG4gICAgc3BhY2luZzogeyBiYXNlVW5pdCB9LFxuICAgIGNvbG9ycyxcbiAgfSxcbn06XG4gIHwgRHJvcGRvd25JbmRpY2F0b3JQcm9wczxPcHRpb24sIElzTXVsdGksIEdyb3VwPlxuICB8IENsZWFySW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD4pOiBDU1NPYmplY3RXaXRoTGFiZWwgPT4gKHtcbiAgbGFiZWw6ICdpbmRpY2F0b3JDb250YWluZXInLFxuICBjb2xvcjogaXNGb2N1c2VkID8gY29sb3JzLm5ldXRyYWw2MCA6IGNvbG9ycy5uZXV0cmFsMjAsXG4gIGRpc3BsYXk6ICdmbGV4JyxcbiAgcGFkZGluZzogYmFzZVVuaXQgKiAyLFxuICB0cmFuc2l0aW9uOiAnY29sb3IgMTUwbXMnLFxuXG4gICc6aG92ZXInOiB7XG4gICAgY29sb3I6IGlzRm9jdXNlZCA/IGNvbG9ycy5uZXV0cmFsODAgOiBjb2xvcnMubmV1dHJhbDQwLFxuICB9LFxufSk7XG5cbmV4cG9ydCBjb25zdCBkcm9wZG93bkluZGljYXRvckNTUyA9IGJhc2VDU1M7XG5leHBvcnQgY29uc3QgRHJvcGRvd25JbmRpY2F0b3IgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oXG4gIHByb3BzOiBEcm9wZG93bkluZGljYXRvclByb3BzPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+XG4pID0+IHtcbiAgY29uc3QgeyBjaGlsZHJlbiwgY2xhc3NOYW1lLCBjeCwgZ2V0U3R5bGVzLCBpbm5lclByb3BzIH0gPSBwcm9wcztcbiAgcmV0dXJuIChcbiAgICA8ZGl2XG4gICAgICBjc3M9e2dldFN0eWxlcygnZHJvcGRvd25JbmRpY2F0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KFxuICAgICAgICB7XG4gICAgICAgICAgaW5kaWNhdG9yOiB0cnVlLFxuICAgICAgICAgICdkcm9wZG93bi1pbmRpY2F0b3InOiB0cnVlLFxuICAgICAgICB9LFxuICAgICAgICBjbGFzc05hbWVcbiAgICAgICl9XG4gICAgICB7Li4uaW5uZXJQcm9wc31cbiAgICA+XG4gICAgICB7Y2hpbGRyZW4gfHwgPERvd25DaGV2cm9uIC8+fVxuICAgIDwvZGl2PlxuICApO1xufTtcblxuZXhwb3J0IGludGVyZmFjZSBDbGVhckluZGljYXRvclByb3BzPFxuICBPcHRpb24gPSB1bmtub3duLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbiA9IGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj4gPSBHcm91cEJhc2U8T3B0aW9uPlxuPiBleHRlbmRzIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+IHtcbiAgLyoqIFRoZSBjaGlsZHJlbiB0byBiZSByZW5kZXJlZCBpbnNpZGUgdGhlIGluZGljYXRvci4gKi9cbiAgY2hpbGRyZW4/OiBSZWFjdE5vZGU7XG4gIC8qKiBQcm9wcyB0aGF0IHdpbGwgYmUgcGFzc2VkIG9uIHRvIHRoZSBjaGlsZHJlbi4gKi9cbiAgaW5uZXJQcm9wczogSlNYLkludHJpbnNpY0VsZW1lbnRzWydkaXYnXTtcbiAgLyoqIFRoZSBmb2N1c2VkIHN0YXRlIG9mIHRoZSBzZWxlY3QuICovXG4gIGlzRm9jdXNlZDogYm9vbGVhbjtcbn1cblxuZXhwb3J0IGNvbnN0IGNsZWFySW5kaWNhdG9yQ1NTID0gYmFzZUNTUztcbmV4cG9ydCBjb25zdCBDbGVhckluZGljYXRvciA9IDxcbiAgT3B0aW9uLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbixcbiAgR3JvdXAgZXh0ZW5kcyBHcm91cEJhc2U8T3B0aW9uPlxuPihcbiAgcHJvcHM6IENsZWFySW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD5cbikgPT4ge1xuICBjb25zdCB7IGNoaWxkcmVuLCBjbGFzc05hbWUsIGN4LCBnZXRTdHlsZXMsIGlubmVyUHJvcHMgfSA9IHByb3BzO1xuICByZXR1cm4gKFxuICAgIDxkaXZcbiAgICAgIGNzcz17Z2V0U3R5bGVzKCdjbGVhckluZGljYXRvcicsIHByb3BzKX1cbiAgICAgIGNsYXNzTmFtZT17Y3goXG4gICAgICAgIHtcbiAgICAgICAgICBpbmRpY2F0b3I6IHRydWUsXG4gICAgICAgICAgJ2NsZWFyLWluZGljYXRvcic6IHRydWUsXG4gICAgICAgIH0sXG4gICAgICAgIGNsYXNzTmFtZVxuICAgICAgKX1cbiAgICAgIHsuLi5pbm5lclByb3BzfVxuICAgID5cbiAgICAgIHtjaGlsZHJlbiB8fCA8Q3Jvc3NJY29uIC8+fVxuICAgIDwvZGl2PlxuICApO1xufTtcblxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG4vLyBTZXBhcmF0b3Jcbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuXG5leHBvcnQgaW50ZXJmYWNlIEluZGljYXRvclNlcGFyYXRvclByb3BzPFxuICBPcHRpb24gPSB1bmtub3duLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbiA9IGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj4gPSBHcm91cEJhc2U8T3B0aW9uPlxuPiBleHRlbmRzIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+IHtcbiAgaXNEaXNhYmxlZDogYm9vbGVhbjtcbiAgaXNGb2N1c2VkOiBib29sZWFuO1xuICBpbm5lclByb3BzPzogSlNYLkludHJpbnNpY0VsZW1lbnRzWydzcGFuJ107XG59XG5cbmV4cG9ydCBjb25zdCBpbmRpY2F0b3JTZXBhcmF0b3JDU1MgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oe1xuICBpc0Rpc2FibGVkLFxuICB0aGVtZToge1xuICAgIHNwYWNpbmc6IHsgYmFzZVVuaXQgfSxcbiAgICBjb2xvcnMsXG4gIH0sXG59OiBJbmRpY2F0b3JTZXBhcmF0b3JQcm9wczxPcHRpb24sIElzTXVsdGksIEdyb3VwPik6IENTU09iamVjdFdpdGhMYWJlbCA9PiAoe1xuICBsYWJlbDogJ2luZGljYXRvclNlcGFyYXRvcicsXG4gIGFsaWduU2VsZjogJ3N0cmV0Y2gnLFxuICBiYWNrZ3JvdW5kQ29sb3I6IGlzRGlzYWJsZWQgPyBjb2xvcnMubmV1dHJhbDEwIDogY29sb3JzLm5ldXRyYWwyMCxcbiAgbWFyZ2luQm90dG9tOiBiYXNlVW5pdCAqIDIsXG4gIG1hcmdpblRvcDogYmFzZVVuaXQgKiAyLFxuICB3aWR0aDogMSxcbn0pO1xuXG5leHBvcnQgY29uc3QgSW5kaWNhdG9yU2VwYXJhdG9yID0gPFxuICBPcHRpb24sXG4gIElzTXVsdGkgZXh0ZW5kcyBib29sZWFuLFxuICBHcm91cCBleHRlbmRzIEdyb3VwQmFzZTxPcHRpb24+XG4+KFxuICBwcm9wczogSW5kaWNhdG9yU2VwYXJhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD5cbikgPT4ge1xuICBjb25zdCB7IGNsYXNzTmFtZSwgY3gsIGdldFN0eWxlcywgaW5uZXJQcm9wcyB9ID0gcHJvcHM7XG4gIHJldHVybiAoXG4gICAgPHNwYW5cbiAgICAgIHsuLi5pbm5lclByb3BzfVxuICAgICAgY3NzPXtnZXRTdHlsZXMoJ2luZGljYXRvclNlcGFyYXRvcicsIHByb3BzKX1cbiAgICAgIGNsYXNzTmFtZT17Y3goeyAnaW5kaWNhdG9yLXNlcGFyYXRvcic6IHRydWUgfSwgY2xhc3NOYW1lKX1cbiAgICAvPlxuICApO1xufTtcblxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG4vLyBMb2FkaW5nXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cblxuY29uc3QgbG9hZGluZ0RvdEFuaW1hdGlvbnMgPSBrZXlmcmFtZXNgXG4gIDAlLCA4MCUsIDEwMCUgeyBvcGFjaXR5OiAwOyB9XG4gIDQwJSB7IG9wYWNpdHk6IDE7IH1cbmA7XG5cbmV4cG9ydCBjb25zdCBsb2FkaW5nSW5kaWNhdG9yQ1NTID0gPFxuICBPcHRpb24sXG4gIElzTXVsdGkgZXh0ZW5kcyBib29sZWFuLFxuICBHcm91cCBleHRlbmRzIEdyb3VwQmFzZTxPcHRpb24+XG4+KHtcbiAgaXNGb2N1c2VkLFxuICBzaXplLFxuICB0aGVtZToge1xuICAgIGNvbG9ycyxcbiAgICBzcGFjaW5nOiB7IGJhc2VVbml0IH0sXG4gIH0sXG59OiBMb2FkaW5nSW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD4pOiBDU1NPYmplY3RXaXRoTGFiZWwgPT4gKHtcbiAgbGFiZWw6ICdsb2FkaW5nSW5kaWNhdG9yJyxcbiAgY29sb3I6IGlzRm9jdXNlZCA/IGNvbG9ycy5uZXV0cmFsNjAgOiBjb2xvcnMubmV1dHJhbDIwLFxuICBkaXNwbGF5OiAnZmxleCcsXG4gIHBhZGRpbmc6IGJhc2VVbml0ICogMixcbiAgdHJhbnNpdGlvbjogJ2NvbG9yIDE1MG1zJyxcbiAgYWxpZ25TZWxmOiAnY2VudGVyJyxcbiAgZm9udFNpemU6IHNpemUsXG4gIGxpbmVIZWlnaHQ6IDEsXG4gIG1hcmdpblJpZ2h0OiBzaXplLFxuICB0ZXh0QWxpZ246ICdjZW50ZXInLFxuICB2ZXJ0aWNhbEFsaWduOiAnbWlkZGxlJyxcbn0pO1xuXG5pbnRlcmZhY2UgTG9hZGluZ0RvdFByb3BzIHtcbiAgZGVsYXk6IG51bWJlcjtcbiAgb2Zmc2V0OiBib29sZWFuO1xufVxuY29uc3QgTG9hZGluZ0RvdCA9ICh7IGRlbGF5LCBvZmZzZXQgfTogTG9hZGluZ0RvdFByb3BzKSA9PiAoXG4gIDxzcGFuXG4gICAgY3NzPXt7XG4gICAgICBhbmltYXRpb246IGAke2xvYWRpbmdEb3RBbmltYXRpb25zfSAxcyBlYXNlLWluLW91dCAke2RlbGF5fW1zIGluZmluaXRlO2AsXG4gICAgICBiYWNrZ3JvdW5kQ29sb3I6ICdjdXJyZW50Q29sb3InLFxuICAgICAgYm9yZGVyUmFkaXVzOiAnMWVtJyxcbiAgICAgIGRpc3BsYXk6ICdpbmxpbmUtYmxvY2snLFxuICAgICAgbWFyZ2luTGVmdDogb2Zmc2V0ID8gJzFlbScgOiB1bmRlZmluZWQsXG4gICAgICBoZWlnaHQ6ICcxZW0nLFxuICAgICAgdmVydGljYWxBbGlnbjogJ3RvcCcsXG4gICAgICB3aWR0aDogJzFlbScsXG4gICAgfX1cbiAgLz5cbik7XG5cbmV4cG9ydCBpbnRlcmZhY2UgTG9hZGluZ0luZGljYXRvclByb3BzPFxuICBPcHRpb24gPSB1bmtub3duLFxuICBJc011bHRpIGV4dGVuZHMgYm9vbGVhbiA9IGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj4gPSBHcm91cEJhc2U8T3B0aW9uPlxuPiBleHRlbmRzIENvbW1vblByb3BzQW5kQ2xhc3NOYW1lPE9wdGlvbiwgSXNNdWx0aSwgR3JvdXA+IHtcbiAgLyoqIFByb3BzIHRoYXQgd2lsbCBiZSBwYXNzZWQgb24gdG8gdGhlIGNoaWxkcmVuLiAqL1xuICBpbm5lclByb3BzOiBKU1guSW50cmluc2ljRWxlbWVudHNbJ2RpdiddO1xuICAvKiogVGhlIGZvY3VzZWQgc3RhdGUgb2YgdGhlIHNlbGVjdC4gKi9cbiAgaXNGb2N1c2VkOiBib29sZWFuO1xuICBpc0Rpc2FibGVkOiBib29sZWFuO1xuICAvKiogU2V0IHNpemUgb2YgdGhlIGNvbnRhaW5lci4gKi9cbiAgc2l6ZTogbnVtYmVyO1xufVxuZXhwb3J0IGNvbnN0IExvYWRpbmdJbmRpY2F0b3IgPSA8XG4gIE9wdGlvbixcbiAgSXNNdWx0aSBleHRlbmRzIGJvb2xlYW4sXG4gIEdyb3VwIGV4dGVuZHMgR3JvdXBCYXNlPE9wdGlvbj5cbj4oXG4gIHByb3BzOiBMb2FkaW5nSW5kaWNhdG9yUHJvcHM8T3B0aW9uLCBJc011bHRpLCBHcm91cD5cbikgPT4ge1xuICBjb25zdCB7IGNsYXNzTmFtZSwgY3gsIGdldFN0eWxlcywgaW5uZXJQcm9wcywgaXNSdGwgfSA9IHByb3BzO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdlxuICAgICAgY3NzPXtnZXRTdHlsZXMoJ2xvYWRpbmdJbmRpY2F0b3InLCBwcm9wcyl9XG4gICAgICBjbGFzc05hbWU9e2N4KFxuICAgICAgICB7XG4gICAgICAgICAgaW5kaWNhdG9yOiB0cnVlLFxuICAgICAgICAgICdsb2FkaW5nLWluZGljYXRvcic6IHRydWUsXG4gICAgICAgIH0sXG4gICAgICAgIGNsYXNzTmFtZVxuICAgICAgKX1cbiAgICAgIHsuLi5pbm5lclByb3BzfVxuICAgID5cbiAgICAgIDxMb2FkaW5nRG90IGRlbGF5PXswfSBvZmZzZXQ9e2lzUnRsfSAvPlxuICAgICAgPExvYWRpbmdEb3QgZGVsYXk9ezE2MH0gb2Zmc2V0IC8+XG4gICAgICA8TG9hZGluZ0RvdCBkZWxheT17MzIwfSBvZmZzZXQ9eyFpc1J0bH0gLz5cbiAgICA8L2Rpdj5cbiAgKTtcbn07XG5Mb2FkaW5nSW5kaWNhdG9yLmRlZmF1bHRQcm9wcyA9IHsgc2l6ZTogNCB9O1xuIl19 */")
+  });
+};
+
+var LoadingIndicator = function LoadingIndicator(props) {
+  var className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps,
+      isRtl = props.isRtl;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('loadingIndicator', props),
+    className: cx({
+      indicator: true,
+      'loading-indicator': true
+    }, className)
+  }, innerProps), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(LoadingDot, {
+    delay: 0,
+    offset: isRtl
+  }), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(LoadingDot, {
+    delay: 160,
+    offset: true
+  }), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(LoadingDot, {
+    delay: 320,
+    offset: !isRtl
+  }));
+};
+LoadingIndicator.defaultProps = {
+  size: 4
+};
+
+var css$1 = function css(_ref) {
+  var isDisabled = _ref.isDisabled,
+      isFocused = _ref.isFocused,
+      _ref$theme = _ref.theme,
+      colors = _ref$theme.colors,
+      borderRadius = _ref$theme.borderRadius,
+      spacing = _ref$theme.spacing;
+  return {
+    label: 'control',
+    alignItems: 'center',
+    backgroundColor: isDisabled ? colors.neutral5 : colors.neutral0,
+    borderColor: isDisabled ? colors.neutral10 : isFocused ? colors.primary : colors.neutral20,
+    borderRadius: borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    boxShadow: isFocused ? "0 0 0 1px ".concat(colors.primary) : undefined,
+    cursor: 'default',
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    minHeight: spacing.controlHeight,
+    outline: '0 !important',
+    position: 'relative',
+    transition: 'all 100ms',
+    '&:hover': {
+      borderColor: isFocused ? colors.primary : colors.neutral30
+    }
+  };
+};
+
+var Control = function Control(props) {
+  var children = props.children,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      className = props.className,
+      isDisabled = props.isDisabled,
+      isFocused = props.isFocused,
+      innerRef = props.innerRef,
+      innerProps = props.innerProps,
+      menuIsOpen = props.menuIsOpen;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    ref: innerRef,
+    css: getStyles('control', props),
+    className: cx({
+      control: true,
+      'control--is-disabled': isDisabled,
+      'control--is-focused': isFocused,
+      'control--menu-is-open': menuIsOpen
+    }, className)
+  }, innerProps), children);
+};
+
+var _excluded$1 = ["data"];
+var groupCSS = function groupCSS(_ref) {
+  var spacing = _ref.theme.spacing;
+  return {
+    paddingBottom: spacing.baseUnit * 2,
+    paddingTop: spacing.baseUnit * 2
+  };
+};
+
+var Group = function Group(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      Heading = props.Heading,
+      headingProps = props.headingProps,
+      innerProps = props.innerProps,
+      label = props.label,
+      theme = props.theme,
+      selectProps = props.selectProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('group', props),
+    className: cx({
+      group: true
+    }, className)
+  }, innerProps), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(Heading, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({}, headingProps, {
+    selectProps: selectProps,
+    theme: theme,
+    getStyles: getStyles,
+    cx: cx
+  }), label), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", null, children));
+};
+
+var groupHeadingCSS = function groupHeadingCSS(_ref2) {
+  var spacing = _ref2.theme.spacing;
+  return {
+    label: 'group',
+    color: '#999',
+    cursor: 'default',
+    display: 'block',
+    fontSize: '75%',
+    fontWeight: 500,
+    marginBottom: '0.25em',
+    paddingLeft: spacing.baseUnit * 3,
+    paddingRight: spacing.baseUnit * 3,
+    textTransform: 'uppercase'
+  };
+};
+var GroupHeading = function GroupHeading(props) {
+  var getStyles = props.getStyles,
+      cx = props.cx,
+      className = props.className;
+
+  var _cleanCommonProps = cleanCommonProps(props);
+      _cleanCommonProps.data;
+      var innerProps = (0,_babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_2__["default"])(_cleanCommonProps, _excluded$1);
+
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('groupHeading', props),
+    className: cx({
+      'group-heading': true
+    }, className)
+  }, innerProps));
+};
+
+var _excluded = ["innerRef", "isDisabled", "isHidden", "inputClassName"];
+var inputCSS = function inputCSS(_ref) {
+  var isDisabled = _ref.isDisabled,
+      value = _ref.value,
+      _ref$theme = _ref.theme,
+      spacing = _ref$theme.spacing,
+      colors = _ref$theme.colors;
+  return _objectSpread2({
+    margin: spacing.baseUnit / 2,
+    paddingBottom: spacing.baseUnit / 2,
+    paddingTop: spacing.baseUnit / 2,
+    visibility: isDisabled ? 'hidden' : 'visible',
+    color: colors.neutral80,
+    // force css to recompute when value change due to @emotion bug.
+    // We can remove it whenever the bug is fixed.
+    transform: value ? 'translateZ(0)' : ''
+  }, containerStyle);
+};
+var spacingStyle = {
+  gridArea: '1 / 2',
+  font: 'inherit',
+  minWidth: '2px',
+  border: 0,
+  margin: 0,
+  outline: 0,
+  padding: 0
+};
+var containerStyle = {
+  flex: '1 1 auto',
+  display: 'inline-grid',
+  gridArea: '1 / 1 / 2 / 3',
+  gridTemplateColumns: '0 min-content',
+  '&:after': _objectSpread2({
+    content: 'attr(data-value) " "',
+    visibility: 'hidden',
+    whiteSpace: 'pre'
+  }, spacingStyle)
+};
+
+var inputStyle = function inputStyle(isHidden) {
+  return _objectSpread2({
+    label: 'input',
+    color: 'inherit',
+    background: 0,
+    opacity: isHidden ? 0 : 1,
+    width: '100%'
+  }, spacingStyle);
+};
+
+var Input = function Input(props) {
+  var className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      value = props.value;
+
+  var _cleanCommonProps = cleanCommonProps(props),
+      innerRef = _cleanCommonProps.innerRef,
+      isDisabled = _cleanCommonProps.isDisabled,
+      isHidden = _cleanCommonProps.isHidden,
+      inputClassName = _cleanCommonProps.inputClassName,
+      innerProps = (0,_babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_2__["default"])(_cleanCommonProps, _excluded);
+
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
+    className: cx({
+      'input-container': true
+    }, className),
+    css: getStyles('input', props),
+    "data-value": value || ''
+  }, (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("input", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    className: cx({
+      input: true
+    }, inputClassName),
+    ref: innerRef,
+    style: inputStyle(isHidden),
+    disabled: isDisabled
+  }, innerProps)));
+};
+
+var multiValueCSS = function multiValueCSS(_ref) {
+  var _ref$theme = _ref.theme,
+      spacing = _ref$theme.spacing,
+      borderRadius = _ref$theme.borderRadius,
+      colors = _ref$theme.colors;
+  return {
+    label: 'multiValue',
+    backgroundColor: colors.neutral10,
+    borderRadius: borderRadius / 2,
+    display: 'flex',
+    margin: spacing.baseUnit / 2,
+    minWidth: 0 // resolves flex/text-overflow bug
+
+  };
+};
+var multiValueLabelCSS = function multiValueLabelCSS(_ref2) {
+  var _ref2$theme = _ref2.theme,
+      borderRadius = _ref2$theme.borderRadius,
+      colors = _ref2$theme.colors,
+      cropWithEllipsis = _ref2.cropWithEllipsis;
+  return {
+    borderRadius: borderRadius / 2,
+    color: colors.neutral80,
+    fontSize: '85%',
+    overflow: 'hidden',
+    padding: 3,
+    paddingLeft: 6,
+    textOverflow: cropWithEllipsis || cropWithEllipsis === undefined ? 'ellipsis' : undefined,
+    whiteSpace: 'nowrap'
+  };
+};
+var multiValueRemoveCSS = function multiValueRemoveCSS(_ref3) {
+  var _ref3$theme = _ref3.theme,
+      spacing = _ref3$theme.spacing,
+      borderRadius = _ref3$theme.borderRadius,
+      colors = _ref3$theme.colors,
+      isFocused = _ref3.isFocused;
+  return {
+    alignItems: 'center',
+    borderRadius: borderRadius / 2,
+    backgroundColor: isFocused ? colors.dangerLight : undefined,
+    display: 'flex',
+    paddingLeft: spacing.baseUnit,
+    paddingRight: spacing.baseUnit,
+    ':hover': {
+      backgroundColor: colors.dangerLight,
+      color: colors.danger
+    }
+  };
+};
+var MultiValueGeneric = function MultiValueGeneric(_ref4) {
+  var children = _ref4.children,
+      innerProps = _ref4.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", innerProps, children);
+};
+var MultiValueContainer = MultiValueGeneric;
+var MultiValueLabel = MultiValueGeneric;
+function MultiValueRemove(_ref5) {
+  var children = _ref5.children,
+      innerProps = _ref5.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    role: "button"
+  }, innerProps), children || (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(CrossIcon, {
+    size: 14
+  }));
+}
+
+var MultiValue = function MultiValue(props) {
+  var children = props.children,
+      className = props.className,
+      components = props.components,
+      cx = props.cx,
+      data = props.data,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps,
+      isDisabled = props.isDisabled,
+      removeProps = props.removeProps,
+      selectProps = props.selectProps;
+  var Container = components.Container,
+      Label = components.Label,
+      Remove = components.Remove;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_11__.ClassNames, null, function (_ref6) {
+    var css = _ref6.css,
+        emotionCx = _ref6.cx;
+    return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(Container, {
+      data: data,
+      innerProps: _objectSpread2({
+        className: emotionCx(css(getStyles('multiValue', props)), cx({
+          'multi-value': true,
+          'multi-value--is-disabled': isDisabled
+        }, className))
+      }, innerProps),
+      selectProps: selectProps
+    }, (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(Label, {
+      data: data,
+      innerProps: {
+        className: emotionCx(css(getStyles('multiValueLabel', props)), cx({
+          'multi-value__label': true
+        }, className))
+      },
+      selectProps: selectProps
+    }, children), (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)(Remove, {
+      data: data,
+      innerProps: _objectSpread2({
+        className: emotionCx(css(getStyles('multiValueRemove', props)), cx({
+          'multi-value__remove': true
+        }, className)),
+        'aria-label': "Remove ".concat(children || 'option')
+      }, removeProps),
+      selectProps: selectProps
+    }));
+  });
+};
+
+var optionCSS = function optionCSS(_ref) {
+  var isDisabled = _ref.isDisabled,
+      isFocused = _ref.isFocused,
+      isSelected = _ref.isSelected,
+      _ref$theme = _ref.theme,
+      spacing = _ref$theme.spacing,
+      colors = _ref$theme.colors;
+  return {
+    label: 'option',
+    backgroundColor: isSelected ? colors.primary : isFocused ? colors.primary25 : 'transparent',
+    color: isDisabled ? colors.neutral20 : isSelected ? colors.neutral0 : 'inherit',
+    cursor: 'default',
+    display: 'block',
+    fontSize: 'inherit',
+    padding: "".concat(spacing.baseUnit * 2, "px ").concat(spacing.baseUnit * 3, "px"),
+    width: '100%',
+    userSelect: 'none',
+    WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)',
+    // provide some affordance on touch devices
+    ':active': {
+      backgroundColor: !isDisabled ? isSelected ? colors.primary : colors.primary50 : undefined
+    }
+  };
+};
+
+var Option = function Option(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      isDisabled = props.isDisabled,
+      isFocused = props.isFocused,
+      isSelected = props.isSelected,
+      innerRef = props.innerRef,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('option', props),
+    className: cx({
+      option: true,
+      'option--is-disabled': isDisabled,
+      'option--is-focused': isFocused,
+      'option--is-selected': isSelected
+    }, className),
+    ref: innerRef,
+    "aria-disabled": isDisabled
+  }, innerProps), children);
+};
+
+var placeholderCSS = function placeholderCSS(_ref) {
+  var _ref$theme = _ref.theme,
+      spacing = _ref$theme.spacing,
+      colors = _ref$theme.colors;
+  return {
+    label: 'placeholder',
+    color: colors.neutral50,
+    gridArea: '1 / 1 / 2 / 3',
+    marginLeft: spacing.baseUnit / 2,
+    marginRight: spacing.baseUnit / 2
+  };
+};
+
+var Placeholder = function Placeholder(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('placeholder', props),
+    className: cx({
+      placeholder: true
+    }, className)
+  }, innerProps), children);
+};
+
+var css = function css(_ref) {
+  var isDisabled = _ref.isDisabled,
+      _ref$theme = _ref.theme,
+      spacing = _ref$theme.spacing,
+      colors = _ref$theme.colors;
+  return {
+    label: 'singleValue',
+    color: isDisabled ? colors.neutral40 : colors.neutral80,
+    gridArea: '1 / 1 / 2 / 3',
+    marginLeft: spacing.baseUnit / 2,
+    marginRight: spacing.baseUnit / 2,
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  };
+};
+
+var SingleValue = function SingleValue(props) {
+  var children = props.children,
+      className = props.className,
+      cx = props.cx,
+      getStyles = props.getStyles,
+      isDisabled = props.isDisabled,
+      innerProps = props.innerProps;
+  return (0,_emotion_react__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    css: getStyles('singleValue', props),
+    className: cx({
+      'single-value': true,
+      'single-value--is-disabled': isDisabled
+    }, className)
+  }, innerProps), children);
+};
+
+var components = {
+  ClearIndicator: ClearIndicator,
+  Control: Control,
+  DropdownIndicator: DropdownIndicator,
+  DownChevron: DownChevron,
+  CrossIcon: CrossIcon,
+  Group: Group,
+  GroupHeading: GroupHeading,
+  IndicatorsContainer: IndicatorsContainer,
+  IndicatorSeparator: IndicatorSeparator,
+  Input: Input,
+  LoadingIndicator: LoadingIndicator,
+  Menu: Menu,
+  MenuList: MenuList,
+  MenuPortal: MenuPortal,
+  LoadingMessage: LoadingMessage,
+  NoOptionsMessage: NoOptionsMessage,
+  MultiValue: MultiValue,
+  MultiValueContainer: MultiValueContainer,
+  MultiValueLabel: MultiValueLabel,
+  MultiValueRemove: MultiValueRemove,
+  Option: Option,
+  Placeholder: Placeholder,
+  SelectContainer: SelectContainer,
+  SingleValue: SingleValue,
+  ValueContainer: ValueContainer
+};
+var defaultComponents = function defaultComponents(props) {
+  return _objectSpread2(_objectSpread2({}, components), props.components);
+};
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/react-select/dist/react-select.esm.js":
+/*!************************************************************!*\
+  !*** ./node_modules/react-select/dist/react-select.esm.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NonceProvider": () => (/* binding */ NonceProvider),
+/* harmony export */   "components": () => (/* reexport safe */ _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_7__.c),
+/* harmony export */   "createFilter": () => (/* reexport safe */ _Select_54ac8379_esm_js__WEBPACK_IMPORTED_MODULE_3__.c),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   "defaultTheme": () => (/* reexport safe */ _Select_54ac8379_esm_js__WEBPACK_IMPORTED_MODULE_3__.d),
+/* harmony export */   "mergeStyles": () => (/* reexport safe */ _Select_54ac8379_esm_js__WEBPACK_IMPORTED_MODULE_3__.m),
+/* harmony export */   "useStateManager": () => (/* reexport safe */ _useStateManager_68425271_esm_js__WEBPACK_IMPORTED_MODULE_0__.u)
+/* harmony export */ });
+/* harmony import */ var _useStateManager_68425271_esm_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./useStateManager-68425271.esm.js */ "./node_modules/react-select/dist/useStateManager-68425271.esm.js");
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _Select_54ac8379_esm_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Select-54ac8379.esm.js */ "./node_modules/react-select/dist/Select-54ac8379.esm.js");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/esm/inherits */ "./node_modules/@babel/runtime/helpers/esm/inherits.js");
+/* harmony import */ var _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./index-a7690a33.esm.js */ "./node_modules/react-select/dist/index-a7690a33.esm.js");
+/* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-element-cbed451f.browser.esm.js");
+/* harmony import */ var _emotion_cache__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @emotion/cache */ "./node_modules/@emotion/cache/dist/emotion-cache.browser.esm.js");
+/* harmony import */ var memoize_one__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! memoize-one */ "./node_modules/memoize-one/dist/memoize-one.esm.js");
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @babel/runtime/helpers/objectWithoutProperties */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutProperties.js");
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @babel/runtime/helpers/taggedTemplateLiteral */ "./node_modules/@babel/runtime/helpers/esm/taggedTemplateLiteral.js");
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/esm/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var StateManagedSelect = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_2__.forwardRef)(function (props, ref) {
+  var baseSelectProps = (0,_useStateManager_68425271_esm_js__WEBPACK_IMPORTED_MODULE_0__.u)(props);
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2__.createElement(_Select_54ac8379_esm_js__WEBPACK_IMPORTED_MODULE_3__.S, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_1__["default"])({
+    ref: ref
+  }, baseSelectProps));
+});
+
+var NonceProvider = /*#__PURE__*/function (_Component) {
+  (0,_babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_6__["default"])(NonceProvider, _Component);
+
+  var _super = (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_7__._)(NonceProvider);
+
+  function NonceProvider(props) {
+    var _this;
+
+    (0,_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4__["default"])(this, NonceProvider);
+
+    _this = _super.call(this, props);
+
+    _this.createEmotionCache = function (nonce, key) {
+      return (0,_emotion_cache__WEBPACK_IMPORTED_MODULE_8__["default"])({
+        nonce: nonce,
+        key: key
+      });
+    };
+
+    _this.createEmotionCache = (0,memoize_one__WEBPACK_IMPORTED_MODULE_16__["default"])(_this.createEmotionCache);
+    return _this;
+  }
+
+  (0,_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5__["default"])(NonceProvider, [{
+    key: "render",
+    value: function render() {
+      var emotionCache = this.createEmotionCache(this.props.nonce, this.props.cacheKey);
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2__.createElement(_emotion_react__WEBPACK_IMPORTED_MODULE_17__.C, {
+        value: emotionCache
+      }, this.props.children);
+    }
+  }]);
+
+  return NonceProvider;
+}(react__WEBPACK_IMPORTED_MODULE_2__.Component);
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (StateManagedSelect);
+
+
+
+/***/ }),
+
+/***/ "./node_modules/react-select/dist/useStateManager-68425271.esm.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/react-select/dist/useStateManager-68425271.esm.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "u": () => (/* binding */ useStateManager)
+/* harmony export */ });
+/* harmony import */ var _index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./index-a7690a33.esm.js */ "./node_modules/react-select/dist/index-a7690a33.esm.js");
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutProperties */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutProperties.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+
+
+var _excluded = ["defaultInputValue", "defaultMenuIsOpen", "defaultValue", "inputValue", "menuIsOpen", "onChange", "onInputChange", "onMenuClose", "onMenuOpen", "value"];
+function useStateManager(_ref) {
+  var _ref$defaultInputValu = _ref.defaultInputValue,
+      defaultInputValue = _ref$defaultInputValu === void 0 ? '' : _ref$defaultInputValu,
+      _ref$defaultMenuIsOpe = _ref.defaultMenuIsOpen,
+      defaultMenuIsOpen = _ref$defaultMenuIsOpe === void 0 ? false : _ref$defaultMenuIsOpe,
+      _ref$defaultValue = _ref.defaultValue,
+      defaultValue = _ref$defaultValue === void 0 ? null : _ref$defaultValue,
+      propsInputValue = _ref.inputValue,
+      propsMenuIsOpen = _ref.menuIsOpen,
+      propsOnChange = _ref.onChange,
+      propsOnInputChange = _ref.onInputChange,
+      propsOnMenuClose = _ref.onMenuClose,
+      propsOnMenuOpen = _ref.onMenuOpen,
+      propsValue = _ref.value,
+      restSelectProps = (0,_babel_runtime_helpers_esm_objectWithoutProperties__WEBPACK_IMPORTED_MODULE_1__["default"])(_ref, _excluded);
+
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(propsInputValue !== undefined ? propsInputValue : defaultInputValue),
+      _useState2 = (0,_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState, 2),
+      stateInputValue = _useState2[0],
+      setStateInputValue = _useState2[1];
+
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(propsMenuIsOpen !== undefined ? propsMenuIsOpen : defaultMenuIsOpen),
+      _useState4 = (0,_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState3, 2),
+      stateMenuIsOpen = _useState4[0],
+      setStateMenuIsOpen = _useState4[1];
+
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(propsValue !== undefined ? propsValue : defaultValue),
+      _useState6 = (0,_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_useState5, 2),
+      stateValue = _useState6[0],
+      setStateValue = _useState6[1];
+
+  var onChange = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(function (value, actionMeta) {
+    if (typeof propsOnChange === 'function') {
+      propsOnChange(value, actionMeta);
+    }
+
+    setStateValue(value);
+  }, [propsOnChange]);
+  var onInputChange = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(function (value, actionMeta) {
+    var newValue;
+
+    if (typeof propsOnInputChange === 'function') {
+      newValue = propsOnInputChange(value, actionMeta);
+    }
+
+    setStateInputValue(newValue !== undefined ? newValue : value);
+  }, [propsOnInputChange]);
+  var onMenuOpen = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(function () {
+    if (typeof propsOnMenuOpen === 'function') {
+      propsOnMenuOpen();
+    }
+
+    setStateMenuIsOpen(true);
+  }, [propsOnMenuOpen]);
+  var onMenuClose = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(function () {
+    if (typeof propsOnMenuClose === 'function') {
+      propsOnMenuClose();
+    }
+
+    setStateMenuIsOpen(false);
+  }, [propsOnMenuClose]);
+  var inputValue = propsInputValue !== undefined ? propsInputValue : stateInputValue;
+  var menuIsOpen = propsMenuIsOpen !== undefined ? propsMenuIsOpen : stateMenuIsOpen;
+  var value = propsValue !== undefined ? propsValue : stateValue;
+  return (0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_3__.a)((0,_index_a7690a33_esm_js__WEBPACK_IMPORTED_MODULE_3__.a)({}, restSelectProps), {}, {
+    inputValue: inputValue,
+    menuIsOpen: menuIsOpen,
+    onChange: onChange,
+    onInputChange: onInputChange,
+    onMenuClose: onMenuClose,
+    onMenuOpen: onMenuOpen,
+    value: value
+  });
+}
+
+
+
+
+/***/ }),
+
 /***/ "./node_modules/react/cjs/react.development.js":
 /*!*****************************************************!*\
   !*** ./node_modules/react/cjs/react.development.js ***!
   \*****************************************************/
 /***/ ((module, exports, __webpack_require__) => {
 
+"use strict";
 /* module decorator */ module = __webpack_require__.nmd(module);
 /**
  * @license React
@@ -33117,11 +55324,28 @@ if (
   \*************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 if (false) {} else {
   module.exports = __webpack_require__(/*! ./cjs/react.development.js */ "./node_modules/react/cjs/react.development.js");
 }
+
+
+/***/ }),
+
+/***/ "./node_modules/redent/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/redent/index.js ***!
+  \**************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+const stripIndent = __webpack_require__(/*! strip-indent */ "./node_modules/strip-indent/index.js");
+const indentString = __webpack_require__(/*! indent-string */ "./node_modules/indent-string/index.js");
+
+module.exports = (string, count = 0, options) => indentString(stripIndent(string), count, options);
 
 
 /***/ }),
@@ -33132,6 +55356,7 @@ if (false) {} else {
   \*************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 /**
  * @license React
  * scheduler.development.js
@@ -33776,6 +56001,7 @@ if (
   \*****************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 if (false) {} else {
@@ -33785,19 +56011,45 @@ if (false) {} else {
 
 /***/ }),
 
-/***/ "./src/main/webapp/App.css":
-/*!*********************************!*\
-  !*** ./src/main/webapp/App.css ***!
-  \*********************************/
+/***/ "./node_modules/strip-indent/index.js":
+/*!********************************************!*\
+  !*** ./node_modules/strip-indent/index.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+const minIndent = __webpack_require__(/*! min-indent */ "./node_modules/min-indent/index.js");
+
+module.exports = string => {
+	const indent = minIndent(string);
+
+	if (indent === 0) {
+		return string;
+	}
+
+	const regex = new RegExp(`^[ \\t]{${indent}}`, 'gm');
+
+	return string.replace(regex, '');
+};
+
+
+/***/ }),
+
+/***/ "./src/main/webapp/LoginComponent.css":
+/*!********************************************!*\
+  !*** ./src/main/webapp/LoginComponent.css ***!
+  \********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _node_modules_css_loader_dist_cjs_js_App_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js!./App.css */ "./node_modules/css-loader/dist/cjs.js!./src/main/webapp/App.css");
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_LoginComponent_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js!./LoginComponent.css */ "./node_modules/css-loader/dist/cjs.js!./src/main/webapp/LoginComponent.css");
 
             
 
@@ -33806,11 +56058,41 @@ var options = {};
 options.insert = "head";
 options.singleton = false;
 
-var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_App_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_LoginComponent_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_App_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_LoginComponent_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
+
+/***/ }),
+
+/***/ "./src/main/webapp/StockDetailManager.css":
+/*!************************************************!*\
+  !*** ./src/main/webapp/StockDetailManager.css ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_StockDetailManager_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js!./StockDetailManager.css */ "./node_modules/css-loader/dist/cjs.js!./src/main/webapp/StockDetailManager.css");
+
+            
+
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_StockDetailManager_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
+
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_StockDetailManager_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
 
 /***/ }),
 
@@ -33820,6 +56102,7 @@ var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js
   \***********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -33849,6 +56132,7 @@ var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js
   \****************************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var isOldIE = function isOldIE() {
@@ -34119,6 +56403,2984 @@ module.exports = function (list, options) {
   };
 };
 
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/extends.js":
+/*!********************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/extends.js ***!
+  \********************************************************/
+/***/ ((module) => {
+
+function _extends() {
+  module.exports = _extends = Object.assign ? Object.assign.bind() : function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports;
+  return _extends.apply(this, arguments);
+}
+
+module.exports = _extends, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/interopRequireDefault.js ***!
+  \**********************************************************************/
+/***/ ((module) => {
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    "default": obj
+  };
+}
+
+module.exports = _interopRequireDefault, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/accessible-description.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/accessible-description.js ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.computeAccessibleDescription = computeAccessibleDescription;
+
+var _accessibleNameAndDescription = __webpack_require__(/*! ./accessible-name-and-description */ "./node_modules/dom-accessibility-api/dist/accessible-name-and-description.js");
+
+var _util = __webpack_require__(/*! ./util */ "./node_modules/dom-accessibility-api/dist/util.js");
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * @param root
+ * @param options
+ * @returns
+ */
+function computeAccessibleDescription(root) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var description = (0, _util.queryIdRefs)(root, "aria-describedby").map(function (element) {
+    return (0, _accessibleNameAndDescription.computeTextAlternative)(element, _objectSpread(_objectSpread({}, options), {}, {
+      compute: "description"
+    }));
+  }).join(" "); // TODO: Technically we need to make sure that node wasn't used for the accessible name
+  //       This causes `description_1.0_combobox-focusable-manual` to fail
+  //
+  // https://www.w3.org/TR/html-aam-1.0/#accessible-name-and-description-computation
+  // says for so many elements to use the `title` that we assume all elements are considered
+
+  if (description === "") {
+    var title = root.getAttribute("title");
+    description = title === null ? "" : title;
+  }
+
+  return description;
+}
+//# sourceMappingURL=accessible-description.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/accessible-name-and-description.js":
+/*!************************************************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/accessible-name-and-description.js ***!
+  \************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.computeTextAlternative = computeTextAlternative;
+
+var _array = _interopRequireDefault(__webpack_require__(/*! ./polyfills/array.from */ "./node_modules/dom-accessibility-api/dist/polyfills/array.from.js"));
+
+var _SetLike = _interopRequireDefault(__webpack_require__(/*! ./polyfills/SetLike */ "./node_modules/dom-accessibility-api/dist/polyfills/SetLike.js"));
+
+var _util = __webpack_require__(/*! ./util */ "./node_modules/dom-accessibility-api/dist/util.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * implements https://w3c.github.io/accname/
+ */
+
+/**
+ *
+ * @param {string} string -
+ * @returns {FlatString} -
+ */
+function asFlatString(s) {
+  return s.trim().replace(/\s\s+/g, " ");
+}
+/**
+ *
+ * @param node -
+ * @param options - These are not optional to prevent accidentally calling it without options in `computeAccessibleName`
+ * @returns {boolean} -
+ */
+
+
+function isHidden(node, getComputedStyleImplementation) {
+  if (!(0, _util.isElement)(node)) {
+    return false;
+  }
+
+  if (node.hasAttribute("hidden") || node.getAttribute("aria-hidden") === "true") {
+    return true;
+  }
+
+  var style = getComputedStyleImplementation(node);
+  return style.getPropertyValue("display") === "none" || style.getPropertyValue("visibility") === "hidden";
+}
+/**
+ * @param {Node} node -
+ * @returns {boolean} - As defined in step 2E of https://w3c.github.io/accname/#mapping_additional_nd_te
+ */
+
+
+function isControl(node) {
+  return (0, _util.hasAnyConcreteRoles)(node, ["button", "combobox", "listbox", "textbox"]) || hasAbstractRole(node, "range");
+}
+
+function hasAbstractRole(node, role) {
+  if (!(0, _util.isElement)(node)) {
+    return false;
+  }
+
+  switch (role) {
+    case "range":
+      return (0, _util.hasAnyConcreteRoles)(node, ["meter", "progressbar", "scrollbar", "slider", "spinbutton"]);
+
+    default:
+      throw new TypeError("No knowledge about abstract role '".concat(role, "'. This is likely a bug :("));
+  }
+}
+/**
+ * element.querySelectorAll but also considers owned tree
+ * @param element
+ * @param selectors
+ */
+
+
+function querySelectorAllSubtree(element, selectors) {
+  var elements = (0, _array.default)(element.querySelectorAll(selectors));
+  (0, _util.queryIdRefs)(element, "aria-owns").forEach(function (root) {
+    // babel transpiles this assuming an iterator
+    elements.push.apply(elements, (0, _array.default)(root.querySelectorAll(selectors)));
+  });
+  return elements;
+}
+
+function querySelectedOptions(listbox) {
+  if ((0, _util.isHTMLSelectElement)(listbox)) {
+    // IE11 polyfill
+    return listbox.selectedOptions || querySelectorAllSubtree(listbox, "[selected]");
+  }
+
+  return querySelectorAllSubtree(listbox, '[aria-selected="true"]');
+}
+
+function isMarkedPresentational(node) {
+  return (0, _util.hasAnyConcreteRoles)(node, ["none", "presentation"]);
+}
+/**
+ * Elements specifically listed in html-aam
+ *
+ * We don't need this for `label` or `legend` elements.
+ * Their implicit roles already allow "naming from content".
+ *
+ * sources:
+ *
+ * - https://w3c.github.io/html-aam/#table-element
+ */
+
+
+function isNativeHostLanguageTextAlternativeElement(node) {
+  return (0, _util.isHTMLTableCaptionElement)(node);
+}
+/**
+ * https://w3c.github.io/aria/#namefromcontent
+ */
+
+
+function allowsNameFromContent(node) {
+  return (0, _util.hasAnyConcreteRoles)(node, ["button", "cell", "checkbox", "columnheader", "gridcell", "heading", "label", "legend", "link", "menuitem", "menuitemcheckbox", "menuitemradio", "option", "radio", "row", "rowheader", "switch", "tab", "tooltip", "treeitem"]);
+}
+/**
+ * TODO https://github.com/eps1lon/dom-accessibility-api/issues/100
+ */
+
+
+function isDescendantOfNativeHostLanguageTextAlternativeElement( // eslint-disable-next-line @typescript-eslint/no-unused-vars -- not implemented yet
+node) {
+  return false;
+}
+/**
+ * TODO https://github.com/eps1lon/dom-accessibility-api/issues/101
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- not implemented yet
+
+
+function computeTooltipAttributeValue(node) {
+  return null;
+}
+
+function getValueOfTextbox(element) {
+  if ((0, _util.isHTMLInputElement)(element) || (0, _util.isHTMLTextAreaElement)(element)) {
+    return element.value;
+  } // https://github.com/eps1lon/dom-accessibility-api/issues/4
+
+
+  return element.textContent || "";
+}
+
+function getTextualContent(declaration) {
+  var content = declaration.getPropertyValue("content");
+
+  if (/^["'].*["']$/.test(content)) {
+    return content.slice(1, -1);
+  }
+
+  return "";
+}
+/**
+ * https://html.spec.whatwg.org/multipage/forms.html#category-label
+ * TODO: form-associated custom elements
+ * @param element
+ */
+
+
+function isLabelableElement(element) {
+  var localName = (0, _util.getLocalName)(element);
+  return localName === "button" || localName === "input" && element.getAttribute("type") !== "hidden" || localName === "meter" || localName === "output" || localName === "progress" || localName === "select" || localName === "textarea";
+}
+/**
+ * > [...], then the first such descendant in tree order is the label element's labeled control.
+ * -- https://html.spec.whatwg.org/multipage/forms.html#labeled-control
+ * @param element
+ */
+
+
+function findLabelableElement(element) {
+  if (isLabelableElement(element)) {
+    return element;
+  }
+
+  var labelableElement = null;
+  element.childNodes.forEach(function (childNode) {
+    if (labelableElement === null && (0, _util.isElement)(childNode)) {
+      var descendantLabelableElement = findLabelableElement(childNode);
+
+      if (descendantLabelableElement !== null) {
+        labelableElement = descendantLabelableElement;
+      }
+    }
+  });
+  return labelableElement;
+}
+/**
+ * Polyfill of HTMLLabelElement.control
+ * https://html.spec.whatwg.org/multipage/forms.html#labeled-control
+ * @param label
+ */
+
+
+function getControlOfLabel(label) {
+  if (label.control !== undefined) {
+    return label.control;
+  }
+
+  var htmlFor = label.getAttribute("for");
+
+  if (htmlFor !== null) {
+    return label.ownerDocument.getElementById(htmlFor);
+  }
+
+  return findLabelableElement(label);
+}
+/**
+ * Polyfill of HTMLInputElement.labels
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/labels
+ * @param element
+ */
+
+
+function getLabels(element) {
+  var labelsProperty = element.labels;
+
+  if (labelsProperty === null) {
+    return labelsProperty;
+  }
+
+  if (labelsProperty !== undefined) {
+    return (0, _array.default)(labelsProperty);
+  } // polyfill
+
+
+  if (!isLabelableElement(element)) {
+    return null;
+  }
+
+  var document = element.ownerDocument;
+  return (0, _array.default)(document.querySelectorAll("label")).filter(function (label) {
+    return getControlOfLabel(label) === element;
+  });
+}
+/**
+ * Gets the contents of a slot used for computing the accname
+ * @param slot
+ */
+
+
+function getSlotContents(slot) {
+  // Computing the accessible name for elements containing slots is not
+  // currently defined in the spec. This implementation reflects the
+  // behavior of NVDA 2020.2/Firefox 81 and iOS VoiceOver/Safari 13.6.
+  var assignedNodes = slot.assignedNodes();
+
+  if (assignedNodes.length === 0) {
+    // if no nodes are assigned to the slot, it displays the default content
+    return (0, _array.default)(slot.childNodes);
+  }
+
+  return assignedNodes;
+}
+/**
+ * implements https://w3c.github.io/accname/#mapping_additional_nd_te
+ * @param root
+ * @param options
+ * @returns
+ */
+
+
+function computeTextAlternative(root) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var consultedNodes = new _SetLike.default();
+  var window = (0, _util.safeWindow)(root);
+  var _options$compute = options.compute,
+      compute = _options$compute === void 0 ? "name" : _options$compute,
+      _options$computedStyl = options.computedStyleSupportsPseudoElements,
+      computedStyleSupportsPseudoElements = _options$computedStyl === void 0 ? options.getComputedStyle !== undefined : _options$computedStyl,
+      _options$getComputedS = options.getComputedStyle,
+      getComputedStyle = _options$getComputedS === void 0 ? window.getComputedStyle.bind(window) : _options$getComputedS,
+      _options$hidden = options.hidden,
+      hidden = _options$hidden === void 0 ? false : _options$hidden; // 2F.i
+
+  function computeMiscTextAlternative(node, context) {
+    var accumulatedText = "";
+
+    if ((0, _util.isElement)(node) && computedStyleSupportsPseudoElements) {
+      var pseudoBefore = getComputedStyle(node, "::before");
+      var beforeContent = getTextualContent(pseudoBefore);
+      accumulatedText = "".concat(beforeContent, " ").concat(accumulatedText);
+    } // FIXME: Including aria-owns is not defined in the spec
+    // But it is required in the web-platform-test
+
+
+    var childNodes = (0, _util.isHTMLSlotElement)(node) ? getSlotContents(node) : (0, _array.default)(node.childNodes).concat((0, _util.queryIdRefs)(node, "aria-owns"));
+    childNodes.forEach(function (child) {
+      var result = computeTextAlternative(child, {
+        isEmbeddedInLabel: context.isEmbeddedInLabel,
+        isReferenced: false,
+        recursion: true
+      }); // TODO: Unclear why display affects delimiter
+      // see https://github.com/w3c/accname/issues/3
+
+      var display = (0, _util.isElement)(child) ? getComputedStyle(child).getPropertyValue("display") : "inline";
+      var separator = display !== "inline" ? " " : ""; // trailing separator for wpt tests
+
+      accumulatedText += "".concat(separator).concat(result).concat(separator);
+    });
+
+    if ((0, _util.isElement)(node) && computedStyleSupportsPseudoElements) {
+      var pseudoAfter = getComputedStyle(node, "::after");
+      var afterContent = getTextualContent(pseudoAfter);
+      accumulatedText = "".concat(accumulatedText, " ").concat(afterContent);
+    }
+
+    return accumulatedText.trim();
+  }
+
+  function computeElementTextAlternative(node) {
+    if (!(0, _util.isElement)(node)) {
+      return null;
+    }
+    /**
+     *
+     * @param element
+     * @param attributeName
+     * @returns A string non-empty string or `null`
+     */
+
+
+    function useAttribute(element, attributeName) {
+      var attribute = element.getAttributeNode(attributeName);
+
+      if (attribute !== null && !consultedNodes.has(attribute) && attribute.value.trim() !== "") {
+        consultedNodes.add(attribute);
+        return attribute.value;
+      }
+
+      return null;
+    } // https://w3c.github.io/html-aam/#fieldset-and-legend-elements
+
+
+    if ((0, _util.isHTMLFieldSetElement)(node)) {
+      consultedNodes.add(node);
+      var children = (0, _array.default)(node.childNodes);
+
+      for (var i = 0; i < children.length; i += 1) {
+        var child = children[i];
+
+        if ((0, _util.isHTMLLegendElement)(child)) {
+          return computeTextAlternative(child, {
+            isEmbeddedInLabel: false,
+            isReferenced: false,
+            recursion: false
+          });
+        }
+      }
+    } else if ((0, _util.isHTMLTableElement)(node)) {
+      // https://w3c.github.io/html-aam/#table-element
+      consultedNodes.add(node);
+
+      var _children = (0, _array.default)(node.childNodes);
+
+      for (var _i = 0; _i < _children.length; _i += 1) {
+        var _child = _children[_i];
+
+        if ((0, _util.isHTMLTableCaptionElement)(_child)) {
+          return computeTextAlternative(_child, {
+            isEmbeddedInLabel: false,
+            isReferenced: false,
+            recursion: false
+          });
+        }
+      }
+    } else if ((0, _util.isSVGSVGElement)(node)) {
+      // https://www.w3.org/TR/svg-aam-1.0/
+      consultedNodes.add(node);
+
+      var _children2 = (0, _array.default)(node.childNodes);
+
+      for (var _i2 = 0; _i2 < _children2.length; _i2 += 1) {
+        var _child2 = _children2[_i2];
+
+        if ((0, _util.isSVGTitleElement)(_child2)) {
+          return _child2.textContent;
+        }
+      }
+
+      return null;
+    } else if ((0, _util.getLocalName)(node) === "img" || (0, _util.getLocalName)(node) === "area") {
+      // https://w3c.github.io/html-aam/#area-element
+      // https://w3c.github.io/html-aam/#img-element
+      var nameFromAlt = useAttribute(node, "alt");
+
+      if (nameFromAlt !== null) {
+        return nameFromAlt;
+      }
+    } else if ((0, _util.isHTMLOptGroupElement)(node)) {
+      var nameFromLabel = useAttribute(node, "label");
+
+      if (nameFromLabel !== null) {
+        return nameFromLabel;
+      }
+    }
+
+    if ((0, _util.isHTMLInputElement)(node) && (node.type === "button" || node.type === "submit" || node.type === "reset")) {
+      // https://w3c.github.io/html-aam/#input-type-text-input-type-password-input-type-search-input-type-tel-input-type-email-input-type-url-and-textarea-element-accessible-description-computation
+      var nameFromValue = useAttribute(node, "value");
+
+      if (nameFromValue !== null) {
+        return nameFromValue;
+      } // TODO: l10n
+
+
+      if (node.type === "submit") {
+        return "Submit";
+      } // TODO: l10n
+
+
+      if (node.type === "reset") {
+        return "Reset";
+      }
+    }
+
+    var labels = getLabels(node);
+
+    if (labels !== null && labels.length !== 0) {
+      consultedNodes.add(node);
+      return (0, _array.default)(labels).map(function (element) {
+        return computeTextAlternative(element, {
+          isEmbeddedInLabel: true,
+          isReferenced: false,
+          recursion: true
+        });
+      }).filter(function (label) {
+        return label.length > 0;
+      }).join(" ");
+    } // https://w3c.github.io/html-aam/#input-type-image-accessible-name-computation
+    // TODO: wpt test consider label elements but html-aam does not mention them
+    // We follow existing implementations over spec
+
+
+    if ((0, _util.isHTMLInputElement)(node) && node.type === "image") {
+      var _nameFromAlt = useAttribute(node, "alt");
+
+      if (_nameFromAlt !== null) {
+        return _nameFromAlt;
+      }
+
+      var nameFromTitle = useAttribute(node, "title");
+
+      if (nameFromTitle !== null) {
+        return nameFromTitle;
+      } // TODO: l10n
+
+
+      return "Submit Query";
+    }
+
+    if ((0, _util.hasAnyConcreteRoles)(node, ["button"])) {
+      // https://www.w3.org/TR/html-aam-1.0/#button-element
+      var nameFromSubTree = computeMiscTextAlternative(node, {
+        isEmbeddedInLabel: false,
+        isReferenced: false
+      });
+
+      if (nameFromSubTree !== "") {
+        return nameFromSubTree;
+      }
+
+      return useAttribute(node, "title");
+    }
+
+    return useAttribute(node, "title");
+  }
+
+  function computeTextAlternative(current, context) {
+    if (consultedNodes.has(current)) {
+      return "";
+    } // 2A
+
+
+    if (!hidden && isHidden(current, getComputedStyle) && !context.isReferenced) {
+      consultedNodes.add(current);
+      return "";
+    } // 2B
+
+
+    var labelElements = (0, _util.queryIdRefs)(current, "aria-labelledby");
+
+    if (compute === "name" && !context.isReferenced && labelElements.length > 0) {
+      return labelElements.map(function (element) {
+        return computeTextAlternative(element, {
+          isEmbeddedInLabel: context.isEmbeddedInLabel,
+          isReferenced: true,
+          // thais isn't recursion as specified, otherwise we would skip
+          // `aria-label` in
+          // <input id="myself" aria-label="foo" aria-labelledby="myself"
+          recursion: false
+        });
+      }).join(" ");
+    } // 2C
+    // Changed from the spec in anticipation of https://github.com/w3c/accname/issues/64
+    // spec says we should only consider skipping if we have a non-empty label
+
+
+    var skipToStep2E = context.recursion && isControl(current) && compute === "name";
+
+    if (!skipToStep2E) {
+      var ariaLabel = ((0, _util.isElement)(current) && current.getAttribute("aria-label") || "").trim();
+
+      if (ariaLabel !== "" && compute === "name") {
+        consultedNodes.add(current);
+        return ariaLabel;
+      } // 2D
+
+
+      if (!isMarkedPresentational(current)) {
+        var elementTextAlternative = computeElementTextAlternative(current);
+
+        if (elementTextAlternative !== null) {
+          consultedNodes.add(current);
+          return elementTextAlternative;
+        }
+      }
+    } // special casing, cheating to make tests pass
+    // https://github.com/w3c/accname/issues/67
+
+
+    if ((0, _util.hasAnyConcreteRoles)(current, ["menu"])) {
+      consultedNodes.add(current);
+      return "";
+    } // 2E
+
+
+    if (skipToStep2E || context.isEmbeddedInLabel || context.isReferenced) {
+      if ((0, _util.hasAnyConcreteRoles)(current, ["combobox", "listbox"])) {
+        consultedNodes.add(current);
+        var selectedOptions = querySelectedOptions(current);
+
+        if (selectedOptions.length === 0) {
+          // defined per test `name_heading_combobox`
+          return (0, _util.isHTMLInputElement)(current) ? current.value : "";
+        }
+
+        return (0, _array.default)(selectedOptions).map(function (selectedOption) {
+          return computeTextAlternative(selectedOption, {
+            isEmbeddedInLabel: context.isEmbeddedInLabel,
+            isReferenced: false,
+            recursion: true
+          });
+        }).join(" ");
+      }
+
+      if (hasAbstractRole(current, "range")) {
+        consultedNodes.add(current);
+
+        if (current.hasAttribute("aria-valuetext")) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- safe due to hasAttribute guard
+          return current.getAttribute("aria-valuetext");
+        }
+
+        if (current.hasAttribute("aria-valuenow")) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- safe due to hasAttribute guard
+          return current.getAttribute("aria-valuenow");
+        } // Otherwise, use the value as specified by a host language attribute.
+
+
+        return current.getAttribute("value") || "";
+      }
+
+      if ((0, _util.hasAnyConcreteRoles)(current, ["textbox"])) {
+        consultedNodes.add(current);
+        return getValueOfTextbox(current);
+      }
+    } // 2F: https://w3c.github.io/accname/#step2F
+
+
+    if (allowsNameFromContent(current) || (0, _util.isElement)(current) && context.isReferenced || isNativeHostLanguageTextAlternativeElement(current) || isDescendantOfNativeHostLanguageTextAlternativeElement(current)) {
+      consultedNodes.add(current);
+      return computeMiscTextAlternative(current, {
+        isEmbeddedInLabel: context.isEmbeddedInLabel,
+        isReferenced: false
+      });
+    }
+
+    if (current.nodeType === current.TEXT_NODE) {
+      consultedNodes.add(current);
+      return current.textContent || "";
+    }
+
+    if (context.recursion) {
+      consultedNodes.add(current);
+      return computeMiscTextAlternative(current, {
+        isEmbeddedInLabel: context.isEmbeddedInLabel,
+        isReferenced: false
+      });
+    }
+
+    var tooltipAttributeValue = computeTooltipAttributeValue(current);
+
+    if (tooltipAttributeValue !== null) {
+      consultedNodes.add(current);
+      return tooltipAttributeValue;
+    } // TODO should this be reachable?
+
+
+    consultedNodes.add(current);
+    return "";
+  }
+
+  return asFlatString(computeTextAlternative(root, {
+    isEmbeddedInLabel: false,
+    // by spec computeAccessibleDescription starts with the referenced elements as roots
+    isReferenced: compute === "description",
+    recursion: false
+  }));
+}
+//# sourceMappingURL=accessible-name-and-description.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/accessible-name.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/accessible-name.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.computeAccessibleName = computeAccessibleName;
+
+var _accessibleNameAndDescription = __webpack_require__(/*! ./accessible-name-and-description */ "./node_modules/dom-accessibility-api/dist/accessible-name-and-description.js");
+
+var _util = __webpack_require__(/*! ./util */ "./node_modules/dom-accessibility-api/dist/util.js");
+
+/**
+ * https://w3c.github.io/aria/#namefromprohibited
+ */
+function prohibitsNaming(node) {
+  return (0, _util.hasAnyConcreteRoles)(node, ["caption", "code", "deletion", "emphasis", "generic", "insertion", "paragraph", "presentation", "strong", "subscript", "superscript"]);
+}
+/**
+ * implements https://w3c.github.io/accname/#mapping_additional_nd_name
+ * @param root
+ * @param options
+ * @returns
+ */
+
+
+function computeAccessibleName(root) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  if (prohibitsNaming(root)) {
+    return "";
+  }
+
+  return (0, _accessibleNameAndDescription.computeTextAlternative)(root, options);
+}
+//# sourceMappingURL=accessible-name.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/getRole.js":
+/*!************************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/getRole.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports["default"] = getRole;
+exports.getLocalName = getLocalName;
+
+// https://w3c.github.io/html-aria/#document-conformance-requirements-for-use-of-aria-attributes-in-html
+
+/**
+ * Safe Element.localName for all supported environments
+ * @param element
+ */
+function getLocalName(element) {
+  var _element$localName;
+
+  return (// eslint-disable-next-line no-restricted-properties -- actual guard for environments without localName
+    (_element$localName = element.localName) !== null && _element$localName !== void 0 ? _element$localName : // eslint-disable-next-line no-restricted-properties -- required for the fallback
+    element.tagName.toLowerCase()
+  );
+}
+
+var localNameToRoleMappings = {
+  article: "article",
+  aside: "complementary",
+  button: "button",
+  datalist: "listbox",
+  dd: "definition",
+  details: "group",
+  dialog: "dialog",
+  dt: "term",
+  fieldset: "group",
+  figure: "figure",
+  // WARNING: Only with an accessible name
+  form: "form",
+  footer: "contentinfo",
+  h1: "heading",
+  h2: "heading",
+  h3: "heading",
+  h4: "heading",
+  h5: "heading",
+  h6: "heading",
+  header: "banner",
+  hr: "separator",
+  html: "document",
+  legend: "legend",
+  li: "listitem",
+  math: "math",
+  main: "main",
+  menu: "list",
+  nav: "navigation",
+  ol: "list",
+  optgroup: "group",
+  // WARNING: Only in certain context
+  option: "option",
+  output: "status",
+  progress: "progressbar",
+  // WARNING: Only with an accessible name
+  section: "region",
+  summary: "button",
+  table: "table",
+  tbody: "rowgroup",
+  textarea: "textbox",
+  tfoot: "rowgroup",
+  // WARNING: Only in certain context
+  td: "cell",
+  th: "columnheader",
+  thead: "rowgroup",
+  tr: "row",
+  ul: "list"
+};
+var prohibitedAttributes = {
+  caption: new Set(["aria-label", "aria-labelledby"]),
+  code: new Set(["aria-label", "aria-labelledby"]),
+  deletion: new Set(["aria-label", "aria-labelledby"]),
+  emphasis: new Set(["aria-label", "aria-labelledby"]),
+  generic: new Set(["aria-label", "aria-labelledby", "aria-roledescription"]),
+  insertion: new Set(["aria-label", "aria-labelledby"]),
+  paragraph: new Set(["aria-label", "aria-labelledby"]),
+  presentation: new Set(["aria-label", "aria-labelledby"]),
+  strong: new Set(["aria-label", "aria-labelledby"]),
+  subscript: new Set(["aria-label", "aria-labelledby"]),
+  superscript: new Set(["aria-label", "aria-labelledby"])
+};
+/**
+ *
+ * @param element
+ * @param role The role used for this element. This is specified to control whether you want to use the implicit or explicit role.
+ */
+
+function hasGlobalAriaAttributes(element, role) {
+  // https://rawgit.com/w3c/aria/stable/#global_states
+  // commented attributes are deprecated
+  return ["aria-atomic", "aria-busy", "aria-controls", "aria-current", "aria-describedby", "aria-details", // "disabled",
+  "aria-dropeffect", // "errormessage",
+  "aria-flowto", "aria-grabbed", // "haspopup",
+  "aria-hidden", // "invalid",
+  "aria-keyshortcuts", "aria-label", "aria-labelledby", "aria-live", "aria-owns", "aria-relevant", "aria-roledescription"].some(function (attributeName) {
+    var _prohibitedAttributes;
+
+    return element.hasAttribute(attributeName) && !((_prohibitedAttributes = prohibitedAttributes[role]) !== null && _prohibitedAttributes !== void 0 && _prohibitedAttributes.has(attributeName));
+  });
+}
+
+function ignorePresentationalRole(element, implicitRole) {
+  // https://rawgit.com/w3c/aria/stable/#conflict_resolution_presentation_none
+  return hasGlobalAriaAttributes(element, implicitRole);
+}
+
+function getRole(element) {
+  var explicitRole = getExplicitRole(element);
+
+  if (explicitRole === null || explicitRole === "presentation") {
+    var implicitRole = getImplicitRole(element);
+
+    if (explicitRole !== "presentation" || ignorePresentationalRole(element, implicitRole || "")) {
+      return implicitRole;
+    }
+  }
+
+  return explicitRole;
+}
+
+function getImplicitRole(element) {
+  var mappedByTag = localNameToRoleMappings[getLocalName(element)];
+
+  if (mappedByTag !== undefined) {
+    return mappedByTag;
+  }
+
+  switch (getLocalName(element)) {
+    case "a":
+    case "area":
+    case "link":
+      if (element.hasAttribute("href")) {
+        return "link";
+      }
+
+      break;
+
+    case "img":
+      if (element.getAttribute("alt") === "" && !ignorePresentationalRole(element, "img")) {
+        return "presentation";
+      }
+
+      return "img";
+
+    case "input":
+      {
+        var _ref = element,
+            type = _ref.type;
+
+        switch (type) {
+          case "button":
+          case "image":
+          case "reset":
+          case "submit":
+            return "button";
+
+          case "checkbox":
+          case "radio":
+            return type;
+
+          case "range":
+            return "slider";
+
+          case "email":
+          case "tel":
+          case "text":
+          case "url":
+            if (element.hasAttribute("list")) {
+              return "combobox";
+            }
+
+            return "textbox";
+
+          case "search":
+            if (element.hasAttribute("list")) {
+              return "combobox";
+            }
+
+            return "searchbox";
+
+          case "number":
+            return "spinbutton";
+
+          default:
+            return null;
+        }
+      }
+
+    case "select":
+      if (element.hasAttribute("multiple") || element.size > 1) {
+        return "listbox";
+      }
+
+      return "combobox";
+  }
+
+  return null;
+}
+
+function getExplicitRole(element) {
+  var role = element.getAttribute("role");
+
+  if (role !== null) {
+    var explicitRole = role.trim().split(" ")[0]; // String.prototype.split(sep, limit) will always return an array with at least one member
+    // as long as limit is either undefined or > 0
+
+    if (explicitRole.length > 0) {
+      return explicitRole;
+    }
+  }
+
+  return null;
+}
+//# sourceMappingURL=getRole.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/index.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/index.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _exportNames = {
+  computeAccessibleDescription: true,
+  computeAccessibleName: true,
+  getRole: true
+};
+exports.getRole = exports.computeAccessibleName = exports.computeAccessibleDescription = void 0;
+
+var _accessibleDescription = __webpack_require__(/*! ./accessible-description */ "./node_modules/dom-accessibility-api/dist/accessible-description.js");
+
+exports.computeAccessibleDescription = _accessibleDescription.computeAccessibleDescription;
+
+var _accessibleName = __webpack_require__(/*! ./accessible-name */ "./node_modules/dom-accessibility-api/dist/accessible-name.js");
+
+exports.computeAccessibleName = _accessibleName.computeAccessibleName;
+
+var _getRole = _interopRequireDefault(__webpack_require__(/*! ./getRole */ "./node_modules/dom-accessibility-api/dist/getRole.js"));
+
+exports.getRole = _getRole.default;
+
+var _isInaccessible = __webpack_require__(/*! ./is-inaccessible */ "./node_modules/dom-accessibility-api/dist/is-inaccessible.js");
+
+Object.keys(_isInaccessible).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _isInaccessible[key]) return;
+  exports[key] = _isInaccessible[key];
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/is-inaccessible.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/is-inaccessible.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.isInaccessible = isInaccessible;
+exports.isSubtreeInaccessible = isSubtreeInaccessible;
+
+/**
+ * Partial implementation https://www.w3.org/TR/wai-aria-1.2/#tree_exclusion
+ * which should only be used for elements with a non-presentational role i.e.
+ * `role="none"` and `role="presentation"` will not be excluded.
+ *
+ * Implements aria-hidden semantics (i.e. parent overrides child)
+ * Ignores "Child Presentational: True" characteristics
+ *
+ * @param element
+ * @param options
+ * @returns {boolean} true if excluded, otherwise false
+ */
+function isInaccessible(element) {
+  var _element$ownerDocumen;
+
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var _options$getComputedS = options.getComputedStyle,
+      getComputedStyle = _options$getComputedS === void 0 ? (_element$ownerDocumen = element.ownerDocument.defaultView) === null || _element$ownerDocumen === void 0 ? void 0 : _element$ownerDocumen.getComputedStyle : _options$getComputedS,
+      _options$isSubtreeIna = options.isSubtreeInaccessible,
+      isSubtreeInaccessibleImpl = _options$isSubtreeIna === void 0 ? isSubtreeInaccessible : _options$isSubtreeIna;
+
+  if (typeof getComputedStyle !== "function") {
+    throw new TypeError("Owner document of the element needs to have an associated window.");
+  } // since visibility is inherited we can exit early
+
+
+  if (getComputedStyle(element).visibility === "hidden") {
+    return true;
+  }
+
+  var currentElement = element;
+
+  while (currentElement) {
+    if (isSubtreeInaccessibleImpl(currentElement, {
+      getComputedStyle: getComputedStyle
+    })) {
+      return true;
+    }
+
+    currentElement = currentElement.parentElement;
+  }
+
+  return false;
+}
+
+/**
+ *
+ * @param element
+ * @param options
+ * @returns {boolean} - `true` if every child of the element is inaccessible
+ */
+function isSubtreeInaccessible(element) {
+  var _element$ownerDocumen2;
+
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var _options$getComputedS2 = options.getComputedStyle,
+      getComputedStyle = _options$getComputedS2 === void 0 ? (_element$ownerDocumen2 = element.ownerDocument.defaultView) === null || _element$ownerDocumen2 === void 0 ? void 0 : _element$ownerDocumen2.getComputedStyle : _options$getComputedS2;
+
+  if (typeof getComputedStyle !== "function") {
+    throw new TypeError("Owner document of the element needs to have an associated window.");
+  }
+
+  if (element.hidden === true) {
+    return true;
+  }
+
+  if (element.getAttribute("aria-hidden") === "true") {
+    return true;
+  }
+
+  if (getComputedStyle(element).display === "none") {
+    return true;
+  }
+
+  return false;
+}
+//# sourceMappingURL=is-inaccessible.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/polyfills/SetLike.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/polyfills/SetLike.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports["default"] = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// for environments without Set we fallback to arrays with unique members
+var SetLike = /*#__PURE__*/function () {
+  function SetLike() {
+    var items = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+    _classCallCheck(this, SetLike);
+
+    _defineProperty(this, "items", void 0);
+
+    this.items = items;
+  }
+
+  _createClass(SetLike, [{
+    key: "add",
+    value: function add(value) {
+      if (this.has(value) === false) {
+        this.items.push(value);
+      }
+
+      return this;
+    }
+  }, {
+    key: "clear",
+    value: function clear() {
+      this.items = [];
+    }
+  }, {
+    key: "delete",
+    value: function _delete(value) {
+      var previousLength = this.items.length;
+      this.items = this.items.filter(function (item) {
+        return item !== value;
+      });
+      return previousLength !== this.items.length;
+    }
+  }, {
+    key: "forEach",
+    value: function forEach(callbackfn) {
+      var _this = this;
+
+      this.items.forEach(function (item) {
+        callbackfn(item, item, _this);
+      });
+    }
+  }, {
+    key: "has",
+    value: function has(value) {
+      return this.items.indexOf(value) !== -1;
+    }
+  }, {
+    key: "size",
+    get: function get() {
+      return this.items.length;
+    }
+  }]);
+
+  return SetLike;
+}();
+
+var _default = typeof Set === "undefined" ? Set : SetLike;
+
+exports["default"] = _default;
+//# sourceMappingURL=SetLike.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/polyfills/array.from.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/polyfills/array.from.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports["default"] = arrayFrom;
+
+/**
+ * @source {https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from#Polyfill}
+ * but without thisArg (too hard to type, no need to `this`)
+ */
+var toStr = Object.prototype.toString;
+
+function isCallable(fn) {
+  return typeof fn === "function" || toStr.call(fn) === "[object Function]";
+}
+
+function toInteger(value) {
+  var number = Number(value);
+
+  if (isNaN(number)) {
+    return 0;
+  }
+
+  if (number === 0 || !isFinite(number)) {
+    return number;
+  }
+
+  return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+}
+
+var maxSafeInteger = Math.pow(2, 53) - 1;
+
+function toLength(value) {
+  var len = toInteger(value);
+  return Math.min(Math.max(len, 0), maxSafeInteger);
+}
+/**
+ * Creates an array from an iterable object.
+ * @param iterable An iterable object to convert to an array.
+ */
+
+
+/**
+ * Creates an array from an iterable object.
+ * @param iterable An iterable object to convert to an array.
+ * @param mapfn A mapping function to call on every element of the array.
+ * @param thisArg Value of 'this' used to invoke the mapfn.
+ */
+function arrayFrom(arrayLike, mapFn) {
+  // 1. Let C be the this value.
+  // edit(@eps1lon): we're not calling it as Array.from
+  var C = Array; // 2. Let items be ToObject(arrayLike).
+
+  var items = Object(arrayLike); // 3. ReturnIfAbrupt(items).
+
+  if (arrayLike == null) {
+    throw new TypeError("Array.from requires an array-like object - not null or undefined");
+  } // 4. If mapfn is undefined, then let mapping be false.
+  // const mapFn = arguments.length > 1 ? arguments[1] : void undefined;
+
+
+  if (typeof mapFn !== "undefined") {
+    // 5. else
+    // 5. a If IsCallable(mapfn) is false, throw a TypeError exception.
+    if (!isCallable(mapFn)) {
+      throw new TypeError("Array.from: when provided, the second argument must be a function");
+    }
+  } // 10. Let lenValue be Get(items, "length").
+  // 11. Let len be ToLength(lenValue).
+
+
+  var len = toLength(items.length); // 13. If IsConstructor(C) is true, then
+  // 13. a. Let A be the result of calling the [[Construct]] internal method
+  // of C with an argument list containing the single item len.
+  // 14. a. Else, Let A be ArrayCreate(len).
+
+  var A = isCallable(C) ? Object(new C(len)) : new Array(len); // 16. Let k be 0.
+
+  var k = 0; // 17. Repeat, while k < len… (also steps a - h)
+
+  var kValue;
+
+  while (k < len) {
+    kValue = items[k];
+
+    if (mapFn) {
+      A[k] = mapFn(kValue, k);
+    } else {
+      A[k] = kValue;
+    }
+
+    k += 1;
+  } // 18. Let putStatus be Put(A, "length", len, true).
+
+
+  A.length = len; // 20. Return A.
+
+  return A;
+}
+//# sourceMappingURL=array.from.js.map
+
+/***/ }),
+
+/***/ "./node_modules/dom-accessibility-api/dist/util.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/dom-accessibility-api/dist/util.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
+exports.__esModule = true;
+exports.hasAnyConcreteRoles = hasAnyConcreteRoles;
+exports.isElement = isElement;
+exports.isHTMLFieldSetElement = isHTMLFieldSetElement;
+exports.isHTMLInputElement = isHTMLInputElement;
+exports.isHTMLLegendElement = isHTMLLegendElement;
+exports.isHTMLOptGroupElement = isHTMLOptGroupElement;
+exports.isHTMLSelectElement = isHTMLSelectElement;
+exports.isHTMLSlotElement = isHTMLSlotElement;
+exports.isHTMLTableCaptionElement = isHTMLTableCaptionElement;
+exports.isHTMLTableElement = isHTMLTableElement;
+exports.isHTMLTextAreaElement = isHTMLTextAreaElement;
+exports.isSVGElement = isSVGElement;
+exports.isSVGSVGElement = isSVGSVGElement;
+exports.isSVGTitleElement = isSVGTitleElement;
+exports.queryIdRefs = queryIdRefs;
+exports.safeWindow = safeWindow;
+
+var _getRole = _interopRequireWildcard(__webpack_require__(/*! ./getRole */ "./node_modules/dom-accessibility-api/dist/getRole.js"));
+
+exports.getLocalName = _getRole.getLocalName;
+
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function isElement(node) {
+  return node !== null && node.nodeType === node.ELEMENT_NODE;
+}
+
+function isHTMLTableCaptionElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "caption";
+}
+
+function isHTMLInputElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "input";
+}
+
+function isHTMLOptGroupElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "optgroup";
+}
+
+function isHTMLSelectElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "select";
+}
+
+function isHTMLTableElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "table";
+}
+
+function isHTMLTextAreaElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "textarea";
+}
+
+function safeWindow(node) {
+  var _ref = node.ownerDocument === null ? node : node.ownerDocument,
+      defaultView = _ref.defaultView;
+
+  if (defaultView === null) {
+    throw new TypeError("no window available");
+  }
+
+  return defaultView;
+}
+
+function isHTMLFieldSetElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "fieldset";
+}
+
+function isHTMLLegendElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "legend";
+}
+
+function isHTMLSlotElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "slot";
+}
+
+function isSVGElement(node) {
+  return isElement(node) && node.ownerSVGElement !== undefined;
+}
+
+function isSVGSVGElement(node) {
+  return isElement(node) && (0, _getRole.getLocalName)(node) === "svg";
+}
+
+function isSVGTitleElement(node) {
+  return isSVGElement(node) && (0, _getRole.getLocalName)(node) === "title";
+}
+/**
+ *
+ * @param {Node} node -
+ * @param {string} attributeName -
+ * @returns {Element[]} -
+ */
+
+
+function queryIdRefs(node, attributeName) {
+  if (isElement(node) && node.hasAttribute(attributeName)) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- safe due to hasAttribute check
+    var ids = node.getAttribute(attributeName).split(" "); // Browsers that don't support shadow DOM won't have getRootNode
+
+    var root = node.getRootNode ? node.getRootNode() : node.ownerDocument;
+    return ids.map(function (id) {
+      return root.getElementById(id);
+    }).filter(function (element) {
+      return element !== null;
+    } // TODO: why does this not narrow?
+    );
+  }
+
+  return [];
+}
+
+function hasAnyConcreteRoles(node, roles) {
+  if (isElement(node)) {
+    return roles.indexOf((0, _getRole.default)(node)) !== -1;
+  }
+
+  return false;
+}
+//# sourceMappingURL=util.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayLikeToArray)
+/* harmony export */ });
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) {
+    arr2[i] = arr[i];
+  }
+
+  return arr2;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayWithHoles)
+/* harmony export */ });
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayWithoutHoles)
+/* harmony export */ });
+/* harmony import */ var _arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayLikeToArray.js */ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js");
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(arr);
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/classCallCheck.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _classCallCheck)
+/* harmony export */ });
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/createClass.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/createClass.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _createClass)
+/* harmony export */ });
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
+  return Constructor;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/defineProperty.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _defineProperty)
+/* harmony export */ });
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/extends.js":
+/*!************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/extends.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _extends)
+/* harmony export */ });
+function _extends() {
+  _extends = Object.assign ? Object.assign.bind() : function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+  return _extends.apply(this, arguments);
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/inherits.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/inherits.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _inherits)
+/* harmony export */ });
+/* harmony import */ var _setPrototypeOf_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./setPrototypeOf.js */ "./node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js");
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
+  });
+  if (superClass) (0,_setPrototypeOf_js__WEBPACK_IMPORTED_MODULE_0__["default"])(subClass, superClass);
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/iterableToArray.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/iterableToArray.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _iterableToArray)
+/* harmony export */ });
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _iterableToArrayLimit)
+/* harmony export */ });
+function _iterableToArrayLimit(arr, i) {
+  var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+
+  if (_i == null) return;
+  var _arr = [];
+  var _n = true;
+  var _d = false;
+
+  var _s, _e;
+
+  try {
+    for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
+      _arr.push(_s.value);
+
+      if (i && _arr.length === i) break;
+    }
+  } catch (err) {
+    _d = true;
+    _e = err;
+  } finally {
+    try {
+      if (!_n && _i["return"] != null) _i["return"]();
+    } finally {
+      if (_d) throw _e;
+    }
+  }
+
+  return _arr;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _nonIterableRest)
+/* harmony export */ });
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _nonIterableSpread)
+/* harmony export */ });
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/objectWithoutProperties.js":
+/*!****************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/objectWithoutProperties.js ***!
+  \****************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _objectWithoutProperties)
+/* harmony export */ });
+/* harmony import */ var _objectWithoutPropertiesLoose_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./objectWithoutPropertiesLoose.js */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js");
+
+function _objectWithoutProperties(source, excluded) {
+  if (source == null) return {};
+  var target = (0,_objectWithoutPropertiesLoose_js__WEBPACK_IMPORTED_MODULE_0__["default"])(source, excluded);
+  var key, i;
+
+  if (Object.getOwnPropertySymbols) {
+    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+    for (i = 0; i < sourceSymbolKeys.length; i++) {
+      key = sourceSymbolKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+      target[key] = source[key];
+    }
+  }
+
+  return target;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js":
+/*!*********************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js ***!
+  \*********************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _objectWithoutPropertiesLoose)
+/* harmony export */ });
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  return target;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _setPrototypeOf)
+/* harmony export */ });
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+  return _setPrototypeOf(o, p);
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _slicedToArray)
+/* harmony export */ });
+/* harmony import */ var _arrayWithHoles_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayWithHoles.js */ "./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js");
+/* harmony import */ var _iterableToArrayLimit_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./iterableToArrayLimit.js */ "./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js");
+/* harmony import */ var _unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./unsupportedIterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js");
+/* harmony import */ var _nonIterableRest_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./nonIterableRest.js */ "./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js");
+
+
+
+
+function _slicedToArray(arr, i) {
+  return (0,_arrayWithHoles_js__WEBPACK_IMPORTED_MODULE_0__["default"])(arr) || (0,_iterableToArrayLimit_js__WEBPACK_IMPORTED_MODULE_1__["default"])(arr, i) || (0,_unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(arr, i) || (0,_nonIterableRest_js__WEBPACK_IMPORTED_MODULE_3__["default"])();
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/taggedTemplateLiteral.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/taggedTemplateLiteral.js ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _taggedTemplateLiteral)
+/* harmony export */ });
+function _taggedTemplateLiteral(strings, raw) {
+  if (!raw) {
+    raw = strings.slice(0);
+  }
+
+  return Object.freeze(Object.defineProperties(strings, {
+    raw: {
+      value: Object.freeze(raw)
+    }
+  }));
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _toConsumableArray)
+/* harmony export */ });
+/* harmony import */ var _arrayWithoutHoles_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayWithoutHoles.js */ "./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js");
+/* harmony import */ var _iterableToArray_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./iterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/iterableToArray.js");
+/* harmony import */ var _unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./unsupportedIterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js");
+/* harmony import */ var _nonIterableSpread_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./nonIterableSpread.js */ "./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js");
+
+
+
+
+function _toConsumableArray(arr) {
+  return (0,_arrayWithoutHoles_js__WEBPACK_IMPORTED_MODULE_0__["default"])(arr) || (0,_iterableToArray_js__WEBPACK_IMPORTED_MODULE_1__["default"])(arr) || (0,_unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(arr) || (0,_nonIterableSpread_js__WEBPACK_IMPORTED_MODULE_3__["default"])();
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/typeof.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/typeof.js ***!
+  \***********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _typeof)
+/* harmony export */ });
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+
+  return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  }, _typeof(obj);
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js":
+/*!*******************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _unsupportedIterableToArray)
+/* harmony export */ });
+/* harmony import */ var _arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayLikeToArray.js */ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js");
+
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(o, minLen);
+}
+
+/***/ }),
+
+/***/ "./node_modules/stylis/src/Enum.js":
+/*!*****************************************!*\
+  !*** ./node_modules/stylis/src/Enum.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CHARSET": () => (/* binding */ CHARSET),
+/* harmony export */   "COMMENT": () => (/* binding */ COMMENT),
+/* harmony export */   "COUNTER_STYLE": () => (/* binding */ COUNTER_STYLE),
+/* harmony export */   "DECLARATION": () => (/* binding */ DECLARATION),
+/* harmony export */   "DOCUMENT": () => (/* binding */ DOCUMENT),
+/* harmony export */   "FONT_FACE": () => (/* binding */ FONT_FACE),
+/* harmony export */   "FONT_FEATURE_VALUES": () => (/* binding */ FONT_FEATURE_VALUES),
+/* harmony export */   "IMPORT": () => (/* binding */ IMPORT),
+/* harmony export */   "KEYFRAMES": () => (/* binding */ KEYFRAMES),
+/* harmony export */   "MEDIA": () => (/* binding */ MEDIA),
+/* harmony export */   "MOZ": () => (/* binding */ MOZ),
+/* harmony export */   "MS": () => (/* binding */ MS),
+/* harmony export */   "NAMESPACE": () => (/* binding */ NAMESPACE),
+/* harmony export */   "PAGE": () => (/* binding */ PAGE),
+/* harmony export */   "RULESET": () => (/* binding */ RULESET),
+/* harmony export */   "SUPPORTS": () => (/* binding */ SUPPORTS),
+/* harmony export */   "VIEWPORT": () => (/* binding */ VIEWPORT),
+/* harmony export */   "WEBKIT": () => (/* binding */ WEBKIT)
+/* harmony export */ });
+var MS = '-ms-'
+var MOZ = '-moz-'
+var WEBKIT = '-webkit-'
+
+var COMMENT = 'comm'
+var RULESET = 'rule'
+var DECLARATION = 'decl'
+
+var PAGE = '@page'
+var MEDIA = '@media'
+var IMPORT = '@import'
+var CHARSET = '@charset'
+var VIEWPORT = '@viewport'
+var SUPPORTS = '@supports'
+var DOCUMENT = '@document'
+var NAMESPACE = '@namespace'
+var KEYFRAMES = '@keyframes'
+var FONT_FACE = '@font-face'
+var COUNTER_STYLE = '@counter-style'
+var FONT_FEATURE_VALUES = '@font-feature-values'
+
+
+/***/ }),
+
+/***/ "./node_modules/stylis/src/Middleware.js":
+/*!***********************************************!*\
+  !*** ./node_modules/stylis/src/Middleware.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "middleware": () => (/* binding */ middleware),
+/* harmony export */   "namespace": () => (/* binding */ namespace),
+/* harmony export */   "prefixer": () => (/* binding */ prefixer),
+/* harmony export */   "rulesheet": () => (/* binding */ rulesheet)
+/* harmony export */ });
+/* harmony import */ var _Enum_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Enum.js */ "./node_modules/stylis/src/Enum.js");
+/* harmony import */ var _Utility_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Utility.js */ "./node_modules/stylis/src/Utility.js");
+/* harmony import */ var _Tokenizer_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Tokenizer.js */ "./node_modules/stylis/src/Tokenizer.js");
+/* harmony import */ var _Serializer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Serializer.js */ "./node_modules/stylis/src/Serializer.js");
+/* harmony import */ var _Prefixer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Prefixer.js */ "./node_modules/stylis/src/Prefixer.js");
+
+
+
+
+
+
+/**
+ * @param {function[]} collection
+ * @return {function}
+ */
+function middleware (collection) {
+	var length = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.sizeof)(collection)
+
+	return function (element, index, children, callback) {
+		var output = ''
+
+		for (var i = 0; i < length; i++)
+			output += collection[i](element, index, children, callback) || ''
+
+		return output
+	}
+}
+
+/**
+ * @param {function} callback
+ * @return {function}
+ */
+function rulesheet (callback) {
+	return function (element) {
+		if (!element.root)
+			if (element = element.return)
+				callback(element)
+	}
+}
+
+/**
+ * @param {object} element
+ * @param {number} index
+ * @param {object[]} children
+ * @param {function} callback
+ */
+function prefixer (element, index, children, callback) {
+	if (element.length > -1)
+		if (!element.return)
+			switch (element.type) {
+				case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.DECLARATION: element.return = (0,_Prefixer_js__WEBPACK_IMPORTED_MODULE_2__.prefix)(element.value, element.length)
+					break
+				case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.KEYFRAMES:
+					return (0,_Serializer_js__WEBPACK_IMPORTED_MODULE_3__.serialize)([(0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_4__.copy)(element, {value: (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(element.value, '@', '@' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT)})], callback)
+				case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.RULESET:
+					if (element.length)
+						return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.combine)(element.props, function (value) {
+							switch ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.match)(value, /(::plac\w+|:read-\w+)/)) {
+								// :read-(only|write)
+								case ':read-only': case ':read-write':
+									return (0,_Serializer_js__WEBPACK_IMPORTED_MODULE_3__.serialize)([(0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_4__.copy)(element, {props: [(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /:(read-\w+)/, ':' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MOZ + '$1')]})], callback)
+								// :placeholder
+								case '::placeholder':
+									return (0,_Serializer_js__WEBPACK_IMPORTED_MODULE_3__.serialize)([
+										(0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_4__.copy)(element, {props: [(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /:(plac\w+)/, ':' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + 'input-$1')]}),
+										(0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_4__.copy)(element, {props: [(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /:(plac\w+)/, ':' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MOZ + '$1')]}),
+										(0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_4__.copy)(element, {props: [(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /:(plac\w+)/, _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + 'input-$1')]})
+									], callback)
+							}
+
+							return ''
+						})
+			}
+}
+
+/**
+ * @param {object} element
+ * @param {number} index
+ * @param {object[]} children
+ */
+function namespace (element) {
+	switch (element.type) {
+		case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.RULESET:
+			element.props = element.props.map(function (value) {
+				return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.combine)((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_4__.tokenize)(value), function (value, index, children) {
+					switch ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, 0)) {
+						// \f
+						case 12:
+							return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.substr)(value, 1, (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.strlen)(value))
+						// \0 ( + > ~
+						case 0: case 40: case 43: case 62: case 126:
+							return value
+						// :
+						case 58:
+							if (children[++index] === 'global')
+								children[index] = '', children[++index] = '\f' + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.substr)(children[index], index = 1, -1)
+						// \s
+						case 32:
+							return index === 1 ? '' : value
+						default:
+							switch (index) {
+								case 0: element = value
+									return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.sizeof)(children) > 1 ? '' : value
+								case index = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.sizeof)(children) - 1: case 2:
+									return index === 2 ? value + element + element : value + element
+								default:
+									return value
+							}
+					}
+				})
+			})
+	}
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/stylis/src/Parser.js":
+/*!*******************************************!*\
+  !*** ./node_modules/stylis/src/Parser.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "comment": () => (/* binding */ comment),
+/* harmony export */   "compile": () => (/* binding */ compile),
+/* harmony export */   "declaration": () => (/* binding */ declaration),
+/* harmony export */   "parse": () => (/* binding */ parse),
+/* harmony export */   "ruleset": () => (/* binding */ ruleset)
+/* harmony export */ });
+/* harmony import */ var _Enum_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Enum.js */ "./node_modules/stylis/src/Enum.js");
+/* harmony import */ var _Utility_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Utility.js */ "./node_modules/stylis/src/Utility.js");
+/* harmony import */ var _Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Tokenizer.js */ "./node_modules/stylis/src/Tokenizer.js");
+
+
+
+
+/**
+ * @param {string} value
+ * @return {object[]}
+ */
+function compile (value) {
+	return (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.dealloc)(parse('', null, null, null, [''], value = (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.alloc)(value), 0, [0], value))
+}
+
+/**
+ * @param {string} value
+ * @param {object} root
+ * @param {object?} parent
+ * @param {string[]} rule
+ * @param {string[]} rules
+ * @param {string[]} rulesets
+ * @param {number[]} pseudo
+ * @param {number[]} points
+ * @param {string[]} declarations
+ * @return {object}
+ */
+function parse (value, root, parent, rule, rules, rulesets, pseudo, points, declarations) {
+	var index = 0
+	var offset = 0
+	var length = pseudo
+	var atrule = 0
+	var property = 0
+	var previous = 0
+	var variable = 1
+	var scanning = 1
+	var ampersand = 1
+	var character = 0
+	var type = ''
+	var props = rules
+	var children = rulesets
+	var reference = rule
+	var characters = type
+
+	while (scanning)
+		switch (previous = character, character = (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.next)()) {
+			// (
+			case 40:
+				if (previous != 108 && characters.charCodeAt(length - 1) == 58) {
+					if ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.indexof)(characters += (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.replace)((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.delimit)(character), '&', '&\f'), '&\f') != -1)
+						ampersand = -1
+					break
+				}
+			// " ' [
+			case 34: case 39: case 91:
+				characters += (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.delimit)(character)
+				break
+			// \t \n \r \s
+			case 9: case 10: case 13: case 32:
+				characters += (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.whitespace)(previous)
+				break
+			// \
+			case 92:
+				characters += (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.escaping)((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.caret)() - 1, 7)
+				continue
+			// /
+			case 47:
+				switch ((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.peek)()) {
+					case 42: case 47:
+						;(0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.append)(comment((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.commenter)((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.next)(), (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.caret)()), root, parent), declarations)
+						break
+					default:
+						characters += '/'
+				}
+				break
+			// {
+			case 123 * variable:
+				points[index++] = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.strlen)(characters) * ampersand
+			// } ; \0
+			case 125 * variable: case 59: case 0:
+				switch (character) {
+					// \0 }
+					case 0: case 125: scanning = 0
+					// ;
+					case 59 + offset:
+						if (property > 0 && ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.strlen)(characters) - length))
+							(0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.append)(property > 32 ? declaration(characters + ';', rule, parent, length - 1) : declaration((0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.replace)(characters, ' ', '') + ';', rule, parent, length - 2), declarations)
+						break
+					// @ ;
+					case 59: characters += ';'
+					// { rule/at-rule
+					default:
+						;(0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.append)(reference = ruleset(characters, root, parent, index, offset, rules, points, type, props = [], children = [], length), rulesets)
+
+						if (character === 123)
+							if (offset === 0)
+								parse(characters, root, reference, reference, props, rulesets, length, points, children)
+							else
+								switch (atrule) {
+									// d m s
+									case 100: case 109: case 115:
+										parse(value, reference, reference, rule && (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.append)(ruleset(value, reference, reference, 0, 0, rules, points, type, rules, props = [], length), children), rules, children, length, points, rule ? props : children)
+										break
+									default:
+										parse(characters, reference, reference, reference, [''], children, 0, points, children)
+								}
+				}
+
+				index = offset = property = 0, variable = ampersand = 1, type = characters = '', length = pseudo
+				break
+			// :
+			case 58:
+				length = 1 + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.strlen)(characters), property = previous
+			default:
+				if (variable < 1)
+					if (character == 123)
+						--variable
+					else if (character == 125 && variable++ == 0 && (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.prev)() == 125)
+						continue
+
+				switch (characters += (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.from)(character), character * variable) {
+					// &
+					case 38:
+						ampersand = offset > 0 ? 1 : (characters += '\f', -1)
+						break
+					// ,
+					case 44:
+						points[index++] = ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.strlen)(characters) - 1) * ampersand, ampersand = 1
+						break
+					// @
+					case 64:
+						// -
+						if ((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.peek)() === 45)
+							characters += (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.delimit)((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.next)())
+
+						atrule = (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.peek)(), offset = length = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.strlen)(type = characters += (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.identifier)((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.caret)())), character++
+						break
+					// -
+					case 45:
+						if (previous === 45 && (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.strlen)(characters) == 2)
+							variable = 0
+				}
+		}
+
+	return rulesets
+}
+
+/**
+ * @param {string} value
+ * @param {object} root
+ * @param {object?} parent
+ * @param {number} index
+ * @param {number} offset
+ * @param {string[]} rules
+ * @param {number[]} points
+ * @param {string} type
+ * @param {string[]} props
+ * @param {string[]} children
+ * @param {number} length
+ * @return {object}
+ */
+function ruleset (value, root, parent, index, offset, rules, points, type, props, children, length) {
+	var post = offset - 1
+	var rule = offset === 0 ? rules : ['']
+	var size = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.sizeof)(rule)
+
+	for (var i = 0, j = 0, k = 0; i < index; ++i)
+		for (var x = 0, y = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.substr)(value, post + 1, post = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.abs)(j = points[i])), z = value; x < size; ++x)
+			if (z = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.trim)(j > 0 ? rule[x] + ' ' + y : (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.replace)(y, /&\f/g, rule[x])))
+				props[k++] = z
+
+	return (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.node)(value, root, parent, offset === 0 ? _Enum_js__WEBPACK_IMPORTED_MODULE_2__.RULESET : type, props, children, length)
+}
+
+/**
+ * @param {number} value
+ * @param {object} root
+ * @param {object?} parent
+ * @return {object}
+ */
+function comment (value, root, parent) {
+	return (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.node)(value, root, parent, _Enum_js__WEBPACK_IMPORTED_MODULE_2__.COMMENT, (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.from)((0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.char)()), (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.substr)(value, 2, -2), 0)
+}
+
+/**
+ * @param {string} value
+ * @param {object} root
+ * @param {object?} parent
+ * @param {number} length
+ * @return {object}
+ */
+function declaration (value, root, parent, length) {
+	return (0,_Tokenizer_js__WEBPACK_IMPORTED_MODULE_0__.node)(value, root, parent, _Enum_js__WEBPACK_IMPORTED_MODULE_2__.DECLARATION, (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.substr)(value, 0, length), (0,_Utility_js__WEBPACK_IMPORTED_MODULE_1__.substr)(value, length + 1, -1), length)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/stylis/src/Prefixer.js":
+/*!*********************************************!*\
+  !*** ./node_modules/stylis/src/Prefixer.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "prefix": () => (/* binding */ prefix)
+/* harmony export */ });
+/* harmony import */ var _Enum_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Enum.js */ "./node_modules/stylis/src/Enum.js");
+/* harmony import */ var _Utility_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Utility.js */ "./node_modules/stylis/src/Utility.js");
+
+
+
+/**
+ * @param {string} value
+ * @param {number} length
+ * @return {string}
+ */
+function prefix (value, length) {
+	switch ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.hash)(value, length)) {
+		// color-adjust
+		case 5103:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + 'print-' + value + value
+		// animation, animation-(delay|direction|duration|fill-mode|iteration-count|name|play-state|timing-function)
+		case 5737: case 4201: case 3177: case 3433: case 1641: case 4457: case 2921:
+		// text-decoration, filter, clip-path, backface-visibility, column, box-decoration-break
+		case 5572: case 6356: case 5844: case 3191: case 6645: case 3005:
+		// mask, mask-image, mask-(mode|clip|size), mask-(repeat|origin), mask-position, mask-composite,
+		case 6391: case 5879: case 5623: case 6135: case 4599: case 4855:
+		// background-clip, columns, column-(count|fill|gap|rule|rule-color|rule-style|rule-width|span|width)
+		case 4215: case 6389: case 5109: case 5365: case 5621: case 3829:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + value
+		// appearance, user-select, transform, hyphens, text-size-adjust
+		case 5349: case 4246: case 4810: case 6968: case 2756:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MOZ + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + value + value
+		// flex, flex-direction
+		case 6828: case 4268:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + value + value
+		// order
+		case 6165:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + 'flex-' + value + value
+		// align-items
+		case 5187:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /(\w+).+(:[^]+)/, _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + 'box-$1$2' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + 'flex-$1$2') + value
+		// align-self
+		case 5443:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + 'flex-item-' + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /flex-|-self/, '') + value
+		// align-content
+		case 4675:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + 'flex-line-pack' + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /align-content|flex-|-self/, '') + value
+		// flex-shrink
+		case 5548:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, 'shrink', 'negative') + value
+		// flex-basis
+		case 5292:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, 'basis', 'preferred-size') + value
+		// flex-grow
+		case 6060:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + 'box-' + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, '-grow', '') + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, 'grow', 'positive') + value
+		// transition
+		case 4554:
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /([^-])(transform)/g, '$1' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + '$2') + value
+		// cursor
+		case 6187:
+			return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /(zoom-|grab)/, _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + '$1'), /(image-set)/, _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + '$1'), value, '') + value
+		// background, background-image
+		case 5495: case 3959:
+			return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /(image-set\([^]*)/, _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + '$1' + '$`$1')
+		// justify-content
+		case 4968:
+			return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /(.+:)(flex-)?(.*)/, _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + 'box-pack:$3' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + 'flex-pack:$3'), /s.+-b[^;]+/, 'justify') + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + value
+		// (margin|padding)-inline-(start|end)
+		case 4095: case 3583: case 4068: case 2532:
+			return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /(.+)-inline(.+)/, _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + '$1$2') + value
+		// (min|max)?(width|height|inline-size|block-size)
+		case 8116: case 7059: case 5753: case 5535:
+		case 5445: case 5701: case 4933: case 4677:
+		case 5533: case 5789: case 5021: case 4765:
+			// stretch, max-content, min-content, fill-available
+			if ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.strlen)(value) - 1 - length > 6)
+				switch ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, length + 1)) {
+					// (m)ax-content, (m)in-content
+					case 109:
+						// -
+						if ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, length + 4) !== 45)
+							break
+					// (f)ill-available, (f)it-content
+					case 102:
+						return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /(.+:)(.+)-([^]+)/, '$1' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + '$2-$3' + '$1' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MOZ + ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, length + 3) == 108 ? '$3' : '$2-$3')) + value
+					// (s)tretch
+					case 115:
+						return ~(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.indexof)(value, 'stretch') ? prefix((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, 'stretch', 'fill-available'), length) + value : value
+				}
+			break
+		// position: sticky
+		case 4949:
+			// (s)ticky?
+			if ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, length + 1) !== 115)
+				break
+		// display: (flex|inline-flex)
+		case 6444:
+			switch ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.strlen)(value) - 3 - (~(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.indexof)(value, '!important') && 10))) {
+				// stic(k)y
+				case 107:
+					return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, ':', ':' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT) + value
+				// (inline-)?fl(e)x
+				case 101:
+					return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /(.+:)([^;!]+)(;|!.+)?/, '$1' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, 14) === 45 ? 'inline-' : '') + 'box$3' + '$1' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + '$2$3' + '$1' + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + '$2box$3') + value
+			}
+			break
+		// writing-mode
+		case 5936:
+			switch ((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(value, length + 11)) {
+				// vertical-l(r)
+				case 114:
+					return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /[svh]\w+-[tblr]{2}/, 'tb') + value
+				// vertical-r(l)
+				case 108:
+					return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /[svh]\w+-[tblr]{2}/, 'tb-rl') + value
+				// horizontal(-)tb
+				case 45:
+					return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.replace)(value, /[svh]\w+-[tblr]{2}/, 'lr') + value
+			}
+
+			return _Enum_js__WEBPACK_IMPORTED_MODULE_1__.WEBKIT + value + _Enum_js__WEBPACK_IMPORTED_MODULE_1__.MS + value + value
+	}
+
+	return value
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/stylis/src/Serializer.js":
+/*!***********************************************!*\
+  !*** ./node_modules/stylis/src/Serializer.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "serialize": () => (/* binding */ serialize),
+/* harmony export */   "stringify": () => (/* binding */ stringify)
+/* harmony export */ });
+/* harmony import */ var _Enum_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Enum.js */ "./node_modules/stylis/src/Enum.js");
+/* harmony import */ var _Utility_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Utility.js */ "./node_modules/stylis/src/Utility.js");
+
+
+
+/**
+ * @param {object[]} children
+ * @param {function} callback
+ * @return {string}
+ */
+function serialize (children, callback) {
+	var output = ''
+	var length = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.sizeof)(children)
+
+	for (var i = 0; i < length; i++)
+		output += callback(children[i], i, children, callback) || ''
+
+	return output
+}
+
+/**
+ * @param {object} element
+ * @param {number} index
+ * @param {object[]} children
+ * @param {function} callback
+ * @return {string}
+ */
+function stringify (element, index, children, callback) {
+	switch (element.type) {
+		case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.IMPORT: case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.DECLARATION: return element.return = element.return || element.value
+		case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.COMMENT: return ''
+		case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.KEYFRAMES: return element.return = element.value + '{' + serialize(element.children, callback) + '}'
+		case _Enum_js__WEBPACK_IMPORTED_MODULE_1__.RULESET: element.value = element.props.join(',')
+	}
+
+	return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.strlen)(children = serialize(element.children, callback)) ? element.return = element.value + '{' + children + '}' : ''
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/stylis/src/Tokenizer.js":
+/*!**********************************************!*\
+  !*** ./node_modules/stylis/src/Tokenizer.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "alloc": () => (/* binding */ alloc),
+/* harmony export */   "caret": () => (/* binding */ caret),
+/* harmony export */   "char": () => (/* binding */ char),
+/* harmony export */   "character": () => (/* binding */ character),
+/* harmony export */   "characters": () => (/* binding */ characters),
+/* harmony export */   "column": () => (/* binding */ column),
+/* harmony export */   "commenter": () => (/* binding */ commenter),
+/* harmony export */   "copy": () => (/* binding */ copy),
+/* harmony export */   "dealloc": () => (/* binding */ dealloc),
+/* harmony export */   "delimit": () => (/* binding */ delimit),
+/* harmony export */   "delimiter": () => (/* binding */ delimiter),
+/* harmony export */   "escaping": () => (/* binding */ escaping),
+/* harmony export */   "identifier": () => (/* binding */ identifier),
+/* harmony export */   "length": () => (/* binding */ length),
+/* harmony export */   "line": () => (/* binding */ line),
+/* harmony export */   "next": () => (/* binding */ next),
+/* harmony export */   "node": () => (/* binding */ node),
+/* harmony export */   "peek": () => (/* binding */ peek),
+/* harmony export */   "position": () => (/* binding */ position),
+/* harmony export */   "prev": () => (/* binding */ prev),
+/* harmony export */   "slice": () => (/* binding */ slice),
+/* harmony export */   "token": () => (/* binding */ token),
+/* harmony export */   "tokenize": () => (/* binding */ tokenize),
+/* harmony export */   "tokenizer": () => (/* binding */ tokenizer),
+/* harmony export */   "whitespace": () => (/* binding */ whitespace)
+/* harmony export */ });
+/* harmony import */ var _Utility_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Utility.js */ "./node_modules/stylis/src/Utility.js");
+
+
+var line = 1
+var column = 1
+var length = 0
+var position = 0
+var character = 0
+var characters = ''
+
+/**
+ * @param {string} value
+ * @param {object | null} root
+ * @param {object | null} parent
+ * @param {string} type
+ * @param {string[] | string} props
+ * @param {object[] | string} children
+ * @param {number} length
+ */
+function node (value, root, parent, type, props, children, length) {
+	return {value: value, root: root, parent: parent, type: type, props: props, children: children, line: line, column: column, length: length, return: ''}
+}
+
+/**
+ * @param {object} root
+ * @param {object} props
+ * @return {object}
+ */
+function copy (root, props) {
+	return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.assign)(node('', null, null, '', null, null, 0), root, {length: -root.length}, props)
+}
+
+/**
+ * @return {number}
+ */
+function char () {
+	return character
+}
+
+/**
+ * @return {number}
+ */
+function prev () {
+	character = position > 0 ? (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(characters, --position) : 0
+
+	if (column--, character === 10)
+		column = 1, line--
+
+	return character
+}
+
+/**
+ * @return {number}
+ */
+function next () {
+	character = position < length ? (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(characters, position++) : 0
+
+	if (column++, character === 10)
+		column = 1, line++
+
+	return character
+}
+
+/**
+ * @return {number}
+ */
+function peek () {
+	return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.charat)(characters, position)
+}
+
+/**
+ * @return {number}
+ */
+function caret () {
+	return position
+}
+
+/**
+ * @param {number} begin
+ * @param {number} end
+ * @return {string}
+ */
+function slice (begin, end) {
+	return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.substr)(characters, begin, end)
+}
+
+/**
+ * @param {number} type
+ * @return {number}
+ */
+function token (type) {
+	switch (type) {
+		// \0 \t \n \r \s whitespace token
+		case 0: case 9: case 10: case 13: case 32:
+			return 5
+		// ! + , / > @ ~ isolate token
+		case 33: case 43: case 44: case 47: case 62: case 64: case 126:
+		// ; { } breakpoint token
+		case 59: case 123: case 125:
+			return 4
+		// : accompanied token
+		case 58:
+			return 3
+		// " ' ( [ opening delimit token
+		case 34: case 39: case 40: case 91:
+			return 2
+		// ) ] closing delimit token
+		case 41: case 93:
+			return 1
+	}
+
+	return 0
+}
+
+/**
+ * @param {string} value
+ * @return {any[]}
+ */
+function alloc (value) {
+	return line = column = 1, length = (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.strlen)(characters = value), position = 0, []
+}
+
+/**
+ * @param {any} value
+ * @return {any}
+ */
+function dealloc (value) {
+	return characters = '', value
+}
+
+/**
+ * @param {number} type
+ * @return {string}
+ */
+function delimit (type) {
+	return (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.trim)(slice(position - 1, delimiter(type === 91 ? type + 2 : type === 40 ? type + 1 : type)))
+}
+
+/**
+ * @param {string} value
+ * @return {string[]}
+ */
+function tokenize (value) {
+	return dealloc(tokenizer(alloc(value)))
+}
+
+/**
+ * @param {number} type
+ * @return {string}
+ */
+function whitespace (type) {
+	while (character = peek())
+		if (character < 33)
+			next()
+		else
+			break
+
+	return token(type) > 2 || token(character) > 3 ? '' : ' '
+}
+
+/**
+ * @param {string[]} children
+ * @return {string[]}
+ */
+function tokenizer (children) {
+	while (next())
+		switch (token(character)) {
+			case 0: (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.append)(identifier(position - 1), children)
+				break
+			case 2: ;(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.append)(delimit(character), children)
+				break
+			default: ;(0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.append)((0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.from)(character), children)
+		}
+
+	return children
+}
+
+/**
+ * @param {number} index
+ * @param {number} count
+ * @return {string}
+ */
+function escaping (index, count) {
+	while (--count && next())
+		// not 0-9 A-F a-f
+		if (character < 48 || character > 102 || (character > 57 && character < 65) || (character > 70 && character < 97))
+			break
+
+	return slice(index, caret() + (count < 6 && peek() == 32 && next() == 32))
+}
+
+/**
+ * @param {number} type
+ * @return {number}
+ */
+function delimiter (type) {
+	while (next())
+		switch (character) {
+			// ] ) " '
+			case type:
+				return position
+			// " '
+			case 34: case 39:
+				if (type !== 34 && type !== 39)
+					delimiter(character)
+				break
+			// (
+			case 40:
+				if (type === 41)
+					delimiter(type)
+				break
+			// \
+			case 92:
+				next()
+				break
+		}
+
+	return position
+}
+
+/**
+ * @param {number} type
+ * @param {number} index
+ * @return {number}
+ */
+function commenter (type, index) {
+	while (next())
+		// //
+		if (type + character === 47 + 10)
+			break
+		// /*
+		else if (type + character === 42 + 42 && peek() === 47)
+			break
+
+	return '/*' + slice(index, position - 1) + '*' + (0,_Utility_js__WEBPACK_IMPORTED_MODULE_0__.from)(type === 47 ? type : next())
+}
+
+/**
+ * @param {number} index
+ * @return {string}
+ */
+function identifier (index) {
+	while (!token(peek()))
+		next()
+
+	return slice(index, position)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/stylis/src/Utility.js":
+/*!********************************************!*\
+  !*** ./node_modules/stylis/src/Utility.js ***!
+  \********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "abs": () => (/* binding */ abs),
+/* harmony export */   "append": () => (/* binding */ append),
+/* harmony export */   "assign": () => (/* binding */ assign),
+/* harmony export */   "charat": () => (/* binding */ charat),
+/* harmony export */   "combine": () => (/* binding */ combine),
+/* harmony export */   "from": () => (/* binding */ from),
+/* harmony export */   "hash": () => (/* binding */ hash),
+/* harmony export */   "indexof": () => (/* binding */ indexof),
+/* harmony export */   "match": () => (/* binding */ match),
+/* harmony export */   "replace": () => (/* binding */ replace),
+/* harmony export */   "sizeof": () => (/* binding */ sizeof),
+/* harmony export */   "strlen": () => (/* binding */ strlen),
+/* harmony export */   "substr": () => (/* binding */ substr),
+/* harmony export */   "trim": () => (/* binding */ trim)
+/* harmony export */ });
+/**
+ * @param {number}
+ * @return {number}
+ */
+var abs = Math.abs
+
+/**
+ * @param {number}
+ * @return {string}
+ */
+var from = String.fromCharCode
+
+/**
+ * @param {object}
+ * @return {object}
+ */
+var assign = Object.assign
+
+/**
+ * @param {string} value
+ * @param {number} length
+ * @return {number}
+ */
+function hash (value, length) {
+	return (((((((length << 2) ^ charat(value, 0)) << 2) ^ charat(value, 1)) << 2) ^ charat(value, 2)) << 2) ^ charat(value, 3)
+}
+
+/**
+ * @param {string} value
+ * @return {string}
+ */
+function trim (value) {
+	return value.trim()
+}
+
+/**
+ * @param {string} value
+ * @param {RegExp} pattern
+ * @return {string?}
+ */
+function match (value, pattern) {
+	return (value = pattern.exec(value)) ? value[0] : value
+}
+
+/**
+ * @param {string} value
+ * @param {(string|RegExp)} pattern
+ * @param {string} replacement
+ * @return {string}
+ */
+function replace (value, pattern, replacement) {
+	return value.replace(pattern, replacement)
+}
+
+/**
+ * @param {string} value
+ * @param {string} search
+ * @return {number}
+ */
+function indexof (value, search) {
+	return value.indexOf(search)
+}
+
+/**
+ * @param {string} value
+ * @param {number} index
+ * @return {number}
+ */
+function charat (value, index) {
+	return value.charCodeAt(index) | 0
+}
+
+/**
+ * @param {string} value
+ * @param {number} begin
+ * @param {number} end
+ * @return {string}
+ */
+function substr (value, begin, end) {
+	return value.slice(begin, end)
+}
+
+/**
+ * @param {string} value
+ * @return {number}
+ */
+function strlen (value) {
+	return value.length
+}
+
+/**
+ * @param {any[]} value
+ * @return {number}
+ */
+function sizeof (value) {
+	return value.length
+}
+
+/**
+ * @param {any} value
+ * @param {any[]} array
+ * @return {any}
+ */
+function append (value, array) {
+	return array.push(value), value
+}
+
+/**
+ * @param {string[]} array
+ * @param {function} callback
+ * @return {string}
+ */
+function combine (array, callback) {
+	return array.map(callback).join('')
+}
+
+
+/***/ }),
+
+/***/ "./src/main/webapp/tickers.json":
+/*!**************************************!*\
+  !*** ./src/main/webapp/tickers.json ***!
+  \**************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"label":"3M","description":"3M, based in Minnesota, may be best known for its Scotch tape and Post-It Notes, but it also produces sand paper, adhesives, medical products, computer screen filters, food safety items, stationery products and many products used in automotive, marine, and aircraft industries.","initial_price":44.28,"price_2002":56.27,"price_2007":95.85,"value":"MMM"},{"label":"Amazon.com","description":"Amazon.com, Inc. is an online retailer in North America and internationally. The company serves consumers through its retail Web sites and focuses on selection, price, and convenience. It also offers programs that enable sellers to sell their products on its Web sites, and their own branded Web sites. In addition, the company serves developer customers through Amazon Web Services, which provides access to technology infrastructure that developers can use to enable virtually various type of business. Further, it manufactures and sells the Kindle e-reader. Founded in 1994 and headquartered in Seattle, Washington.","initial_price":89.38,"price_2002":17.01,"price_2007":93.43,"value":"AMZN"},{"label":"Campbell Soup","description":"Campbell Soup is a worldwide food company, offering condensed and ready-to-serve soups; broth, stocks, and canned poultry; pasta sauces; Mexican sauces; canned pastas, gravies, and beans; juices and beverages; and tomato juices. Its customers include retail food chains, mass discounters, mass merchandisers, club stores, convenience stores, drug stores and other retail, and commercial and non-commercial establishments. Campbell Soup Company was founded in 1869 and is headquartered in Camden, New Jersey.","initial_price":37,"price_2002":22.27,"price_2007":36.4,"value":"CPB"},{"label":"Disney","description":"The Walt Disney Company, founded in 1923, is a worldwide entertainment company, with movies, cable networks, radio networks, movie production, musical recordings and live stage plays. Disney also operates Walt Disney World in Florida and Disneyland in California, Disney Cruise Line, and international Disney resorts. Disney owns countless licenses and literary properties and publishes books and magazines.","initial_price":40.68,"price_2002":15.24,"price_2007":35.47,"value":"DIS"},{"label":"Dow Chemical","description":"The Dow Chemical Company manufactures raw materials that go into consumer products and services. These materials include food and pharmaceutical ingredients, electronic displays, semiconductor packaging, water purification, insulation, adhesives, pest control, polyurethane, polystyrene (goes into plastics), and crude-oil based raw materials. Dow was founded in 1897 and is based in Midland, Michigan.","initial_price":38.83,"price_2002":27.65,"price_2007":44.67,"value":"DOW"},{"label":"Exxon Mobil","description":"Exxon Mobil engages in the exploration and production of crude oil and natural gas, and manufacture of petroleum products. The company manufactures commodity petrochemicals. The company has operations in the United States, Canada/South America, Europe, Africa, Asia, and Australia/Oceania. Exxon Mobil Corporation was founded in1870 and is based in Irving, Texas.","initial_price":39,"price_2002":32.82,"price_2007":91.36,"value":"XOM"},{"label":"Ford","description":"Ford Motor Co. develops, manufactures, sells and services vehicles and parts worldwide. Ford sells cars and trucks primarily under the Ford and Lincoln brands. It sells to consumers (through retail dealers) and to rental car companies, leasing companies, and governments. Ford also provides maintenance and repair services. Ford also offers financing to vehicle purchasers. Ford was founded in 1903 and is based in Dearborn, Michigan.","initial_price":27.34,"price_2002":9.63,"price_2007":8.37,"value":"F"},{"label":"Google","description":"","initial_price":34.13,"price_2002":36.69,"price_2007":73.74,"value":"GOOG"},{"label":"The Gap","description":"The Gap, Inc. sells retail clothing, accessories and personal care products globally under the brand names Gap, Old Navy, Banana Republic, Piperlime, Athleta and Intermix. Products include sports apparel, casual clothing, sleepwear, footwear and infants’ and children’s clothing. The company has company-owned stores as well as franchise stores, online stores and catalogs. The Gap was founded in 1969 and is headquartered in San Francisco, California.","initial_price":46,"price_2002":11.56,"price_2007":18.9,"value":"GPS"},{"label":"General Mills","description":"General Mills manufactures and sells consumer foods worldwide. Products include cereals, frozen vegetables, dough, dessert and baking mixes, frozen pizzas, grains, fruits, ice creams and organic products. It sells to grocery stores as well as commercial food service distributors, restaurants and convenience stores. General Mills was founded in 1928 and is based in Minneapolis, Minnesota.","initial_price":15.59,"price_2002":22.1,"price_2007":28.76,"value":"GIS"},{"label":"Hewlett Packard","description":"Hewlett-Packard designs and sells products, technologies, software and IT services to consumers, businesses, government and education sectors worldwide. HP offers storage and server products, PCs, calculators, printers, scanners, network infrastructure products, video products (under the Halo brand), and Palm smartphones. HP was founded in 1939 and is headquartered in Palo Alto, California.","initial_price":66.28,"price_2002":12.03,"price_2007":50.9,"value":"HPQ"},{"label":"IBM","description":"IBM is an international IT company. IBM offers infrastructure and technology services, software for business integration and information management, data warehousing, identity management software, data security, Lotus software for collaboration, messaging and social networking, business intelligence software, servers, and storage systems. IBM was founded in 1910 and is based in Armonk, New York.","initial_price":118.37,"price_2002":60.36,"price_2007":116.3,"value":"IBM"},{"label":"Johnson & Johnson","description":"Johnson & Johnson develops and manufactures health care products for sale worldwide. J&J products include the brands Johnson’s, Aveeno, Clean & Clear, Neutrogena, Lubriderm, Listerine, Reach, BandAid, Tylenol, Sudafed, Motrin and more. J&J products are used in skin care, baby care, and therapeutic medical care, including inflammatory diseases, arthritis, psoriasis, HIV/AIDS, schizophrenia, spinal care, and diabetes. The company was founded in 1886 and is based in New Brunswick, New Jersey.","initial_price":35.13,"price_2002":52.3,"price_2007":66.25,"value":"JNJ"},{"label":"Microsoft","description":"Microsoft develops, manufactures, licenses, and supports a range of software products and services for various computing devices worldwide. Products include Windows OS, Windows Live and Internet Explorer. Microsoft also provides training and tech support, online products such as Bing and MSN portals, and software including Microsoft Office, Microsoft SharePoint, Xbox 360, PC software games, online games, and Zune digital music. Microsoft was founded in 1975 and is headquartered in Redmond, Washington.","initial_price":55.72,"price_2002":22.62,"price_2007":29.84,"value":"MSFT"},{"label":"Monsanto","description":"Monsanto provides agricultural products for farmers in the United States and internationally. It operates in two segments, Seeds and Genomics, and Agricultural Productivity. The Seeds and Genomics segment produces corn, soybean, canola, and cotton seeds, as well as vegetable seeds, including tomato, pepper, eggplant, melon, cucumber, pumpkin, squash, beans, broccoli, onions, and lettuce seeds. The Agricultural Productivity segment offers herbicides for agricultural, industrial, and residential use. Brands include Roundup, Roundup Ready, YieldGard, and Dekalb. Monsanto focuses on high-yielding crops and crops that tolerate adverse conditions. The current company was founded in 2000 (name dates to 1901) and is based in St. Louis, Missouri.","initial_price":11.47,"price_2002":7.2,"price_2007":86.93,"value":"MO"},{"label":"PepsiCo","description":"PepsiCo, Inc. manufactures, markets, and sells various foods, snacks, and carbonated and non-carbonated beverages worldwide. Pepsi products include Pepsi beverages, Mountain Dew, Gatorade, Aquafina and Tropicana beverages as well as Frito-Lay snacks, Ruffles, Doritos, Tostitos, Rold Gold pretzels, Sun Chips, Crackerjack, Quaker Oats, Aunt Jemima mixes, Life Cereal, and Rice-a-Roni. The company was founded in 1898 and is headquartered in Purchase, New York.","initial_price":34.13,"price_2002":36.69,"price_2007":73.74,"value":"PEP"},{"label":"Starbucks","description":"Starbucks Corp. provides specialty coffee and tea beverages, packaged and ground coffee beans, single-serve products, juices and food offerings worldwide. Starbucks sells licensed products through grocery stores and other food service outlets as well as running company stores that sell coffees, pastries, breakfast sandwiches and lunch items. Starbucks sells products under the brand names Starbucks, Teavana, Tazo, Seattle’s Best, La Blange and Verismo. Starbucks was founded in 1985 and is based in Seattle, Washington.","initial_price":6.23,"price_2002":10.5,"price_2007":26.84,"value":"SBUX"},{"label":"Texas Instruments","description":"Texas Instruments designs and sells semiconductors to electronics designers and manufacturers worldwide. The company has four segments: Analog, Embedded Processing, Wireless and Other. The Other segment provides handheld graphing and scientific calculators and licenses technologies to other electronic companies. The company was founded in 1938 and is headquartered in Dallas, Texas.","initial_price":53.88,"price_2002":15.58,"price_2007":36.54,"value":"TXN"},{"label":"Time Warner","description":"Time Warner is a media and entertainment company in the United States and internationally. It operates in three segments: Networks, Filmed Entertainment, and Publishing. Networks provides HBO, Cinemax, TNT, TBS, and CNN. Filmed Entertainment produces movies, TV shows, animation, videogames, and home video products. Publishing includes magazines (People, Sports Illustrated, Time), books, and websites. The company was founded in 1985 and is based in New York, New York.","initial_price":221.25,"price_2002":36.36,"price_2007":57.18,"value":"TWX"},{"label":"United Health","description":"UnitedHealth Group provides healthcare services in the United States. Its Health Benefits segment offers consumer-oriented health benefit plans and services to national employers, public sector employers, mid-sized employers, small businesses, and individuals; and non-employer based insurance options for purchase by individuals. It also provides health services to individuals aged 50 and older through a network of 730,000 physicians and other professionals and 5,300 hospitals. The company also provides financial products, data management services, and pharmacy management. The company was founded in 1974 and is based in Minnetonka, Minnesota.","initial_price":7.66,"price_2002":21.85,"price_2007":47.7,"value":"UNH"},{"label":"Walmart","description":"Walmart operates retail stores, warehouse clubs, online stores and small markets worldwide. Walmart stores sell a huge variety of items, from food and clothing to electronics, hardware, appliances, automotive accessories and pet supplies. Some stores include banks, restaurants and gas stations. Walmart was founded in 1945 and is headquartered in Bentonville, Arkansas. ","initial_price":56.5,"price_2002":50.51,"price_2007":47.53,"value":"WMT"},{"label":"Whirlpool","description":"Whirlpool manufactures and sells home appliances worldwide. Its principal products include laundry appliances, refrigerators, cooking appliances, dishwashers, mixers, and other small household appliances. The company also produces hermetic compressors for refrigeration systems. It markets and distributes its products under various brand names, which include Whirlpool, Maytag, KitchenAid, Jenn-Air, Roper, Estate, Admiral, Magic Chef, and Amana. The company was founded in 1906 and is based in Benton Harbor, Michigan.","initial_price":58.25,"price_2002":46.82,"price_2007":94.29,"value":"WHR"},{"label":"Xerox","description":"Xerox Corporation engages in the development, manufacture, marketing, service, and finance of document equipment, software, solutions, and services worldwide. The company operates in three segments: Technology, Services, and Other. The Technology segment provides multifunction printers, copiers, digital printing presses, light production devices, and desktop monochrome and color printers for office users. Other services include human resources, IT, card fare payment solutions, network outsourcing, commercial printing and electronic presentation systems. Xerox Corporation was founded in 1906 and is headquartered in Norwalk, Connecticut.","initial_price":20.87,"price_2002":5.26,"price_2007":17.54,"value":"XRX"}]');
+
 /***/ })
 
 /******/ 	});
@@ -34141,7 +59403,7 @@ module.exports = function (list, options) {
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Flag the module as loaded
 /******/ 		module.loaded = true;
@@ -34400,8 +59662,9 @@ module.exports = function (list, options) {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
+"use strict";
 /*!**********************************!*\
   !*** ./src/main/webapp/index.js ***!
   \**********************************/
@@ -34411,20 +59674,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_dom_client__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom/client */ "./node_modules/react-dom/client.js");
 /* harmony import */ var _index_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./index.css */ "./src/main/webapp/index.css");
 /* harmony import */ var _StockDetailManager__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./StockDetailManager */ "./src/main/webapp/StockDetailManager.js");
-/* harmony import */ var _reportWebVitals__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./reportWebVitals */ "./src/main/webapp/reportWebVitals.js");
+/* harmony import */ var _LoginPage__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./LoginPage */ "./src/main/webapp/LoginPage.js");
+/* harmony import */ var _reportWebVitals__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./reportWebVitals */ "./src/main/webapp/reportWebVitals.js");
+
 
 
 
 
 
 var root = react_dom_client__WEBPACK_IMPORTED_MODULE_1__.createRoot(document.getElementById('root'));
-root.render( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().StrictMode), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_StockDetailManager__WEBPACK_IMPORTED_MODULE_3__["default"], {
-  title: "Client"
-}))); // If you want to start measuring performance in your app, pass a function
+root.render( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().StrictMode), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_LoginPage__WEBPACK_IMPORTED_MODULE_4__["default"], null))); // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 
-(0,_reportWebVitals__WEBPACK_IMPORTED_MODULE_4__["default"])();
+(0,_reportWebVitals__WEBPACK_IMPORTED_MODULE_5__["default"])();
 })();
 
 /******/ })()

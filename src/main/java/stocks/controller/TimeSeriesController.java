@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +19,7 @@ import stocks.repository.TimeSeriesRepository;
 import stocks.service.TimeSeriesService;
 
 @RestController
-@RequestMapping(path="/timeseries", produces=MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path="/stocks", produces=MediaType.APPLICATION_JSON_VALUE)
 public class TimeSeriesController {
 	private final ProductRepository productRepository;
 	private final StockRepository stockRepository;
@@ -31,10 +33,13 @@ public class TimeSeriesController {
 		timeSeriesService = new TimeSeriesService(timeSeriesRepository, stockRepository);
 	}
 
-	@GetMapping("/alltimeseries")
-	public List<TimeSeriesBean> getTimeSeries() throws Exception{
+	@PostMapping("/timeseries")
+	public List<TimeSeriesBean> getTimeSeries(@RequestBody String[] tickers) throws Exception{
+
+
 		List<TimeSeriesBean> timeSeriesList = new ArrayList<>();
-		List<TimeSeries> allTimeSeries = timeSeriesService.createTimeSeries();
+		List<TimeSeries> allTimeSeries = timeSeriesService.fetchStocks(tickers);
+
 		for(TimeSeries timeSeries : allTimeSeries) {
 			TimeSeriesBean timeSeriesBean = new TimeSeriesBean();
 			timeSeriesBean.setId(timeSeries.getId());
@@ -48,6 +53,12 @@ public class TimeSeriesController {
 		}
 		return timeSeriesList;
 	}
+	
+	@DeleteMapping("/timeseries")
+	public void deleteTimeSeriesByTickers(@RequestBody String[] tickers) {
+		timeSeriesService.deleteTimeSeriesByStocks(tickers);
+	}
+	
 	
 
 }

@@ -10,5 +10,5 @@ import stocks.domain.TimeSeries;
 
 @Repository
 public interface TimeSeriesRepository extends JpaRepository<TimeSeries, Long>{
-	List<TimeSeries> findByStock(StockObject stock, Sort sort);
+	List<TimeSeries> findByStock(StockObject stock);
 }
