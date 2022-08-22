@@ -31,17 +31,15 @@ This is my first big project where I develop a full stack app on my own. It is a
 ### Steps
 1. API key is required from https://twelvedata.com/
 2. Use Spring Initializer: Just go to https://start.spring.io/ and generate a new spring boot gradle project.
-select : 
-gradle project
-Spring boot 2.612(snapshot)
-Add dependencies: 
- Jersey, 
- Apache Derby database
-Java 17
-Provide project name: exp: demo
-Click generate
-     3. Create gradle project from eclipse with newly generated project: demo
-     4. Add extra dependencies to build.gradle like following
+	select : 
+	gradle project
+	Spring boot 2.612(snapshot)
+	Add dependencies: Jersey, Apache Derby database
+	Java 17
+	Provide project name: exp: demo
+	Click generate
+3. Create gradle project from eclipse with newly generated project: demo
+4. Add extra dependencies to build.gradle like following
 dependencies {
 	implementation group: 'com.opencsv', name: 'opencsv', version: '5.6'
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
