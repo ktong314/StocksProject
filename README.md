@@ -39,8 +39,8 @@ This is my first big project where I develop a full stack app on my own. It is a
 	* Provide project name: exp: demo
 	* Click generate
 3. Create gradle project from eclipse with newly generated project: demo
-4. Add extra dependencies to build.gradle like following
-'''
+4. Add the following extra dependencies to build.gradle
+```
 dependencies {
 	implementation group: 'com.opencsv', name: 'opencsv', version: '5.6'
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
@@ -54,7 +54,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.1'    
 
 }
-'''
+``` 
 5. Understand spring boot design pattern and workflow
 
 
