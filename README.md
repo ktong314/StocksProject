@@ -72,7 +72,7 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.DerbyTenSevenDialect
 ```
 
-7. Create a new single-page app
+7. Create a new single-page app through cmd
 ```
 Install node.js 
 npx create-react-app my-app
@@ -82,20 +82,22 @@ npm start
 8. Understand React state and lifecycle: https://reactjs.org/docs/state-and-lifecycle.html
 9. Add UI dependencies to package.json
 10. Integrating UI with spring boot backend
-Create webapp folder under src/main
-Create index.html file under src/main/resources/static/dist and make sure the html body has following
-
-  <body>
-        <div id="root"></div>
- 
-        <script src="dist/react-app.js"></script>
-   </body>
-
-Modify index.js to have this statement :
+* Create webapp folder under src/main
+* Create index.html file under src/main/resources/static/dist and make sure the html body has following
+```
+<body>
+	<div id="root"></div>
+ 	<script src="dist/react-app.js"></script>
+</body>
+```
+* Modify index.js to have this statement:
+```
 const root = ReactDOM.createRoot(document.getElementById('root'));
-    'root' should be same as id of div in the index.html 
-   10. Gradle with Node
-Build react app with gradle  , add following in build.gradle
+//'root' should be same as id of div in the index.html 
+```
+11. Configure gradle with Node
+* Build react app with gradle, add following in build.gradle
+```
 plugins {
     id 'org.springframework.boot' version '2.7.1'
     id 'java'
@@ -104,7 +106,9 @@ plugins {
 node {
     version = '14.15.5'
 }
-Add following in package.json
+```
+* Add following in package.json
+```
 {
   "name": "spring-react-app",
   "description": "Stock market data tacker application using React with Spring Boot",
@@ -112,12 +116,11 @@ Add following in package.json
 	Add dependencies here
   }
 }
-
-11. Bundle react js with webpack
-  
-create configuration for Webpack, webpack.config.js, in the root directory.
+```
+12. Bundle react js with webpack
+* create configuration for Webpack, webpack.config.js, in the root directory.
 	
-                 
+```          
          module.exports = {
     devtool: 'source-map',
     output: {
@@ -137,8 +140,10 @@ create configuration for Webpack, webpack.config.js, in the root directory.
         extensions: ['.js', '.jsx']
     }
 };
+```
 
-12. Use gradle to build reactjs, add following to build.gradle
+13. Use gradle to build reactjs, add following to build.gradle
+```
 task buildReactApp(type: NodeTask, dependsOn: 'npmInstall') {
     script = project.file('node_modules/webpack/bin/webpack.js')
     args = [
@@ -151,19 +156,19 @@ task buildReactApp(type: NodeTask, dependsOn: 'npmInstall') {
 processResources.dependsOn 'buildReactApp'
 clean.delete << file('node_modules')
 clean.delete << file('src/main/resources/static/dist')
-13. Build the application: gradle build and run the app  gradlew bootrun
+```
 
-14: open http://localhost:8080/ in the browser
+14. Build the application: gradle build and run the app  gradlew bootrun
+
+15: open http://localhost:8080/ in the browser
 
 
-How to Run
- 
- 
-Practice the knowledge of the Java language
- hands on experience with basic CRUD operations using the Spring framework, JPA, Apache derby
-Create the REST API service for the backend application using spring boot framework, JPA, Apache derby
-Developing and running Spring Boot applications with one of the following IDE's: Eclipse, Visual Studio
-Practice the knowledge of building process with gradle
-Leaning building UI with  HTML, CSS, and JavaScript (ES6 Syntax is important), and React lifecycle
-Integrate NodeJS with React
+### How to Run
+* Practice the knowledge of the Java language
+* hands on experience with basic CRUD operations using the Spring framework, JPA, Apache derby
+* Create the REST API service for the backend application using spring boot framework, JPA, Apache derby
+* Developing and running Spring Boot applications with one of the following IDE's: Eclipse, Visual Studio
+* Practice the knowledge of building process with gradle
+* Leaning building UI with  HTML, CSS, and JavaScript (ES6 Syntax is important), and React lifecycle
+* Integrate NodeJS with React
   
