@@ -27,9 +27,8 @@ This is my first big project where I develop a full stack app on my own. It is a
 ### Future to do list 
 * Add charts for visualization (research which chart library to use) <br />
 * Implement feature to analyze stocks performance
-Demo 
-	Use screen to gif to record the UI workflow
-Steps
+
+### Steps
 API key is required from https://twelvedata.com/
 Use Spring Initializer: Just go to https://start.spring.io/ and generate a new spring boot gradle project.
 select : 
