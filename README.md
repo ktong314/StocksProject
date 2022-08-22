@@ -62,24 +62,26 @@ dependencies {
 	* Domain:  Data access object class to define database table entity and relationship between tables (one to many, many to one, many to many) <br />
 	* Repository: Data access layer, using Spring data JPA repositories to provides JPA related methods such as flushing the persistence context and delete records in a batch https://www.baeldung.com/spring-data-repositories
 
-
-	5. Config application.properties
-		spring.datasource.url=jdbc:derby:stocklocal; create=true
+6. Configure application.properties:
+```
+spring.datasource.url=jdbc:derby:stocklocal; create=true
 spring.datasource.username=derbyuser
 spring.datasource.password=password
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.DerbyTenSevenDialect
+```
 
-          6. Creating a new single-page app
-
+7. Create a new single-page app
+```
 Install node.js 
 npx create-react-app my-app
 cd my-app
 npm start
-     7. Understand React state and lifecycle: https://reactjs.org/docs/state-and-lifecycle.html
-         8. Add UI dependencies to package.json
-         9. Integrating UI with spring boot backend
+```
+8. Understand React state and lifecycle: https://reactjs.org/docs/state-and-lifecycle.html
+9. Add UI dependencies to package.json
+10. Integrating UI with spring boot backend
 Create webapp folder under src/main
 Create index.html file under src/main/resources/static/dist and make sure the html body has following
 
