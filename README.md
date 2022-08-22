@@ -29,8 +29,8 @@ This is my first big project where I develop a full stack app on my own. It is a
 * Implement feature to analyze stocks performance
 
 ### Steps
-API key is required from https://twelvedata.com/
-Use Spring Initializer: Just go to https://start.spring.io/ and generate a new spring boot gradle project.
+1. API key is required from https://twelvedata.com/
+2. Use Spring Initializer: Just go to https://start.spring.io/ and generate a new spring boot gradle project.
 select : 
 gradle project
 Spring boot 2.612(snapshot)
