@@ -1,6 +1,6 @@
 # Stock performance tracker App
 Web App for stock ticker tracker, Building a personal Portfolio
-Built With
+## Built With
 Java: 
  spring boot: Makes it easy to create stand-alone, RESTFul APIs web application 
  Nodejs: a runtime environment used to execute JavaScript for server-side scripting.
