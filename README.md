@@ -1,4 +1,4 @@
-Stock performance tracker App
+#Stock performance tracker App
 Web App for stock ticker tracker, Building a personal Portfolio
 Built With
 Java: 
