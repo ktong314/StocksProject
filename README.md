@@ -57,10 +57,10 @@ dependencies {
 ``` 
 5. Understand spring boot design pattern and workflow: <br />
 	Java packages <br />
-		* Controller: Rest layer to accept the request from UI and send response to UI
-		* Service: Business logic layer to implement features  that facilitates communication between the controller and the persistence layer. Additionally, It includes validation logic in particular.
-		* Domain:  Data access object class to define database table entity and relationship between tables (one to many, many to one, many to many) <br />
-		* Repository: Data access layer, using Spring data JPA repositories to provides JPA related methods such as flushing the persistence context and delete records in a batch https://www.baeldung.com/spring-data-repositories
+	* Controller: Rest layer to accept the request from UI and send response to UI
+	* Service: Business logic layer to implement features  that facilitates communication between the controller and the persistence layer. Additionally, It includes validation logic in particular.
+	* Domain:  Data access object class to define database table entity and relationship between tables (one to many, many to one, many to many) <br />
+	* Repository: Data access layer, using Spring data JPA repositories to provides JPA related methods such as flushing the persistence context and delete records in a batch https://www.baeldung.com/spring-data-repositories
 
 
 	5. Config application.properties
