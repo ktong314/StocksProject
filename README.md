@@ -1,32 +1,32 @@
 # Stock performance tracker App
 Web App for stock ticker tracker, Building a personal Portfolio
-#### Built With
-Java: <br />
-spring boot: Makes it easy to create stand-alone, RESTFul APIs web application <br />
-Nodejs: a runtime environment used to execute JavaScript for server-side scripting. <br />
-JavaScript(ES6): the project's front programming language with ES6 Syntax <br />
-React,  a JavaScript library used to assist with efficient management of rapidly changing data and maintaining a single-page web application structure. <br />
-HTML and CSS3 : used to manage the presentation and styling of the project. <br />
-Apache Derby: A Relational Database Management System which is fully based on (written/implemented in) Java programming language. It is an open source database developed by Apache Software Foundation. <br />
-Webpack:  is a module bundler. Its main purpose is to bundle JavaScript files for usage in a browser. Create a file named webpack.config.js to describe the configurations required for webpack. <br />
-Gradle: Use to build Java project <br />
-#### Tools
+### Built With
+* Java: <br />
+* spring boot: Makes it easy to create stand-alone, RESTFul APIs web application <br />
+* Nodejs: a runtime environment used to execute JavaScript for server-side scripting. <br />
+* JavaScript(ES6): the project's front programming language with ES6 Syntax <br />
+* React,  a JavaScript library used to assist with efficient management of rapidly changing data and maintaining a single-page web application structure. <br />
+* HTML and CSS3 : used to manage the presentation and styling of the project. <br />
+* Apache Derby: A Relational Database Management System which is fully based on (written/implemented in) Java programming language. It is an open source database developed by Apache Software Foundation. <br />
+* Webpack:  is a module bundler. Its main purpose is to bundle JavaScript files for usage in a browser. Create a file named webpack.config.js to describe the configurations required for webpack. <br />
+* Gradle: Use to build Java project <br />
+### Tools
 The following items should be installed in your system: <br />
-Eclipse - Spring Tool Suite or Mars <br />
-Server - Apache tomcat 7 <br />
-Visual Studio for react js <br />
-Install Node JS (https://nodejs.org) <br />
-Install gradle 6 <br />
-Postman <br />
-#### Purpose
+* Eclipse - Spring Tool Suite or Mars <br />
+* Server - Apache tomcat 7 <br />
+* Visual Studio for react js <br />
+* Install Node JS (https://nodejs.org) <br />
+* Install gradle 6 <br />
+* Postman <br />
+### Purpose
 This is my first big project where I develop a full stack app on my own. It is a web application where users can: <br />
-get real-time stock data using live retrieval from  https://twelvedata.com/, <br />
-create personal stock portfolios, <br />
-monitor stocks performance, <br />
-analyze the stock market, <br />
-#### Future to do list 
-Adding charts visualization (research) 
-Implementing feature to analyze stocks performance
+* get real-time stock data using live retrieval from  https://twelvedata.com/ <br />
+* create personal stock portfolios <br />
+* monitor stocks performance <br />
+* analyze the stock market <br />
+### Future to do list 
+* Add charts for visualization (research which chart library to use) <br />
+* Implement feature to analyze stocks performance
 Demo 
 	Use screen to gif to record the UI workflow
 Steps
