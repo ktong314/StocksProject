@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, Fragment} from 'react';
 import Select, {components} from 'react-select';
 import stockList from './tickers.json';
 import './StockDetailManager.css';
@@ -24,7 +24,7 @@ export default class StockDetailManager extends Component{
   }
 
   componentDidMount() {
-    fetch("/timeseries/alltimeseries")
+    fetch('stocks/timeseries')
     .then(response => response.json())
     .then(
       (data) => {
@@ -75,6 +75,17 @@ export default class StockDetailManager extends Component{
     })
   }
 
+  mapStockDetail = (data, prop) => {
+    return data.reduce((acc, item) => {
+      let key = item[prop];
+      if(!acc[key]){
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {}) 
+  }
+
   getDetails = () => {
     const{tickers} = this.state;
     fetch('stocks/timeseries',
@@ -91,9 +102,11 @@ export default class StockDetailManager extends Component{
         return res
     })
     .then(res => res.json())
-    .then(data => this.setState({
-      stockDetail: data,
-    })) // the data
+    .then(data => {
+      const formattedData = this.mapStockDetail(data, 'ticker');
+      const tableData = Object.entries(formattedData);
+      this.setState({stockDetail: tableData})
+    }) // the data
     .catch(error => console.log(error))
   }
 
@@ -134,7 +147,7 @@ export default class StockDetailManager extends Component{
     })
     .then(res => res.json())
     .then(data => this.setState({
-      stockDetail: data,
+      stockDetail: [],
       
       tickerList: this.extractSelection(tickerList, tickers),
       tickers: [],
@@ -182,32 +195,36 @@ export default class StockDetailManager extends Component{
           </div>
         <div className="flex-right">
           <h1>{title}</h1>
-          <table class='tsTableElements' id="tsTable">
-            <thead>
-              <th class='tsTableElements'>Ticker</th>
-              <th class='tsTableElements'>Date/Time</th>
-              <th class='tsTableElements'>Open Price</th>
-              <th class='tsTableElements'>Close Price</th>
-              <th class='tsTableElements'>Highest Price</th>
-              <th class='tsTableElements'>Lowest Price</th>
-            </thead>
-            {stockDetail && stockDetail.length > 0 &&(<tbody>
-              {
-                stockDetail.map(
-                  stock =>
-                  <tr key = {stock.id}>
-                    <td class='tsTableElements'>{stock.ticker}</td>
-                    <td class='tsTableElements'>{stock.date}</td>
-                    <td class='tsTableElements'>${stock.open}</td>
-                    <td class='tsTableElements'>${stock.close}</td>
-                    <td class='tsTableElements'>${stock.high}</td>
-                    <td class='tsTableElements'>${stock.low}</td>
-                  </tr>
-                )
-              }
-            </tbody>)}
-          </table>
-          <p id='message'>{message}</p>
+          
+            {stockDetail && stockDetail.length > 0 &&
+              stockDetail.map(([key, value]) =>
+                <div>
+                  <h2>{key}</h2>
+                  <table class='tsTableElements' id="tsTable">
+                    <thead>
+                      <th class='tsTableElements'>Date/Time</th>
+                      <th class='tsTableElements'>Open Price</th>
+                      <th class='tsTableElements'>Close Price</th>
+                      <th class='tsTableElements'>Highest Price</th>
+                      <th class='tsTableElements'>Lowest Price</th>
+                    </thead>
+                    <tbody>
+                      {value && value.length > 0 && value.map(stock =>
+                      <tr>
+                        <td class='tsTableElements'>{stock.date}</td>
+                        <td class='tsTableElements'>${stock.open}</td>
+                        <td class='tsTableElements'>${stock.close}</td>
+                        <td class='tsTableElements'>${stock.high}</td>
+                        <td class='tsTableElements'>${stock.low}</td>
+                      </tr>)}
+                    </tbody>
+                    
+                  </table>
+                </div>
+                
+              )
+            }
+          
         </div>
           
         

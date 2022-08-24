@@ -12653,6 +12653,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _testing_library_jest_dom_dist_matchers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @testing-library/jest-dom/dist/matchers */ "./node_modules/@testing-library/jest-dom/dist/matchers.js");
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
@@ -12750,6 +12758,19 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
       });
     });
 
+    _defineProperty(_assertThisInitialized(_this), "mapStockDetail", function (data, prop) {
+      return data.reduce(function (acc, item) {
+        var key = item[prop];
+
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+
+        acc[key].push(item);
+        return acc;
+      }, {});
+    });
+
     _defineProperty(_assertThisInitialized(_this), "getDetails", function () {
       var tickers = _this.state.tickers;
       fetch('stocks/timeseries', {
@@ -12770,8 +12791,12 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
       }).then(function (res) {
         return res.json();
       }).then(function (data) {
-        return _this.setState({
-          stockDetail: data
+        var formattedData = _this.mapStockDetail(data, 'ticker');
+
+        var tableData = Object.entries(formattedData);
+
+        _this.setState({
+          stockDetail: tableData
         });
       }) // the data
       ["catch"](function (error) {
@@ -12827,7 +12852,7 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
         return res.json();
       }).then(function (data) {
         return _this.setState({
-          stockDetail: data,
+          stockDetail: [],
           tickerList: _this.extractSelection(tickerList, tickers),
           tickers: []
         });
@@ -12867,7 +12892,7 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
     value: function componentDidMount() {
       var _this2 = this;
 
-      fetch("/timeseries/alltimeseries").then(function (response) {
+      fetch('stocks/timeseries').then(function (response) {
         return response.json();
       }).then(function (data) {
         _this2.setState({
@@ -12919,40 +12944,38 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
         onClick: this.removeTicker
       }, " Remove from List")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
         className: "flex-right"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", {
-        "class": "tsTableElements",
-        id: "tsTable"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
-        "class": "tsTableElements"
-      }, "Ticker"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
-        "class": "tsTableElements"
-      }, "Date/Time"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
-        "class": "tsTableElements"
-      }, "Open Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
-        "class": "tsTableElements"
-      }, "Close Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
-        "class": "tsTableElements"
-      }, "Highest Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
-        "class": "tsTableElements"
-      }, "Lowest Price")), stockDetail && stockDetail.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tbody", null, stockDetail.map(function (stock) {
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", {
-          key: stock.id
-        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, title), stockDetail && stockDetail.length > 0 && stockDetail.map(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            key = _ref2[0],
+            value = _ref2[1];
+
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, key), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", {
+          "class": "tsTableElements",
+          id: "tsTable"
+        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
           "class": "tsTableElements"
-        }, stock.ticker), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+        }, "Date/Time"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
           "class": "tsTableElements"
-        }, stock.date), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+        }, "Open Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
           "class": "tsTableElements"
-        }, "$", stock.open), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+        }, "Close Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
           "class": "tsTableElements"
-        }, "$", stock.close), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+        }, "Highest Price"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
           "class": "tsTableElements"
-        }, "$", stock.high), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
-          "class": "tsTableElements"
-        }, "$", stock.low));
-      }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
-        id: "message"
-      }, message)));
+        }, "Lowest Price")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tbody", null, value && value.length > 0 && value.map(function (stock) {
+          return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+            "class": "tsTableElements"
+          }, stock.date), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+            "class": "tsTableElements"
+          }, "$", stock.open), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+            "class": "tsTableElements"
+          }, "$", stock.close), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+            "class": "tsTableElements"
+          }, "$", stock.high), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", {
+            "class": "tsTableElements"
+          }, "$", stock.low));
+        }))));
+      })));
     }
   }]);
 
