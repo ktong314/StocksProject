@@ -35,5 +35,10 @@ public class StockService {
 		}
 		return stockRepository.findAll();
 	}
+	
+	public List<StockObject> getStocks() {
+		
+		return stockRepository.findAll();
+	}
 		
 }

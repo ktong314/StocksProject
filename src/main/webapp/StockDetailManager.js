@@ -24,12 +24,12 @@ export default class StockDetailManager extends Component{
   }
 
   componentDidMount() {
-    fetch('stocks/timeseries')
+    fetch('stocks/alltickers')
     .then(response => response.json())
     .then(
       (data) => {
         this.setState({
-          stockDetail: data
+          tickerList: data
         })
       },
       (error) => {
@@ -55,7 +55,7 @@ export default class StockDetailManager extends Component{
     const tickerListUpdate = [...tickerList];
 
     if(index >= 0) {
-      tickerListUpdate[index].displayText = selectedOption ? selectedOption.value + " ("+selectedOption.label +")" : '';
+      tickerListUpdate[index].companyName = selectedOption ? selectedOption.label : '';
       this.setState({
         message: 'the selected ticker is already in the list',
         tickerList: tickerListUpdate,
@@ -66,7 +66,7 @@ export default class StockDetailManager extends Component{
     tickerList.push(
       {
         ticker: selectedOption ? selectedOption.value : '',
-        displayText: selectedOption ? selectedOption.value + " (" + selectedOption.label + ")" : ''
+        companyName: selectedOption ? selectedOption.label : ''
       }
     );
     this.setState({
@@ -118,17 +118,20 @@ export default class StockDetailManager extends Component{
 
   handleCheckboxChange = (e) => {
     const {id, checked} = e.target;
+    const company = id.split("-");
     const {tickers} = this.state;
+    let checkedTickers = [...tickers];
     if (checked) {
-      tickers.push(id);
+      checkedTickers.push({ticker: company[0], companyName: company[1]});
     } else {
-      tickers = tickers.filter(ticker => ticker !== id);
+      checkedTickers = tickers.filter(ticker => ticker.ticker !== company[0]);
     }
-    this.setState({
-      tickers,
-    })
 
+    this.setState({
+      tickers: checkedTickers,
+    });
   }
+
 
   removeTicker = () => {
     const{tickers, tickerList} = this.state;
@@ -160,7 +163,7 @@ export default class StockDetailManager extends Component{
       return completeArray;
     }
     return completeArray.filter(
-      arrayItem => !arrayToRemove.some(removeItem => removeItem === arrayItem.ticker),
+      arrayItem => !arrayToRemove.some(removeItem => removeItem.ticker === arrayItem.ticker),
     );
   };
 
@@ -179,27 +182,33 @@ export default class StockDetailManager extends Component{
               options = {availableTickers} 
             />
             {/* <input type = 'text' onChange = {this.handleTickerInput} value = {ticker} placeholder = "add ticker here"/> */}
-            <button type = 'button' onClick={this.handleAddTicker}> Add to Stock List </button>
-            <button type = 'button' onClick={this.getDetails}> Get Details </button>
+            <div >
+               <button className="button button-shadow"  onClick={this.handleAddTicker}> Add to Stock List </button>
+            </div>
             <h2>My Stock List</h2>
             <div className="inbox">
               {tickerList.map(
                 ticker=>
                   <div className="list-item">
-                    <input type = 'checkbox' id ={ticker.ticker} onClick={this.handleCheckboxChange}/>
-                    <p>{ticker.displayText}</p>
+                    <input type = 'checkbox' id ={ticker.ticker + '-' + ticker.companyName} onClick={this.handleCheckboxChange}/>
+                    <p>{ticker.ticker + ' (' + ticker.companyName + ')'}</p>
                   </div>
               )}
             </div>
-            <button type = 'button' onClick={this.removeTicker}> Remove from List</button>
+            
+            <div>
+              <button  className="button button-shadow" onClick={this.removeTicker}> Remove from List</button>
+              <button  className="button button-shadow" onClick={this.getDetails}> Get Details </button>
+            </div>
+            
           </div>
         <div className="flex-right">
           <h1>{title}</h1>
           
             {stockDetail && stockDetail.length > 0 &&
               stockDetail.map(([key, value]) =>
-                <div>
-                  <h2>{key}</h2>
+                <div className="table-container">
+                  <h2>{(value && value.length > 0 ? value[0].companyName : '') + ' - ' +  key}</h2>
                   <table class='tsTableElements' id="tsTable">
                     <thead>
                       <th class='tsTableElements'>Date/Time</th>

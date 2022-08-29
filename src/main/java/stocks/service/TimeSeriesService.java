@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import stocks.repository.StockRepository;
 import stocks.repository.TimeSeriesRepository;
 import stocks.domain.TimeSeries;
+import stocks.domainBean.StockObjectBean;
 import stocks.Main;
 import stocks.domain.Client;
 import stocks.domain.StockObject;
@@ -29,9 +30,9 @@ public class TimeSeriesService {
 		this.stockRepository = stockRepository;
 	}
 	
-	public void deleteTimeSeriesByStocks(String[] tickers) {
-		for(String ticker : tickers) {
-			StockObject stock = stockRepository.findByTicker(ticker);
+	public boolean deleteTimeSeriesByStocks(List<StockObjectBean> stocks) {
+		for(StockObjectBean currentstock : stocks) {
+			StockObject stock = stockRepository.findByTicker(currentstock.getTicker());
 			if(stock != null){
 				List<TimeSeries> ts = timeSeriesRepository.findByStock(stock);
 				for(TimeSeries timeSeries: ts) {
@@ -43,15 +44,16 @@ public class TimeSeriesService {
 			}
 			
 		}
+		return true;
 	}
 
-	public List<TimeSeries> fetchStocks(String[] tickers) throws Exception{
+	public List<TimeSeries> fetchStocks(List<StockObjectBean> stocks) throws Exception{
 		List<TimeSeries> result= new ArrayList<TimeSeries>();
 
-		List<TimeSeries> timeSeries = createTimeSeries(tickers);
-		for(String ticker : tickers){
-			StockObject stock = stockRepository.findByTicker(ticker);
-			if(stockRepository.findByTicker(ticker) != null){
+		List<TimeSeries> timeSeries = createTimeSeries(stocks);
+		for(StockObjectBean currentstock : stocks){
+			StockObject stock = stockRepository.findByTicker(currentstock.getTicker());
+			if(stock != null){
 				List<TimeSeries> ts = timeSeriesRepository.findByStock(stock);
 				result.addAll(ts);
 			}
@@ -60,17 +62,17 @@ public class TimeSeriesService {
 	}
 
 
-	public List<TimeSeries> createTimeSeries(String[] tickers) throws Exception{
+	public List<TimeSeries> createTimeSeries(List<StockObjectBean> stocks) throws Exception{
 
 		try {
 			int counter = 1; //NOPMD
-			for(String ticker : tickers){
-				StockObject stock = stockRepository.findByTicker(ticker);
+			for(StockObjectBean currentstock : stocks){
+				StockObject stock = stockRepository.findByTicker(currentstock.getTicker());
 				if(stock == null){
-					stock = stockRepository.save(new StockObject(ticker));
+					stock = stockRepository.save(new StockObject(currentstock.getTicker(), currentstock.getCompanyName()));
 				}
-	    		obtainTimeSeries(ticker, stock);
-	    		if(counter%4 == 0 && counter < tickers.length) {
+	    		obtainTimeSeries(stock.getTicker(), stock);
+	    		if(counter%4 == 0 && counter < stocks.size()) {
 					TimeUnit.MINUTES.sleep(1);
 				}
 	    		counter++;

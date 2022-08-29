@@ -12661,8 +12661,6 @@ function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Sy
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
-
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -12737,7 +12735,7 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
       var tickerListUpdate = _toConsumableArray(tickerList);
 
       if (index >= 0) {
-        tickerListUpdate[index].displayText = selectedOption ? selectedOption.value + " (" + selectedOption.label + ")" : '';
+        tickerListUpdate[index].companyName = selectedOption ? selectedOption.label : '';
 
         _this.setState({
           message: 'the selected ticker is already in the list',
@@ -12749,7 +12747,7 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
 
       tickerList.push({
         ticker: selectedOption ? selectedOption.value : '',
-        displayText: selectedOption ? selectedOption.value + " (" + selectedOption.label + ")" : ''
+        companyName: selectedOption ? selectedOption.label : ''
       });
 
       _this.setState({
@@ -12814,18 +12812,24 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
       var _e$target = e.target,
           id = _e$target.id,
           checked = _e$target.checked;
+      var company = id.split("-");
       var tickers = _this.state.tickers;
 
+      var checkedTickers = _toConsumableArray(tickers);
+
       if (checked) {
-        tickers.push(id);
+        checkedTickers.push({
+          ticker: company[0],
+          companyName: company[1]
+        });
       } else {
-        tickers.filter(function (ticker) {
-          return ticker !== id;
-        }), _readOnlyError("tickers");
+        checkedTickers = tickers.filter(function (ticker) {
+          return ticker.ticker !== company[0];
+        });
       }
 
       _this.setState({
-        tickers: tickers
+        tickers: checkedTickers
       });
     });
 
@@ -12869,7 +12873,7 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
 
       return completeArray.filter(function (arrayItem) {
         return !arrayToRemove.some(function (removeItem) {
-          return removeItem === arrayItem.ticker;
+          return removeItem.ticker === arrayItem.ticker;
         });
       });
     });
@@ -12892,11 +12896,11 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
     value: function componentDidMount() {
       var _this2 = this;
 
-      fetch('stocks/timeseries').then(function (response) {
+      fetch('stocks/alltickers').then(function (response) {
         return response.json();
       }).then(function (data) {
         _this2.setState({
-          stockDetail: data
+          tickerList: data
         });
       }, function (error) {});
     }
@@ -12923,33 +12927,35 @@ var StockDetailManager = /*#__PURE__*/function (_Component) {
         value: selectedOption //components = {{singleValue}} 
         ,
         options: availableTickers
-      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-        type: "button",
+      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+        className: "button button-shadow",
         onClick: this.handleAddTicker
-      }, " Add to Stock List "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-        type: "button",
-        onClick: this.getDetails
-      }, " Get Details "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "My Stock List"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      }, " Add to Stock List ")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "My Stock List"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
         className: "inbox"
       }, tickerList.map(function (ticker) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
           className: "list-item"
         }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
           type: "checkbox",
-          id: ticker.ticker,
+          id: ticker.ticker + '-' + ticker.companyName,
           onClick: _this3.handleCheckboxChange
-        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, ticker.displayText));
-      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-        type: "button",
+        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, ticker.ticker + ' (' + ticker.companyName + ')'));
+      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+        className: "button button-shadow",
         onClick: this.removeTicker
-      }, " Remove from List")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      }, " Remove from List"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+        className: "button button-shadow",
+        onClick: this.getDetails
+      }, " Get Details "))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
         className: "flex-right"
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, title), stockDetail && stockDetail.length > 0 && stockDetail.map(function (_ref) {
         var _ref2 = _slicedToArray(_ref, 2),
             key = _ref2[0],
             value = _ref2[1];
 
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, key), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+          className: "table-container"
+        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, (value && value.length > 0 ? value[0].companyName : '') + ' - ' + key), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", {
           "class": "tsTableElements",
           id: "tsTable"
         }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", {
@@ -13065,7 +13071,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "html, body{\r\n    opacity: 100%;\r\n    font-family: 'Times New Roman', Times, serif;\r\n}\r\n\r\n.flex-container {\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n    height: max-content;\r\n}\r\n\r\n.flex-left{\r\n    padding: 100px 10px;\r\n    background: #f7f7f7;\r\n    flex: 30%;\r\n    height: 100vh;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0, 3);\r\n}\r\n\r\n.flex-right{\r\n    padding: 100px 20px 20px 20px;\r\n    flex: 70%;\r\n    height: 100%;\r\n    background: azure;\r\n}\r\n\r\n#tickerlist {\r\n\r\n    text-align: center;\r\n    top: 157px;\r\n    height: auto;\r\n    width: auto;\r\n  }\r\n  \r\n  .tsTableElements:nth-child(odd) {\r\n    background-color: lightgreen;\r\n  }\r\n  .tsTableElements:nth-child(even) {\r\n    background-color: lightcoral;\r\n  }\r\n  \r\n  .tsTableElements {\r\n    border: 1px solid;\r\n    border-collapse: collapse;\r\n    text-align: center;\r\n  }\r\n  \r\n  #tsTable{\r\n    width: 100%;\r\n    text-align: center;\r\n  }\r\n\r\n  .inbox {\r\n    \r\n    margin: 30px 15px;\r\n    background: white;\r\n    border-radius: 5px;\r\n    box-shadow: 10px 10px 0 rgba(0,0,0,0.1);\r\n  }\r\n\r\n  .list-item {\r\n    display: flex;\r\n    align-items: center;\r\n    border-bottom: 1px solid #F1F1F1;\r\n    \r\n  }\r\n\r\n  .list-item:last-child {\r\n    border-bottom: 0;\r\n  }\r\n\r\n  input:checked + p {\r\n    background: #F9F9F9;\r\n    /* text-decoration: line-through; */\r\n  }\r\n\r\n  input[type=\"checkbox\"] {\r\n    margin: 20px;\r\n  }\r\n  ", "",{"version":3,"sources":["webpack://./src/main/webapp/StockDetailManager.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,4CAA4C;AAChD;;AAEA;IACI,aAAa;IACb,eAAe;IACf,mBAAmB;AACvB;;AAEA;IACI,mBAAmB;IACnB,mBAAmB;IACnB,SAAS;IACT,aAAa;IACb,2CAA2C;AAC/C;;AAEA;IACI,6BAA6B;IAC7B,SAAS;IACT,YAAY;IACZ,iBAAiB;AACrB;;AAEA;;IAEI,kBAAkB;IAClB,UAAU;IACV,YAAY;IACZ,WAAW;EACb;;EAEA;IACE,4BAA4B;EAC9B;EACA;IACE,4BAA4B;EAC9B;;EAEA;IACE,iBAAiB;IACjB,yBAAyB;IACzB,kBAAkB;EACpB;;EAEA;IACE,WAAW;IACX,kBAAkB;EACpB;;EAEA;;IAEE,iBAAiB;IACjB,iBAAiB;IACjB,kBAAkB;IAClB,uCAAuC;EACzC;;EAEA;IACE,aAAa;IACb,mBAAmB;IACnB,gCAAgC;;EAElC;;EAEA;IACE,gBAAgB;EAClB;;EAEA;IACE,mBAAmB;IACnB,mCAAmC;EACrC;;EAEA;IACE,YAAY;EACd","sourcesContent":["html, body{\r\n    opacity: 100%;\r\n    font-family: 'Times New Roman', Times, serif;\r\n}\r\n\r\n.flex-container {\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n    height: max-content;\r\n}\r\n\r\n.flex-left{\r\n    padding: 100px 10px;\r\n    background: #f7f7f7;\r\n    flex: 30%;\r\n    height: 100vh;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0, 3);\r\n}\r\n\r\n.flex-right{\r\n    padding: 100px 20px 20px 20px;\r\n    flex: 70%;\r\n    height: 100%;\r\n    background: azure;\r\n}\r\n\r\n#tickerlist {\r\n\r\n    text-align: center;\r\n    top: 157px;\r\n    height: auto;\r\n    width: auto;\r\n  }\r\n  \r\n  .tsTableElements:nth-child(odd) {\r\n    background-color: lightgreen;\r\n  }\r\n  .tsTableElements:nth-child(even) {\r\n    background-color: lightcoral;\r\n  }\r\n  \r\n  .tsTableElements {\r\n    border: 1px solid;\r\n    border-collapse: collapse;\r\n    text-align: center;\r\n  }\r\n  \r\n  #tsTable{\r\n    width: 100%;\r\n    text-align: center;\r\n  }\r\n\r\n  .inbox {\r\n    \r\n    margin: 30px 15px;\r\n    background: white;\r\n    border-radius: 5px;\r\n    box-shadow: 10px 10px 0 rgba(0,0,0,0.1);\r\n  }\r\n\r\n  .list-item {\r\n    display: flex;\r\n    align-items: center;\r\n    border-bottom: 1px solid #F1F1F1;\r\n    \r\n  }\r\n\r\n  .list-item:last-child {\r\n    border-bottom: 0;\r\n  }\r\n\r\n  input:checked + p {\r\n    background: #F9F9F9;\r\n    /* text-decoration: line-through; */\r\n  }\r\n\r\n  input[type=\"checkbox\"] {\r\n    margin: 20px;\r\n  }\r\n  "],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "html, body{\r\n    opacity: 100%;\r\n    font-family: 'Times New Roman', Times, serif;\r\n}\r\n\r\n.flex-container {\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n    height: max-content;\r\n}\r\n\r\n.flex-left{\r\n    padding: 100px 10px;\r\n    background: #f7f7f7;\r\n    flex: 30%;\r\n    height: 100vh;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0, 3);\r\n}\r\n\r\n.flex-right{\r\n    padding: 100px 20px 20px 20px;\r\n    flex: 70%;\r\n    height: 100%;\r\n    background: azure;\r\n}\r\n\r\n#tickerlist {\r\n\r\n    text-align: center;\r\n    top: 157px;\r\n    height: auto;\r\n    width: auto;\r\n  }\r\n  \r\n  .tsTableElements:nth-child(odd) {\r\n    background-color: lightgreen;\r\n  }\r\n  .tsTableElements:nth-child(even) {\r\n    background-color: lightcoral;\r\n  }\r\n  \r\n  .tsTableElements {\r\n    border: 1px solid;\r\n    border-collapse: collapse;\r\n    text-align: center;\r\n  }\r\n  \r\n  #tsTable{\r\n    width: 100%;\r\n    text-align: center;\r\n  }\r\n\r\n  .inbox {\r\n    \r\n    margin: 30px 15px;\r\n    background: white;\r\n    border-radius: 5px;\r\n    box-shadow: 10px 10px 0 rgba(0,0,0,0.1);\r\n  }\r\n\r\n  .list-item {\r\n    display: flex;\r\n    align-items: center;\r\n    border-bottom: 1px solid #F1F1F1;\r\n    \r\n  }\r\n\r\n  .list-item:last-child {\r\n    border-bottom: 0;\r\n  }\r\n\r\n  input:checked + p {\r\n    background: #F9F9F9;\r\n    /* text-decoration: line-through; */\r\n  }\r\n\r\n  input[type=\"checkbox\"] {\r\n    margin: 20px;\r\n  }\r\n\r\n  p {\r\n    margin: 0;\r\n    padding: 20px;\r\n    flex: 1;\r\n    font-weight: 200;\r\n    border-left: 1px solid #D1E2FF;\r\n   \r\n  }\r\n\r\n  .button {\r\n    background-color: #4CAF50; /* Green */\r\n    border: none;\r\n    color: white;\r\n    padding: 5px;\r\n    text-align: center;\r\n    text-decoration: none;\r\n    display: inline-block;\r\n    font-size: 16px;\r\n    margin: 15px 20px 20px 0;\r\n    cursor: pointer;\r\n    -webkit-transition-duration: 0.4s; /* Safari */\r\n    transition-duration: 0.4s;\r\n    border-radius: 4px;\r\n    height:40px;\r\n    width:140px;\r\n  }\r\n  \r\n  .button-shadow {\r\n    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);\r\n  }\r\n  \r\n  .button-shadow:hover {  \r\n    box-shadow: 0 12px 25px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);\r\n  }\r\n  ", "",{"version":3,"sources":["webpack://./src/main/webapp/StockDetailManager.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,4CAA4C;AAChD;;AAEA;IACI,aAAa;IACb,eAAe;IACf,mBAAmB;AACvB;;AAEA;IACI,mBAAmB;IACnB,mBAAmB;IACnB,SAAS;IACT,aAAa;IACb,2CAA2C;AAC/C;;AAEA;IACI,6BAA6B;IAC7B,SAAS;IACT,YAAY;IACZ,iBAAiB;AACrB;;AAEA;;IAEI,kBAAkB;IAClB,UAAU;IACV,YAAY;IACZ,WAAW;EACb;;EAEA;IACE,4BAA4B;EAC9B;EACA;IACE,4BAA4B;EAC9B;;EAEA;IACE,iBAAiB;IACjB,yBAAyB;IACzB,kBAAkB;EACpB;;EAEA;IACE,WAAW;IACX,kBAAkB;EACpB;;EAEA;;IAEE,iBAAiB;IACjB,iBAAiB;IACjB,kBAAkB;IAClB,uCAAuC;EACzC;;EAEA;IACE,aAAa;IACb,mBAAmB;IACnB,gCAAgC;;EAElC;;EAEA;IACE,gBAAgB;EAClB;;EAEA;IACE,mBAAmB;IACnB,mCAAmC;EACrC;;EAEA;IACE,YAAY;EACd;;EAEA;IACE,SAAS;IACT,aAAa;IACb,OAAO;IACP,gBAAgB;IAChB,8BAA8B;;EAEhC;;EAEA;IACE,yBAAyB,EAAE,UAAU;IACrC,YAAY;IACZ,YAAY;IACZ,YAAY;IACZ,kBAAkB;IAClB,qBAAqB;IACrB,qBAAqB;IACrB,eAAe;IACf,wBAAwB;IACxB,eAAe;IACf,iCAAiC,EAAE,WAAW;IAC9C,yBAAyB;IACzB,kBAAkB;IAClB,WAAW;IACX,WAAW;EACb;;EAEA;IACE,uEAAuE;EACzE;;EAEA;IACE,yEAAyE;EAC3E","sourcesContent":["html, body{\r\n    opacity: 100%;\r\n    font-family: 'Times New Roman', Times, serif;\r\n}\r\n\r\n.flex-container {\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n    height: max-content;\r\n}\r\n\r\n.flex-left{\r\n    padding: 100px 10px;\r\n    background: #f7f7f7;\r\n    flex: 30%;\r\n    height: 100vh;\r\n    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0, 3);\r\n}\r\n\r\n.flex-right{\r\n    padding: 100px 20px 20px 20px;\r\n    flex: 70%;\r\n    height: 100%;\r\n    background: azure;\r\n}\r\n\r\n#tickerlist {\r\n\r\n    text-align: center;\r\n    top: 157px;\r\n    height: auto;\r\n    width: auto;\r\n  }\r\n  \r\n  .tsTableElements:nth-child(odd) {\r\n    background-color: lightgreen;\r\n  }\r\n  .tsTableElements:nth-child(even) {\r\n    background-color: lightcoral;\r\n  }\r\n  \r\n  .tsTableElements {\r\n    border: 1px solid;\r\n    border-collapse: collapse;\r\n    text-align: center;\r\n  }\r\n  \r\n  #tsTable{\r\n    width: 100%;\r\n    text-align: center;\r\n  }\r\n\r\n  .inbox {\r\n    \r\n    margin: 30px 15px;\r\n    background: white;\r\n    border-radius: 5px;\r\n    box-shadow: 10px 10px 0 rgba(0,0,0,0.1);\r\n  }\r\n\r\n  .list-item {\r\n    display: flex;\r\n    align-items: center;\r\n    border-bottom: 1px solid #F1F1F1;\r\n    \r\n  }\r\n\r\n  .list-item:last-child {\r\n    border-bottom: 0;\r\n  }\r\n\r\n  input:checked + p {\r\n    background: #F9F9F9;\r\n    /* text-decoration: line-through; */\r\n  }\r\n\r\n  input[type=\"checkbox\"] {\r\n    margin: 20px;\r\n  }\r\n\r\n  p {\r\n    margin: 0;\r\n    padding: 20px;\r\n    flex: 1;\r\n    font-weight: 200;\r\n    border-left: 1px solid #D1E2FF;\r\n   \r\n  }\r\n\r\n  .button {\r\n    background-color: #4CAF50; /* Green */\r\n    border: none;\r\n    color: white;\r\n    padding: 5px;\r\n    text-align: center;\r\n    text-decoration: none;\r\n    display: inline-block;\r\n    font-size: 16px;\r\n    margin: 15px 20px 20px 0;\r\n    cursor: pointer;\r\n    -webkit-transition-duration: 0.4s; /* Safari */\r\n    transition-duration: 0.4s;\r\n    border-radius: 4px;\r\n    height:40px;\r\n    width:140px;\r\n  }\r\n  \r\n  .button-shadow {\r\n    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);\r\n  }\r\n  \r\n  .button-shadow:hover {  \r\n    box-shadow: 0 12px 25px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);\r\n  }\r\n  "],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

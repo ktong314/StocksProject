@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import stocks.domain.TimeSeries;
+import stocks.domainBean.StockObjectBean;
 import stocks.domainBean.TimeSeriesBean;
 import stocks.repository.ProductRepository;
 import stocks.repository.StockRepository;
@@ -34,11 +35,11 @@ public class TimeSeriesController {
 	}
 
 	@PostMapping("/timeseries")
-	public List<TimeSeriesBean> getTimeSeries(@RequestBody String[] tickers) throws Exception{
+	public List<TimeSeriesBean> getTimeSeries(@RequestBody List<StockObjectBean> stocks) throws Exception{
 
 
 		List<TimeSeriesBean> timeSeriesList = new ArrayList<>();
-		List<TimeSeries> allTimeSeries = timeSeriesService.fetchStocks(tickers);
+		List<TimeSeries> allTimeSeries = timeSeriesService.fetchStocks(stocks);
 
 		for(TimeSeries timeSeries : allTimeSeries) {
 			TimeSeriesBean timeSeriesBean = new TimeSeriesBean();
@@ -49,14 +50,15 @@ public class TimeSeriesController {
 			timeSeriesBean.setClose(timeSeries.getclosePrice());
 			timeSeriesBean.setHigh(timeSeries.gethighPrice());
 			timeSeriesBean.setLow(timeSeries.getlowPrice());
+			timeSeriesBean.setCompanyName(timeSeries.getStock().getCompanyName());
 			timeSeriesList.add(timeSeriesBean);
 		}
 		return timeSeriesList;
 	}
 	
 	@DeleteMapping("/timeseries")
-	public void deleteTimeSeriesByTickers(@RequestBody String[] tickers) {
-		timeSeriesService.deleteTimeSeriesByStocks(tickers);
+	public boolean deleteTimeSeriesByTickers(@RequestBody List<StockObjectBean> stocks) {
+		return timeSeriesService.deleteTimeSeriesByStocks(stocks);
 	}
 	
 	

@@ -34,6 +34,8 @@ public class StockObject {
 	private String ticker;
 	//private double dividend;
 	
+	private String companyName;
+	
 	private ArrayList<TimeSeries> timeSeries;
 	
 	public StockObject() {}
@@ -45,6 +47,11 @@ public class StockObject {
 	 */
 	public StockObject (String ticker) {
 		this.ticker = ticker;
+	}
+	
+	public StockObject (String ticker, String companyName) {
+		this.ticker = ticker;
+		this.companyName = companyName;
 	}
 	
 	/**
@@ -102,5 +109,13 @@ public class StockObject {
 	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	public void setTimeSeries(ArrayList<TimeSeries> tsData) {
 		this.timeSeries = tsData;
+	}
+	
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
 	}
 }

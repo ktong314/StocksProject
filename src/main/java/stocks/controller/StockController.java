@@ -2,6 +2,7 @@ package stocks.controller;
 
 import org.springframework.http.MediaType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import stocks.domain.Product;
 import stocks.domain.StockObject;
 import stocks.domain.TimeSeries;
+import stocks.domainBean.StockObjectBean;
 import stocks.repository.ProductRepository;
 import stocks.repository.StockRepository;
 import stocks.repository.TimeSeriesRepository;
@@ -55,6 +57,26 @@ public class StockController {
 	@DeleteMapping("/deletestocks")
 	public List<StockObject> deleteStocks(@RequestBody String[] tickers) {
 		return stockService.deleteStocks(tickers);
+		
+	}
+	
+	@GetMapping("/alltickers")
+	public List<StockObjectBean> getTickers(){
+		ArrayList<StockObjectBean> stockList = new ArrayList<>();
+		List<StockObject> tickers = stockService.getStocks();
+		//List<TimeSeries> tsList = timeSeriesRepository.findAll();
+		
+		for (StockObject ticker : tickers) {
+			StockObjectBean stockBean = new StockObjectBean();
+			  stockBean.setId(ticker.getId());
+			  stockBean.setTicker(ticker.getTicker());
+			  stockBean.setCompanyName(ticker.getCompanyName());
+			 
+			  stockList.add(stockBean);
+	       	 
+			}
+		
+		return stockList;
 		
 	}
 	
