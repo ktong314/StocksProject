@@ -2,6 +2,7 @@ package stocks.domain;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -32,6 +33,9 @@ public class TimeSeries{
 	private double closePrice;
 	private double highPrice;
 	private double lowPrice;
+	
+	@Column(nullable = true)
+	private Double changes;
 	
 	
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -137,5 +141,13 @@ public class TimeSeries{
 				"closePrice: " + this.closePrice + ", " +
 				"highPrice: " + this.highPrice + ", " +
 				"lowPrice: " + this.lowPrice + "\n";
+	}
+	
+	public void setChanges(Double changes) {
+		this.changes = changes;
+	}
+	
+	public Double getChanges() {
+		return changes;
 	}
 }

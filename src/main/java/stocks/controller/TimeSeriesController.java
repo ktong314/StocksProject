@@ -51,6 +51,7 @@ public class TimeSeriesController {
 			timeSeriesBean.setHigh(timeSeries.gethighPrice());
 			timeSeriesBean.setLow(timeSeries.getlowPrice());
 			timeSeriesBean.setCompanyName(timeSeries.getStock().getCompanyName());
+			timeSeriesBean.setChanges(timeSeries.getChanges().doubleValue());
 			timeSeriesList.add(timeSeriesBean);
 		}
 		return timeSeriesList;

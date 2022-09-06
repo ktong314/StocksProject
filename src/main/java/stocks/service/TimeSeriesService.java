@@ -111,12 +111,18 @@ public class TimeSeriesService {
         
         JSONObject json = (JSONObject) parser.parse(responseData.toString());
         JSONArray values = (JSONArray) json.get("values");
-        for(int i = 0; i < values.size(); i++) {
+        double previousClosePrice = 0;
+        for(int i = values.size() - 1; i >= 0; i--) {
         	JSONObject currentvalue = (JSONObject) values.get(i);
         	TimeSeries tsValue = new TimeSeries((String)currentvalue.get("datetime"), Double.parseDouble((String)currentvalue.get("open")), 
         			Double.parseDouble((String)currentvalue.get("close")), Double.parseDouble((String)currentvalue.get("high")), 
         			Double.parseDouble((String)currentvalue.get("low")), currentStock);
+        	
+        	double changes = previousClosePrice != 0 ? (tsValue.getclosePrice() - previousClosePrice)/previousClosePrice : 0;
+        	tsValue.setChanges(Double.parseDouble(String.format("%.4f", changes)));
+        	previousClosePrice = tsValue.getclosePrice();
         	timeSeriesRepository.save(tsValue);
+        	
         }
         
        

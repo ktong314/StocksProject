@@ -9,6 +9,7 @@ public class TimeSeriesBean {
 	private double high;
 	private double low;
 	private String companyName;
+	private double changes;
 	
 	public void setId(long id) {
 		this.id = id;
@@ -71,5 +72,13 @@ public class TimeSeriesBean {
 	}
 	public void setCompanyName(String companyName) {
 		this.companyName = companyName;
+	}
+	
+	public void setChanges(double changes) {
+		this.changes = changes;
+	}
+	
+	public double getChanges() {
+		return changes;
 	}
 }

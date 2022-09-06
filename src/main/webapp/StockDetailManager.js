@@ -209,22 +209,27 @@ export default class StockDetailManager extends Component{
               stockDetail.map(([key, value]) =>
                 <div className="table-container">
                   <h2>{(value && value.length > 0 ? value[0].companyName : '') + ' - ' +  key}</h2>
-                  <table class='tsTableElements' id="tsTable">
+                  <table class='stock-table' id="tsTable">
                     <thead>
-                      <th class='tsTableElements'>Date/Time</th>
-                      <th class='tsTableElements'>Open Price</th>
-                      <th class='tsTableElements'>Close Price</th>
-                      <th class='tsTableElements'>Highest Price</th>
-                      <th class='tsTableElements'>Lowest Price</th>
+                      <th>Date/Time</th>
+                      <th>Open Price</th>
+                      <th>Close Price</th>
+                      <th>Highest Price</th>
+                      <th>Lowest Price</th>
+                      <th>Changes</th>
                     </thead>
                     <tbody>
                       {value && value.length > 0 && value.map(stock =>
                       <tr>
-                        <td class='tsTableElements'>{stock.date}</td>
-                        <td class='tsTableElements'>${stock.open}</td>
-                        <td class='tsTableElements'>${stock.close}</td>
-                        <td class='tsTableElements'>${stock.high}</td>
-                        <td class='tsTableElements'>${stock.low}</td>
+                        <td>{stock.date}</td>
+                        <td>${stock.open}</td>
+                        <td>${stock.close}</td>
+                        <td>${stock.high}</td>
+                        <td>${stock.low}</td>
+                        {stock.changes > 0 && <td> <i className='arrow-up'></i> {'  ' + stock.changes + '%'} </td> }
+                        {stock.changes < 0 && <td> <i className='arrow-down'></i> {'  ' + stock.changes + '%'} </td> }
+                        {stock.changes === 0 && <td>N/A</td> }
+
                       </tr>)}
                     </tbody>
                     
